@@ -2,25 +2,24 @@
 
 ## Introduction
 
-The intake-and-triage feature is the core user-facing flow of Haunted House Inspector. A homeowner uploads up to 5 photos or one short video (≤60 s) of a home problem, answers 3 context questions, and receives a structured AI-powered diagnosis. Video frame extraction happens client-side before upload. A server-side rules-based safety layer unconditionally overrides the AI result for four emergency trigger conditions. Results include the likely issue, trade required, urgency level, confidence level, rough cost range, and a copyable job brief. Guest users may complete one inspection without signing in; results are not persisted for guests.
+The intake-and-triage feature is the core user-facing flow of Haunted House Inspector. A homeowner uploads up to 5 photos or one short video (≤30 s) of a home problem, answers 3 context questions, and receives a structured AI-powered diagnosis. Video frame extraction happens client-side before upload. A server-side rules-based safety layer always evaluates the homeowner's context answers for emergency trigger conditions, regardless of whether the Bedrock call succeeds or fails, and unconditionally overrides the AI result when a trigger is detected. Results include the likely issue, trade required, urgency level, confidence level, rough cost range, and a copyable job brief. Every job gets a random unguessable UUID; the job link is the only way to view the result. No accounts or sign-in are required.
 
 ## Glossary
 
 - **App**: The Haunted House Inspector Next.js web application.
 - **User**: A homeowner or renter interacting with the App; assumed to have no trade knowledge.
-- **Guest_User**: A User who has not authenticated via Amplify Auth / Cognito.
-- **Authenticated_User**: A User who has signed in via Amplify Auth / Cognito.
+- **Visitor**: A person using the App without an account; identified by session cookie for rate-limiting purposes.
 - **Submission**: A single inspection request comprising media files and context answers submitted by the User.
 - **Media**: One or more image files (JPEG, PNG, WebP) or one MP4/WebM video file uploaded as part of a Submission.
 - **Frame_Extractor**: The client-side browser component that extracts still frames from a video before upload.
 - **Context_Form**: The UI component that presents the three context questions to the User.
 - **Upload_Handler**: The client-side component responsible for obtaining pre-signed S3 URLs and uploading Media.
 - **Inspect_API**: The Next.js Route Handler at `POST /api/inspect` that orchestrates Bedrock analysis and returns inspection results.
-- **Safety_Layer**: The server-side code module that evaluates Submission text and Bedrock output for emergency trigger conditions and overrides urgency and content accordingly.
+- **Safety_Layer**: The server-side code module that always evaluates the homeowner's context answers for Emergency_Trigger conditions on every request, and additionally evaluates Bedrock output when available. Detects Emergency_Trigger conditions and overrides urgency and content accordingly; runs regardless of whether the Bedrock call succeeds, fails, or times out.
 - **Bedrock_Client**: The server-side AWS SDK wrapper in `lib/aws/bedrock.ts` that invokes the Amazon Bedrock vision model.
 - **Inspection_Result**: The structured object returned to the client containing likely issue, trade, urgency, confidence, cost range, job brief, and follow-up questions.
 - **Results_Page**: The page at `/inspect/[id]` that displays the Inspection_Result to the User.
-- **DynamoDB_Store**: The server-side module in `lib/aws/dynamodb.ts` that persists Inspection_Results for Authenticated_Users.
+- **DynamoDB_Store**: The server-side module in `lib/aws/dynamodb.ts` that persists Inspection_Results for every job.
 - **S3_Store**: The private Amazon S3 bucket where uploaded Media is stored.
 - **Urgency_Level**: One of four values: `emergency`, `urgent` (act today), `soon` (within a week), or `monitor` (keep an eye on it).
 - **Emergency_Trigger**: Any of the four conditions (gas smell, sparks/burning/scorch marks, flooding near electrics, CO alarm) that activate the Safety_Layer override.
@@ -39,11 +38,11 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 1. THE App SHALL reject any file whose type is not JPEG, PNG, WebP (images) or MP4, WebM (video) and SHALL display a message listing the accepted formats.
 2. WHEN a User selects more than 5 image files in a single Submission, THE App SHALL reject the excess files and display a message stating the maximum is 5 photos per submission.
 3. WHEN a User selects both image files and a video file in the same Submission, THE App SHALL reject the combination and display a message stating the User must submit either photos or one video, not both.
-4. WHEN a User selects a video file whose duration exceeds 60 seconds, THE App SHALL reject the file and display a message stating the maximum video length is 60 seconds.
+4. WHEN a User selects a video file whose duration exceeds 30 seconds, THE App SHALL reject the file and display a message stating the maximum video length is 30 seconds.
 5. WHEN a User selects a valid Submission, THE App SHALL display a summary of the selected files (file names and count), and SHALL require at least 1 file to be selected before the submit action is available.
 6. THE App SHALL support drag-and-drop and file-picker upload interactions on the upload page.
 7. WHEN a User selects more than 1 video file in a single Submission, THE App SHALL reject the excess video files and display a message stating only one video may be submitted.
-8. THE App SHALL reject any single image file exceeding 20 MB and any single video file exceeding 500 MB, and SHALL display a message identifying the file and the applicable size limit.
+8. THE App SHALL reject any single image file exceeding 10 MB and SHALL display a message identifying the file and the applicable size limit.
 
 ---
 
@@ -73,7 +72,8 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 4. WHEN frame extraction fails due to an unsupported format, excessive file size, or exceeded duration, THE App SHALL display an error message identifying which constraint was not met.
 5. WHEN frame extraction fails due to a processing error, THE App SHALL display an error message and offer two actions: retry extraction on the same file, or switch to photo upload.
 6. WHEN the selected video is shorter than 3 seconds, THE Frame_Extractor SHALL extract all available whole-second frames rather than evenly spaced frames, and SHALL proceed if at least 1 frame is extracted.
-7. THE Frame_Extractor SHALL complete extraction within 15 seconds using only browser-native APIs; IF extraction has not completed within 15 seconds, THE App SHALL abort extraction and display an error message.
+7. THE Frame_Extractor SHALL complete extraction within 15 seconds using only browser-native APIs (HTML video element and canvas); IF extraction has not completed within 15 seconds, THE App SHALL abort extraction and display an error message.
+8. THE Frame_Extractor SHALL enforce a maximum video duration of 30 seconds; WHEN the selected video exceeds 30 seconds, THE App SHALL reject it and display a message stating the maximum video length is 30 seconds.
 
 ---
 
@@ -84,7 +84,7 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 #### Acceptance Criteria
 
 1. WHEN the Upload_Handler requires an upload URL, THE App SHALL request a pre-signed S3 PUT URL from `GET /api/upload-url`, supplying the file name and MIME type as query parameters, before uploading each file.
-2. THE `upload-url` Route Handler SHALL generate pre-signed S3 PUT URLs server-side using credentials from environment variables, with a URL expiry of no more than 15 minutes, and SHALL NOT expose AWS credentials to the browser.
+2. THE `upload-url` Route Handler SHALL generate pre-signed S3 PUT URLs server-side using the AWS region from the `APP_AWS_REGION` environment variable, with a URL expiry of no more than 15 minutes, and SHALL NOT expose AWS credentials to the browser.
 3. IF the request to `GET /api/upload-url` returns an error, THEN THE Upload_Handler SHALL display an error message indicating the upload cannot proceed and SHALL NOT attempt to upload the file directly.
 4. THE S3_Store SHALL be configured as a private bucket; all access SHALL be via pre-signed URLs only.
 5. IF the S3 PUT request using the pre-signed URL returns an error, THEN THE Upload_Handler SHALL display an error message indicating the upload failed and SHALL offer the User the option to retry.
@@ -111,13 +111,15 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 
 #### Acceptance Criteria
 
-1. WHEN the Inspect_API receives a completed inspection request, THE Safety_Layer SHALL evaluate the following inputs for Emergency_Trigger conditions before constructing the Inspection_Result: (a) each of the three Context_Form answer fields individually, and (b) the full text of the Bedrock_Client output.
+1. WHEN the Inspect_API receives a completed inspection request, THE Safety_Layer SHALL always evaluate the three Context_Form answer fields individually for Emergency_Trigger conditions, regardless of whether the Bedrock_Client call succeeds, fails, or times out.
 2. THE Safety_Layer SHALL treat each of the following as an Emergency_Trigger condition, matched case-insensitively as a substring within any evaluated input: (a) 'gas smell' or 'rotten egg'; (b) 'sparks', 'burning smell', or 'scorch marks' appearing in proximity to 'outlet', 'panel', or 'appliance'; (c) 'water' appearing in proximity to 'electrical outlet', 'panel', or 'appliance' and accompanied by 'flood' or 'flooding'; (d) 'carbon monoxide alarm'.
 3. WHEN any Emergency_Trigger condition is detected, THE Safety_Layer SHALL set the Urgency_Level to `emergency` regardless of the Bedrock_Client output.
 4. WHILE the Urgency_Level is `emergency`, THE App SHALL display exactly the following message: "This may be dangerous. Get everyone to safety and call 911. For a gas smell, leave the home first, then call 911 or your gas utility from outside."
 5. WHILE the Urgency_Level is `emergency`, THE App SHALL suppress and not display any of the following fields: do-it-yourself steps, remediation instructions, cost range, and job brief.
 6. THE Safety_Layer SHALL be implemented as server-side code in the Inspect_API and SHALL NOT rely on the Bedrock_Client to detect or communicate Emergency_Trigger conditions.
 7. WHEN the Urgency_Level is `emergency`, THE App SHALL apply the override before any Inspection_Result data is returned to the browser.
+8. WHEN the Bedrock_Client call fails or times out AND the Safety_Layer detects no Emergency_Trigger condition in the context answers, THE Inspect_API SHALL return an error response to the client with a plain-language message stating 'We couldn't analyse your photos. Please try again.' and SHALL NOT return a partial Inspection_Result.
+9. WHEN the Bedrock_Client call fails or times out AND the Safety_Layer detects an Emergency_Trigger condition in the context answers, THE Inspect_API SHALL return an Inspection_Result with urgency set to 'emergency' and SHALL display the emergency message, regardless of the Bedrock failure.
 
 ---
 
@@ -139,7 +141,7 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 #### Acceptance Criteria
 
 1. WHEN all Media has been uploaded to S3_Store and the Context_Form answers have been received, THE Inspect_API SHALL invoke the Bedrock_Client with the uploaded images and the context answers.
-2. THE Bedrock_Client SHALL use the model identified by the `BEDROCK_MODEL_ID` environment variable, defaulting to Claude 3 Sonnet if the variable is not set.
+2. THE Bedrock_Client SHALL use the model identified by the `BEDROCK_MODEL_ID` environment variable; the default model is Amazon Nova Lite, using the cross-region inference profile ID (prefixed with `us.`) for on-demand calls in us-east-2 if the variable is not set.
 3. THE Bedrock_Client SHALL request a structured JSON response from the model containing: `likelyIssue` (string, max 500 characters), `trade` (string, max 100 characters), `urgency` (one of `urgent`, `soon`, `monitor`), `confidence` (number between 0 and 1 inclusive), `costRangeLow` (number, 0–999999), `costRangeHigh` (number, 0–999999, must be ≥ costRangeLow), `jobBrief` (string, max 1000 characters), and `followUpQuestions` (array of exactly 2 strings, each max 200 characters).
 4. WHEN the Bedrock_Client receives a response, THE Inspect_API SHALL validate it against a Zod schema before passing it to the Safety_Layer.
 5. IF the Bedrock_Client response fails Zod validation, THEN THE Inspect_API SHALL return an HTTP 502 error to the client with a message indicating analysis failed and the User should try again.
@@ -177,16 +179,17 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 
 ---
 
-### Requirement 11: Guest User Flow
+### Requirement 11: Per-Visitor Inspection Rate Limit
 
-**User Story:** As a Guest_User, I want to run one inspection without creating an account, so that I can evaluate the App before committing to sign-up.
+**User Story:** As a Visitor, I want to understand when I have reached the daily usage limit, so that I know why I cannot start a new inspection and what to do next.
 
 #### Acceptance Criteria
 
-1. THE App SHALL allow a Guest_User to complete one full inspection (upload, analysis, and results) without requiring authentication.
-2. WHEN a Guest_User's Inspection_Result is returned, THE DynamoDB_Store SHALL NOT persist the result.
-3. WHEN a Guest_User views the Results_Page, THE App SHALL display a persistent notice stating that the result is not saved and will be lost when the User navigates away.
-4. WHERE a User is authenticated as an Authenticated_User, THE DynamoDB_Store SHALL persist the Inspection_Result and associate it with the User's identity.
+1. THE App SHALL permit each Visitor a maximum of 5 inspections per calendar day; WHEN the Visitor has reached this limit, THE App SHALL display a friendly message stating that the daily limit has been reached and inviting the Visitor to return tomorrow.
+2. WHEN a Visitor attempts to start a new inspection after reaching the daily limit, THE App SHALL prevent the Submission from being sent and SHALL display the limit-reached message without returning an error to the console.
+3. THE App SHALL track the per-Visitor inspection count using a session cookie or, where a session cookie is unavailable, by IP address; the tracking mechanism SHALL be an implementation detail resolved in the design phase.
+4. IF a Visitor's session cookie is cleared or absent, THE App SHALL apply the rate limit based on the available identifier (IP address) rather than blocking all access.
+5. THE App SHALL display the limit-reached message in plain language at or below an 8th-grade reading level, with no technical jargon.
 
 ---
 
@@ -211,3 +214,17 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 2. THE App SHALL deserialise the JSON representation of an Inspection_Result back into a typed object for display.
 3. FOR ALL Inspection_Result objects that pass schema validation, serialising then deserialising SHALL produce an object in which every field value and type is identical to the original.
 4. WHEN deserialisation of a stored Inspection_Result fails schema validation, THE App SHALL display an error message indicating that the result could not be loaded, rather than display a partially populated Results_Page.
+
+---
+
+### Requirement 14: Job Persistence and Retrieval
+
+**User Story:** As a Visitor, I want to view my inspection result via its unique link, so that I can return to the result without needing an account.
+
+#### Acceptance Criteria
+
+1. WHEN the Inspect_API produces an Inspection_Result, THE DynamoDB_Store SHALL persist the result associated with a randomly generated, unguessable UUID job identifier.
+2. THE App SHALL construct the Results_Page URL using the job UUID in the format `/inspect/[id]`, and SHALL return this URL to the browser upon successful analysis.
+3. WHEN a User navigates to `/inspect/[id]`, THE App SHALL retrieve the Inspection_Result from the DynamoDB_Store using the job UUID and display it on the Results_Page.
+4. IF no Inspection_Result exists for the supplied job UUID, THEN THE App SHALL display a message stating the result could not be found and offer the User the option to start a new inspection.
+5. THE App SHALL NOT require any authentication or account creation to create, store, or retrieve an Inspection_Result.

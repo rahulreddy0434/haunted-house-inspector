@@ -1,0 +1,13 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Update build log",
+      "trigger": "UserPromptSubmit",
+      "action": {
+        "type": "agent",
+        "prompt": "You are updating BUILD_LOG.md for the Haunted House Inspector project.\n\nONLY run this logic when the user's message is exactly (or very close to) \"Update build log\". If the message is anything else, do nothing and let the normal agent handle it.\n\nWhen triggered, follow these steps exactly:\n\n1. Run `git diff HEAD --name-only` and `git diff HEAD --stat` to see what changed since the last commit. Also run `git log --oneline -5` for recent commit context.\n2. Read the files listed in `.kiro/specs/` (recursively) and `.kiro/steering/` to understand the current state of requirements, design, tasks, and steering rules.\n3. Read the current `BUILD_LOG.md` to learn the existing format and see the last entry.\n4. Today's date is available from the system. Format it as \"Nov D, YYYY\" (e.g. \"Nov 4, 2026\"). Do NOT reuse the date from the last entry — use the actual current date.\n5. Check whether a section for today's date already exists in BUILD_LOG.md.\n   - If it does: UPDATE that section in place (add to or revise the bullets) without touching any other section.\n   - If it does not: APPEND a new section at the bottom, replacing the \"## Next:\" line if one exists — move its content into the new entry's **Next** field and write a fresh **Next** based on what you see in the task lists.\n6. Write the section using this exact structure (copy the heading style from earlier entries):\n\n```\n## [Date] ([brief step label])\n\n**Done**\n- [short factual bullet per completed item]\n\n**Kiro features used**\n- [which Kiro features — steering, spec, vibe chat, hooks, etc. — and how]\n\n**Problems and fixes**\n- [any blockers, errors, or workarounds; write \"None\" if there were none]\n\n**Next**\n- [1–4 short bullets on what comes next based on open tasks in the specs]\n```\n\nRules:\n- Keep every bullet to one line, plain English, no jargon.\n- Never delete or rewrite entries from earlier dates.\n- Do not add a \"Next:\" standalone section after the new entry — it belongs inside the entry as **Next**.\n- Label cost estimates as \"rough range, not a quote\" if any appear.\n- Do not hallucinate changes — only report what the git diff and file contents actually show."
+      }
+    }
+  ]
+}

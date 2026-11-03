@@ -2,7 +2,7 @@
 
 ## Overview
 
-The intake-and-triage feature is the end-to-end core flow of Haunted House Inspector. A homeowner uploads up to 5 photos or one short video (≤60 s) of a home problem, answers three context questions, and receives an AI-powered structured diagnosis. Video files are never sent to the server — a client-side Frame Extractor pulls 3–5 still frames using browser-native APIs before upload. A server-side Safety Layer applies deterministic, code-driven overrides for four life-threatening emergency conditions, unconditionally superseding any AI output. The results page displays all diagnosis fields with urgency badges, tilde-prefixed confidence, and a clipboard-ready job brief.
+The intake-and-triage feature is the end-to-end core flow of Haunted House Inspector. A homeowner uploads up to 5 photos or one short video (≤30 s) of a home problem, answers three context questions, and receives an AI-powered structured diagnosis. Video files are never sent to the server — a client-side Frame Extractor pulls 3–5 still frames using browser-native APIs before upload. A server-side Safety Layer **always** evaluates the homeowner's context answers for emergency trigger conditions on every request — even when the Bedrock call fails or times out. It additionally evaluates Bedrock output when the call succeeds. An emergency detected in the context answers is returned immediately; a Bedrock failure with no safety trigger returns a friendly retry message. Every job is identified by a random, unguessable UUID; the job link `/inspect/[id]` is the only access mechanism — no accounts or sign-in are required. The results page displays all diagnosis fields with urgency badges, tilde-prefixed confidence, and a clipboard-ready job brief.
 
 The feature spans four concerns:
 
@@ -35,16 +35,20 @@ Browser (Client Components)
   │
   └─ POST /api/inspect  { s3Keys[], answers }
        │
-       ├─ Safety Layer (pre-check on context answers)
+       ├─ Rate Limiter (cookie/IP — reject with 429 if ≥ 5/day)
        │
-       ├─ Bedrock_Client  ──── Claude vision model
-       │   └─ structured JSON response
+       ├─ Safety Layer (context-answer check — always runs first)
+       │   └─ Emergency detected? → return emergency result immediately (skip Bedrock)
        │
-       ├─ Zod validation of Bedrock response
+       ├─ Bedrock_Client  ──── Amazon Nova Lite vision model
+       │   ├─ Success: structured JSON response
+       │   └─ Failure/timeout: Safety Layer already ran; return friendly error if no trigger fired
        │
-       ├─ Safety Layer (post-check on Bedrock output + merge with pre-check)
+       ├─ Zod validation of Bedrock response (only on success path)
        │
-       ├─ DynamoDB persistence (authenticated users only)
+       ├─ Safety Layer (post-Bedrock merge: re-evaluate with Bedrock output added)
+       │
+       ├─ DynamoDB persistence (every job, no auth check)
        │
        └─ InspectionResult  ──── returned to browser
             │
@@ -57,9 +61,10 @@ Browser (Client Components)
 |---|---|---|
 | Client Components | `src/components/upload/`, `src/components/results/` | No AWS SDK imports; communicate via Route Handlers only |
 | Custom hooks | `src/hooks/useUpload.ts`, `src/hooks/useInspection.ts` | Client-side only; orchestrate API calls and local state |
-| Route Handlers | `src/app/api/upload-url/route.ts`, `src/app/api/inspect/route.ts` | Server-side only; guarded with `server-only` package |
+| Route Handlers | `src/app/api/upload-url/route.ts`, `src/app/api/inspect/route.ts`, `src/app/api/inspections/[id]/route.ts` | Server-side only; guarded with `server-only` package |
 | AWS singletons | `src/lib/aws/bedrock.ts`, `src/lib/aws/s3.ts`, `src/lib/aws/dynamodb.ts` | Server-side only; instantiated once per cold start |
 | Safety Layer | `src/lib/safety/safetyLayer.ts` | Pure function module; no I/O; no Bedrock dependency |
+| Rate Limiter | `src/lib/rateLimiter.ts` | Pure function module; reads cookie or IP; no AWS calls |
 | Prompts | `src/lib/prompts/inspectPrompt.ts` | Pure template functions; testable independently |
 | Validation schemas | `src/lib/validation/uploadSchema.ts`, `src/lib/validation/inspectionSchema.ts` | Shared Zod schemas; importable from both client and server |
 
@@ -69,7 +74,7 @@ Browser (Client Components)
 
 ### `DropZone` (`src/components/upload/DropZone.tsx`)
 
-Accepts drag-and-drop events and file-picker input. Enforces all upload constraints synchronously before the user can proceed.
+Accepts drag-and-drop events and file-picker input. Enforces all upload constraints synchronously before the user can proceed. The component supports both the Normal and Haunted Tailwind themes via the active theme class on the root element.
 
 ```typescript
 interface DropZoneProps {
@@ -103,10 +108,10 @@ Validation order (all checked before extraction begins):
 2. Mixed images + video → reject with `MIXED_MEDIA`
 3. Multiple videos → reject with `TOO_MANY_VIDEOS`
 4. Image count > 5 → reject with `TOO_MANY_IMAGES`
-5. File size exceeded → reject with `FILE_TOO_LARGE`
-6. Video duration > 60 s → reject with `VIDEO_TOO_LONG` (checked after loading metadata)
+5. Image file size > 10 MB → reject with `FILE_TOO_LARGE`
+6. Video duration > 30 s → reject with `VIDEO_TOO_LONG` (checked after loading metadata)
 
-File-size thresholds: images ≤ 20 MB, video ≤ 500 MB.
+File-size threshold: images ≤ 10 MB (10 485 760 bytes). No file-size cap on video files.
 
 ---
 
@@ -131,13 +136,14 @@ async function extractFrames(
 ```
 
 Algorithm:
-1. Create an `<video>` element (off-screen), set `src = URL.createObjectURL(videoFile)`, load metadata.
-2. Determine frame timestamps:
+1. Create a `<video>` element (off-screen), set `src = URL.createObjectURL(videoFile)`, load metadata.
+2. Enforce maximum duration of 30 seconds; reject with `PROCESSING_ERROR` if `duration > 30`.
+3. Determine frame timestamps:
    - If `duration < 3 s`: timestamps = [1, 2, …, floor(duration)] (whole-second frames; at least 1).
    - Otherwise: 3–5 evenly spaced timestamps across [0, duration].
-3. For each timestamp: seek via `currentTime`, wait for `seeked` event, draw to `<canvas>` (scale so shorter side ≥ 640 px), call `canvas.toBlob('image/jpeg', 0.82)`.
-4. Wrap the whole operation in a 15-second `AbortController` / `Promise.race` timeout.
-5. Clean up object URL via `URL.revokeObjectURL`.
+4. For each timestamp: seek via `currentTime`, wait for `seeked` event, draw to `<canvas>` (scale so shorter side ≥ 640 px), call `canvas.toBlob('image/jpeg', 0.82)`.
+5. Wrap the whole operation in a 15-second `AbortController` / `Promise.race` timeout.
+6. Clean up object URL via `URL.revokeObjectURL`.
 
 ---
 
@@ -223,7 +229,7 @@ interface UseUploadReturn {
 
 ### `useInspection` hook (`src/hooks/useInspection.ts`)
 
-Fetches and caches an inspection result for the Results Page.
+Fetches an inspection result for the Results Page by calling `GET /api/inspections/[id]`.
 
 ```typescript
 interface UseInspectionReturn {
@@ -235,11 +241,13 @@ interface UseInspectionReturn {
 function useInspection(id: string): UseInspectionReturn;
 ```
 
-For guest users, `id` is a temporary in-memory key; the hook reads from a session-local state store rather than a persisted API call.
+The hook always fetches from the DynamoDB-backed API (`GET /api/inspections/[id]`). There is no session-local state store or guest branching — every job result is persisted server-side and retrieved by UUID.
 
 ---
 
 ### Results Page Components
+
+All results components support both the Normal and Haunted Tailwind themes via the active theme class applied at the layout level.
 
 #### `IssueSummary` (`src/components/results/IssueSummary.tsx`)
 Displays `likelyIssue`, `trade`, two follow-up questions. Plain text, no urgency colour.
@@ -276,7 +284,6 @@ export type UrgencyLevel = 'emergency' | 'urgent' | 'soon' | 'monitor';
 
 export interface InspectionResult {
   id: string;                    // UUID, generated server-side
-  userId: string | 'guest';
   createdAt: string;             // ISO 8601 UTC
   s3Keys: string[];              // keys of uploaded frames/images
 
@@ -297,9 +304,11 @@ export interface InspectionResult {
 }
 ```
 
+`userId` has been removed. There are no user accounts. Each job is identified solely by its `id` UUID.
+
 ### `BedrockInspectionResponse` (`src/types/bedrock.ts`)
 
-Raw JSON structure requested from and returned by Claude. Validated with Zod before use.
+Raw JSON structure requested from and returned by the Amazon Nova Lite model. Validated with Zod before use.
 
 ```typescript
 export interface BedrockInspectionResponse {
@@ -351,28 +360,31 @@ export const inspectRequestSchema = z.object({
 
 Table name: `process.env.DYNAMODB_TABLE_NAME`
 
+Every job is persisted unconditionally — there is no authentication check and no guest/authenticated branching.
+
 | Attribute | Type | Notes |
 |---|---|---|
-| `PK` | String | `USER#{userId}` |
-| `SK` | String | `INSPECTION#{createdAt}#{id}` |
+| `PK` | String | `JOB#{id}` |
+| `SK` | String | `JOB#{id}` |
 | `id` | String | UUID |
-| `userId` | String | Cognito `sub`; `'guest'` not stored |
 | `createdAt` | String | ISO 8601 UTC |
 | `s3Keys` | List | Array of S3 object keys |
 | `result` | Map | Full `InspectionResult` JSON blob |
 | `ttl` | Number | Unix epoch; `createdAt + 30 days` — aligns with S3 lifecycle |
 
 Access patterns:
-- Get single inspection: `PK = USER#{userId}`, `SK = INSPECTION#{id}`
-- List user inspections: `PK = USER#{userId}`, `SK begins_with INSPECTION#` (sorted by date descending via GSI or scan + sort)
+- **Get single inspection**: `PK = JOB#{id}`, `SK = JOB#{id}` (used by `GET /api/inspections/[id]`)
+- **Write inspection**: `PutItem` with `PK = JOB#{id}`, `SK = JOB#{id}`
+
+There is no user-scoped listing access pattern; jobs are retrieved only by UUID via the job link.
 
 ### S3 Object Keys
 
-Pattern: `{userId}/{inspectionId}/{filename}`
+Pattern: `{inspectionId}/{filename}`
 
-For guest users: `guest/{sessionId}/{inspectionId}/{filename}` (still stored; lifecycle rule handles deletion; just not referenced in DynamoDB).
+No userId prefix. Every uploaded file (frames or images) is stored under the job UUID namespace.
 
-S3 Lifecycle Rule: expire all objects at prefix `/` after 30 days (configured via CDK / Amplify custom resource or console — outside app code scope, but required by Requirement 12).
+S3 Lifecycle Rule: expire all objects at prefix `/` after 30 days (configured via Amplify custom resource or console — outside app code scope, but required by Requirement 12).
 
 ---
 
@@ -389,15 +401,14 @@ Returns a pre-signed S3 PUT URL.
 
 **Response:**
 ```json
-{ "url": "https://s3.amazonaws.com/...", "key": "userId/inspectionId/filename" }
+{ "url": "https://s3.amazonaws.com/...", "key": "inspectionId/filename" }
 ```
 
 Server-side steps:
 1. Validate query params with Zod (reject unknown MIME types).
-2. Resolve `userId` from Amplify Auth session (fall back to `guest/{sessionId}`).
-3. Build S3 key: `{userId}/{inspectionId}/{sanitised filename}`.
-4. Call `PutObjectCommand` via `getSignedUrl` with `expiresIn: 900` (15 minutes).
-5. Return `{ url, key }`.
+2. Build S3 key: `{inspectionId}/{sanitised filename}`.
+3. Call `PutObjectCommand` via `getSignedUrl` with `expiresIn: 900` (15 minutes), using the region from `APP_AWS_REGION`.
+4. Return `{ url, key }`.
 
 ---
 
@@ -407,24 +418,88 @@ Orchestrates the full analysis pipeline.
 
 **Request body:**
 ```json
-{ "s3Keys": ["userId/inspId/frame-1.jpg", ...], "answers": { "location": "...", "duration": "...", "recentChanges": "..." } }
+{ "s3Keys": ["inspId/frame-1.jpg", ...], "answers": { "location": "...", "duration": "...", "recentChanges": "..." } }
 ```
 
 **Orchestration steps:**
-1. Parse + Zod-validate request body.
-2. **Safety Layer pre-check**: run emergency detection on all three context answer strings. If triggered → skip Bedrock, return emergency result immediately.
-3. Invoke `Bedrock_Client` with S3 keys + answers; enforce 30-second timeout.
-4. Zod-validate Bedrock response; on failure → return HTTP 502.
-5. **Safety Layer post-check**: run emergency detection on Bedrock output text (`likelyIssue`, `jobBrief`). Merge with pre-check result.
-6. Apply Safety Layer overrides (urgency, DIY suppression, field suppression).
-7. Assemble `InspectionResult` (generate UUID, timestamp).
-8. If authenticated: persist to DynamoDB.
+1. Parse + Zod-validate request body; return 400 on failure.
+2. **Rate Limiter**: read httpOnly session cookie / IP fallback. If count ≥ 5 → return HTTP 429 with friendly message.
+3. **Safety Layer — context-answer check (always runs)**: call `checkEmergency({ contextAnswers, bedrockOutput: undefined })` on the three context answer fields. If emergency detected → skip steps 4–5, go directly to step 6 with `safetyResult.isEmergency = true`.
+4. Invoke `Bedrock_Client` with S3 keys + answers; enforce 30-second timeout.
+   - On timeout or service error: check if step 3 already set `isEmergency`. If yes → proceed to step 6 with emergency result. If no → return HTTP 502 with message "We couldn't analyse your photos. Please try again."
+5. Zod-validate Bedrock response; on failure → apply same Bedrock-failure logic as step 4 (check `isEmergency` from step 3; if not set → return HTTP 502 with retry message).
+6. **Safety Layer — post-Bedrock merge (only when Bedrock succeeds)**: call `checkEmergency({ contextAnswers, bedrockOutput: likelyIssue + jobBrief })`. Merge with step 3 result (either source triggering emergency is sufficient).
+7. Call `applyOverrides`; assemble `InspectionResult` (UUID, timestamp).
+8. Persist to DynamoDB unconditionally (DynamoDB failure is non-fatal — log and continue).
 9. Return `InspectionResult` JSON.
 
 **Error responses:**
-- `400` — invalid request body.
-- `502` — Bedrock validation failure or service error.
-- `504` — Bedrock timeout (> 30 s).
+- `400` — invalid request body
+- `429` — rate limit exceeded; friendly message included
+- `502` — Bedrock failure or Zod validation failure AND no emergency trigger in context answers; body: `{ "error": "ANALYSIS_FAILED", "message": "We couldn't analyse your photos. Please try again." }`
+- `504` — reserved; treat Bedrock timeout as 502 per step 4 above
+
+---
+
+### `GET /api/inspections/[id]` (`src/app/api/inspections/[id]/route.ts`)
+
+Retrieves a persisted inspection result by its UUID job identifier.
+
+**Path parameter:**
+- `id` (string, required — UUID)
+
+**Response (200):**
+```json
+{ /* InspectionResult JSON */ }
+```
+
+**Response (404):**
+```json
+{ "error": "Inspection not found" }
+```
+
+Server-side steps:
+1. Extract `id` from the path.
+2. Call `DynamoDB_Store.get(id)` — `GetItem` with `PK = JOB#{id}`, `SK = JOB#{id}`.
+3. If item not found → return HTTP 404.
+4. Parse the stored `result` blob through `inspectionResultSchema`; if validation fails → return HTTP 500.
+5. Return the validated `InspectionResult`.
+
+---
+
+## Rate Limiter Design (`src/lib/rateLimiter.ts`)
+
+The Rate Limiter is a server-side module used exclusively within the `POST /api/inspect` Route Handler. It enforces a maximum of 5 inspections per visitor per 24-hour rolling window.
+
+```typescript
+export interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;   // inspections remaining before limit (0 when blocked)
+  resetAt: number;     // Unix epoch of when the window resets
+}
+
+export function checkRateLimit(
+  request: NextRequest
+): Promise<RateLimitResult>;
+```
+
+### Tracking Mechanism
+
+1. **Cookie-first**: Read the httpOnly cookie `hhi_session` from the request. The cookie value is a signed, opaque token encoding `{ visitorId, count, windowStart }`. If present and valid, use `visitorId` to look up and increment the counter.
+2. **IP fallback**: If the cookie is absent or invalid, derive `visitorId` from the `x-forwarded-for` header (first IP) or `request.ip`. Apply the same 24-hour rolling window logic.
+3. **Counter storage**: Counters are stored in DynamoDB using a separate item pattern: `PK = RATELIMIT#{visitorId}`, `SK = RATELIMIT#{visitorId}`, with a `ttl` of 24 hours from `windowStart`.
+4. **Response**: If `count >= 5`, return `{ allowed: false, ... }`. The Route Handler responds with HTTP 429 and sets the `Retry-After` header to seconds until `resetAt`. The response body contains a plain-English message at or below an 8th-grade reading level.
+5. **Cookie refresh**: On each allowed request, set (or refresh) the `hhi_session` cookie with `HttpOnly`, `SameSite=Strict`, `Secure`, `Max-Age=86400` (24 hours).
+
+### 429 Response Body
+
+```json
+{
+  "error": "RATE_LIMIT_EXCEEDED",
+  "message": "You've reached the 5-inspection daily limit. Come back tomorrow to run more inspections.",
+  "resetAt": "<ISO 8601 UTC>"
+}
+```
 
 ---
 
@@ -435,9 +510,16 @@ The Safety Layer is a pure TypeScript module with no I/O, no Bedrock dependency,
 ```typescript
 export interface SafetyCheckInput {
   contextAnswers: ContextAnswers;
-  bedrockOutput?: string; // concatenated likelyIssue + jobBrief
+  bedrockOutput?: string; // undefined when called before/without a Bedrock response
 }
+```
 
+**Calling sequence in `POST /api/inspect`:**
+1. Called once immediately after rate-limit check, with `bedrockOutput: undefined` — evaluates context answers only.
+2. Called again after a successful Bedrock response, with `bedrockOutput` set — evaluates context answers + Bedrock output together.
+If either call returns `isEmergency: true`, the emergency override is applied. If Bedrock fails and call 1 returned `isEmergency: false`, the handler returns HTTP 502 with the retry message without calling `applyOverrides`.
+
+```typescript
 export interface SafetyCheckResult {
   isEmergency: boolean;
   triggeredCondition?: EmergencyConditionCode;
@@ -484,7 +566,9 @@ All matching is **case-insensitive substring** search. "Proximity" is defined as
 
 ## Bedrock Client (`src/lib/aws/bedrock.ts`)
 
-Uses AWS SDK v3 `@aws-sdk/client-bedrock-runtime` with `InvokeModelCommand` (for Claude's messages API via `anthropic.claude-3-sonnet-20240229-v1:0` or the value of `BEDROCK_MODEL_ID`).
+Uses AWS SDK v3 `@aws-sdk/client-bedrock-runtime` with `InvokeModelCommand`. The model is Amazon Nova Lite; the model ID is read from the `BEDROCK_MODEL_ID` environment variable. In us-east-2, use the cross-region inference profile ID (prefixed `us.`) if on-demand calls fail. The AWS region is read from `APP_AWS_REGION`.
+
+**Credentials**: On Amplify, the server code uses the app's IAM compute role (least-privilege: the Bedrock model, the one S3 bucket, the one DynamoDB table). No access keys are stored in environment variables or code. Locally, the AWS CLI profile is used.
 
 ```typescript
 export async function invokeInspectionModel(
@@ -494,12 +578,27 @@ export async function invokeInspectionModel(
 ```
 
 The function:
-1. Fetches pre-signed GET URLs for each S3 key (for passing image bytes to Bedrock's vision API).
+1. Fetches pre-signed GET URLs for each S3 key (for passing image bytes to the model's vision API).
 2. Builds the prompt via `buildInspectPrompt(answers)` from `src/lib/prompts/inspectPrompt.ts`.
-3. Constructs the Bedrock `messages` payload with image content blocks (base64-encoded JPEG) and the text prompt.
+3. Constructs the model `messages` payload with image content blocks (base64-encoded JPEG) and the text prompt.
 4. Calls `InvokeModelCommand` with a 30-second timeout signal.
-5. Decodes the response body, extracts the JSON string from Claude's reply.
+5. Decodes the response body, extracts the JSON string from the model's reply.
 6. Returns the raw parsed object (Zod validation is the caller's responsibility).
+
+### AWS Singleton Clients
+
+All three AWS singleton clients read credentials from the IAM compute role on Amplify (via the default credential provider chain) and use `APP_AWS_REGION` as the sole region parameter. There are no separate `BEDROCK_REGION`, `S3_REGION`, or `DYNAMODB_REGION` variables.
+
+```typescript
+// src/lib/aws/bedrock.ts
+const client = new BedrockRuntimeClient({ region: process.env.APP_AWS_REGION });
+
+// src/lib/aws/s3.ts
+const client = new S3Client({ region: process.env.APP_AWS_REGION });
+
+// src/lib/aws/dynamodb.ts
+const client = new DynamoDBClient({ region: process.env.APP_AWS_REGION });
+```
 
 ### Prompt Template (`src/lib/prompts/inspectPrompt.ts`)
 
@@ -514,13 +613,19 @@ export interface InspectPromptContext {
 export function buildInspectPrompt(ctx: InspectPromptContext): string;
 ```
 
-The prompt instructs Claude to:
+The prompt instructs the model to:
 - Analyse the attached images for visible home defects.
 - Use the context answers to narrow the diagnosis.
 - Return a JSON object matching the `BedrockInspectionResponse` schema exactly.
 - Never return `urgency: 'emergency'` (that is the Safety Layer's job).
 - Use non-technical language suitable for a non-trade homeowner.
 - Label cost ranges as estimates and express confidence as a decimal 0–1.
+
+---
+
+## Styling
+
+The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens in `tailwind.config.ts`. Two themes are supported — **Normal** and **Haunted** — switched with a toggle. All UI components (DropZone, ContextForm, results components, navigation) respond to the active theme class applied at the root layout level. Theme-specific styles are expressed as Tailwind variant classes (e.g. `dark:` or a custom `haunted:` variant configured in `tailwind.config.ts`).
 
 ---
 
@@ -554,15 +659,15 @@ The prompt instructs Claude to:
 
 ### Property 4: Video duration constraint
 
-*For any* numeric duration value d, the video duration validator SHALL accept d when d ≤ 60 and reject d when d > 60.
+*For any* numeric duration value d, the video duration validator SHALL accept d when d ≤ 30 and reject d when d > 30.
 
 **Validates: Requirements 1.4**
 
 ---
 
-### Property 5: File size constraint
+### Property 5: Image file size constraint
 
-*For any* image file with size s, the file size validator SHALL reject it when s > 20 971 520 bytes (20 MB); and for any video file with size s, SHALL reject when s > 524 288 000 bytes (500 MB).
+*For any* image file with size s, the file size validator SHALL reject it when s > 10 485 760 bytes (10 MB).
 
 **Validates: Requirements 1.8**
 
@@ -570,7 +675,7 @@ The prompt instructs Claude to:
 
 ### Property 6: Frame count for standard-length videos
 
-*For any* video file with duration ≥ 3 seconds, the Frame Extractor SHALL return between 3 and 5 frames, and the frame timestamps SHALL be evenly distributed across the video duration.
+*For any* video file with duration ≥ 3 seconds (and ≤ 30 seconds), the Frame Extractor SHALL return between 3 and 5 frames, and the frame timestamps SHALL be evenly distributed across the video duration.
 
 **Validates: Requirements 3.1**
 
@@ -616,9 +721,9 @@ The prompt instructs Claude to:
 
 ---
 
-### Property 12: Emergency urgency override is unconditional
+### Property 12: Emergency urgency override is unconditional after Bedrock
 
-*For any* `BedrockInspectionResponse` where the context answers or Bedrock output text contain an emergency trigger, `applyOverrides` SHALL always set `urgency` to `'emergency'` regardless of the value in the Bedrock response.
+*For any* `BedrockInspectionResponse` where the context answers or Bedrock output text contain an emergency trigger, `applyOverrides` SHALL always set `urgency` to `'emergency'` regardless of the value in the Bedrock response. This override happens after Bedrock returns — there is no pre-Bedrock safety check.
 
 **Validates: Requirements 6.3, 6.7**
 
@@ -656,17 +761,17 @@ The prompt instructs Claude to:
 
 ---
 
-### Property 17: Guest inspections are never persisted
+### Property 17: Every job is always persisted
 
-*For any* inspection submission made in guest mode (unauthenticated), the `persist` function of `DynamoDB_Store` SHALL never be called.
+*For any* inspection submission (regardless of visitor identity or session state), the `persist` function of `DynamoDB_Store` SHALL be called exactly once with the assembled `InspectionResult`.
 
-**Validates: Requirements 11.2**
+**Validates: Requirements 14.1**
 
 ---
 
 ### Property 18: InspectionResult serialisation round-trip
 
-*For any* `InspectionResult` object that passes `bedrockResponseSchema` (merged with the full result schema) validation, serialising to JSON via `JSON.stringify` and then deserialising via `JSON.parse` followed by Zod `inspectionResultSchema.parse` SHALL produce an object in which every field value and type is identical to the original.
+*For any* `InspectionResult` object that passes `inspectionResultSchema` validation, serialising to JSON via `JSON.stringify` and then deserialising via `JSON.parse` followed by Zod `inspectionResultSchema.parse` SHALL produce an object in which every field value and type is identical to the original.
 
 **Validates: Requirements 13.3**
 
@@ -677,6 +782,22 @@ The prompt instructs Claude to:
 *For any* JSON object, `bedrockResponseSchema.safeParse` SHALL return `{ success: true }` if and only if the object satisfies all field type, range, and length constraints defined in the schema; otherwise it SHALL return `{ success: false }`.
 
 **Validates: Requirements 8.3, 8.4**
+
+---
+
+### Property 20: Rate limiter blocks at the threshold
+
+*For any* visitor with a count ≥ 5 submissions in the current 24-hour rolling window, the rate limiter SHALL return `{ allowed: false }` and the `POST /api/inspect` Route Handler SHALL respond with HTTP 429 before invoking the Bedrock_Client.
+
+**Validates: Requirements 11.1, 11.2**
+
+---
+
+### Property 21: Safety trigger in context answers produces emergency regardless of Bedrock outcome
+
+*For any* `SafetyCheckInput` where the context answers contain an Emergency_Trigger phrase, `checkEmergency` SHALL return `isEmergency: true` whether `bedrockOutput` is `undefined` (Bedrock not yet called), a valid string (Bedrock succeeded), or the property is tested in the context of a Bedrock failure scenario. Furthermore, for any submission whose context answers contain an Emergency_Trigger phrase, the `POST /api/inspect` handler SHALL return an `InspectionResult` with `urgency === 'emergency'` regardless of whether the Bedrock call succeeds, fails, or returns invalid JSON.
+
+**Validates: Requirements 6.1, 6.3, 6.8, 6.9**
 
 ---
 
@@ -691,7 +812,8 @@ The prompt instructs Claude to:
 | Frame extraction processing error | Same as timeout + same two options |
 | `GET /api/upload-url` failure | Block submission; show "Upload cannot proceed" error |
 | S3 PUT failure | Show per-file error; offer Retry for that file |
-| `POST /api/inspect` 502 (Bedrock) | "Analysis failed – please try again"; Try Again returns user to upload with files still populated |
+| `POST /api/inspect` 429 (rate limit) | Display friendly rate-limit message; no console error |
+| `POST /api/inspect` 502 (Bedrock failure or invalid response, no safety trigger) | "We couldn't analyse your photos. Please try again."; Try Again returns user to upload with files still populated |
 | `POST /api/inspect` 504 (timeout) | "Inspection timed out – please try again"; same recovery |
 | 60-second client-side timeout | Abort fetch; same error copy and recovery as 504 |
 | Clipboard write failure | Show selectable `<textarea>` fallback for manual copy |
@@ -702,11 +824,13 @@ The prompt instructs Claude to:
 | Scenario | HTTP Status | Response |
 |---|---|---|
 | Invalid request body | 400 | Zod error details |
+| Rate limit exceeded | 429 | Friendly plain-English message + `resetAt` |
 | S3 pre-sign failure | 500 | Generic "Upload service unavailable" |
 | Bedrock service error | 502 | "Analysis temporarily unavailable" |
 | Bedrock timeout (> 30 s) | 504 | "Analysis timed out" |
 | Bedrock response fails Zod validation | 502 | "Analysis returned unexpected data" |
 | DynamoDB write failure | 207 (partial success) | Return result to client; log DynamoDB error; result is not persisted |
+| Inspection not found (`GET /api/inspections/[id]`) | 404 | "Inspection not found" |
 
 DynamoDB write failures are non-fatal: the client receives the analysis result even if persistence fails, and the error is logged for operator visibility.
 
@@ -716,7 +840,7 @@ DynamoDB write failures are non-fatal: the client receives the analysis result e
 
 ### Unit Tests
 
-Focus on pure functions and component rendering. Use **Jest** + **React Testing Library**.
+Focus on pure functions and component rendering. Use **Vitest**.
 
 Key unit test targets:
 - `validateFiles()` — all rejection conditions (type, count, size, duration, mixed media).
@@ -730,6 +854,7 @@ Key unit test targets:
 - `formatConfidence()` — boundary values (0, 0.5, 1.0) and mid-range values.
 - `UrgencyBadge`, `CostRange`, `JobBrief`, `EmergencyBanner` — rendering with emergency vs. non-emergency props.
 - `DataRetentionNotice` — mock `IntersectionObserver`; verify `onVisible` fires on first intersection only.
+- `checkRateLimit()` — allowed under threshold, blocked at and above threshold, cookie vs. IP fallback.
 
 ### Property-Based Tests
 
@@ -740,9 +865,9 @@ Use **fast-check** for property-based testing. Each test runs a minimum of 100 i
 | P1 — File type validation | `fc.string()` for MIME type; `fc.constantFrom(allowed types)` for valid paths |
 | P2 — Mixed-media rejection | `fc.array(imageFile)` min 1, `fc.array(videoFile)` min 1, concatenated |
 | P3 — Image count | `fc.array(imageFile, { minLength: 1, maxLength: 20 })` |
-| P4 — Video duration | `fc.float({ min: 0, max: 120 })` |
-| P5 — File size | `fc.integer({ min: 0, max: 600_000_000 })` |
-| P6 — Frame count standard | `fc.float({ min: 3, max: 60 })` for duration |
+| P4 — Video duration | `fc.float({ min: 0, max: 60 })` |
+| P5 — Image file size | `fc.integer({ min: 0, max: 20_000_000 })` |
+| P6 — Frame count standard | `fc.float({ min: 3, max: 30 })` for duration |
 | P7 — Frame count short | `fc.float({ min: 0.001, max: 2.999 })` for duration |
 | P8 — Whitespace location | `fc.stringOf(fc.constantFrom(' ', '\t', '\n'))` |
 | P9 — Context answer payload | `fc.record({ location: fc.string(), duration: fc.string(), recentChanges: fc.string() })` |
@@ -753,9 +878,10 @@ Use **fast-check** for property-based testing. Each test runs a minimum of 100 i
 | P14 — DIY suppression | `fc.constantFrom('electrician', 'gas engineer')` as trade; arbitrary diySteps array |
 | P15 — Urgency label | `fc.constantFrom('emergency', 'urgent', 'soon', 'monitor')` |
 | P16 — Confidence formatting | `fc.float({ min: 0, max: 1 })` |
-| P17 — Guest no-persist | `InspectionSubmissionArb` with guest session; spy on DynamoDB.persist |
+| P17 — Every job persisted | `InspectionSubmissionArb`; spy on DynamoDB.persist; verify always called |
 | P18 — Round-trip serialisation | `ValidInspectionResultArb`; `JSON.parse(JSON.stringify(x))` then schema parse |
 | P19 — Zod schema classification | `fc.object()` (arbitrary JSON); compare schema.safeParse with expected validity |
+| P20 — Rate limiter threshold | `fc.integer({ min: 0, max: 10 })` for count; verify allowed iff count < 5 |
 
 Tag format for each property test: `// Feature: intake-and-triage, Property {N}: {property title}`
 
@@ -764,12 +890,14 @@ Tag format for each property test: `// Feature: intake-and-triage, Property {N}:
 Use **Vitest** + **MSW** (Mock Service Worker) to intercept Route Handler calls in a Node environment.
 
 Integration test scenarios:
-- Full upload + inspect happy path (mock S3 pre-sign, mock Bedrock, verify DynamoDB called for auth user).
-- Emergency trigger in context answers: verify response has urgency=emergency and suppressed fields, Bedrock never called.
+- Full upload + inspect happy path (mock S3 pre-sign, mock Bedrock, verify DynamoDB called).
+- Rate limit enforcement: 5th request succeeds; 6th returns 429 before Bedrock is invoked.
+- Emergency trigger in context answers: verify response has urgency=emergency and suppressed fields (Bedrock still invoked; Safety Layer overrides post-response).
 - Emergency trigger in Bedrock output: verify override applied post-Bedrock.
 - Bedrock Zod validation failure: verify 502 response.
 - Bedrock timeout: verify 504 response.
-- Guest user flow: verify DynamoDB.persist never called.
+- `GET /api/inspections/[id]` happy path: verify stored result returned.
+- `GET /api/inspections/[id]` not found: verify 404 response.
 - Stored result deserialisation failure: verify error page rendered.
 
 ### Smoke Tests
