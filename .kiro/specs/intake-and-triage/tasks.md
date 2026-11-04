@@ -6,7 +6,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 
 ## Tasks
 
-- [ ] 1. Project scaffolding and configuration
+- [x] 1. Project scaffolding and configuration
   - Initialise a Next.js App Router project with TypeScript strict mode (`"strict": true` in `tsconfig.json`)
   - Configure `@/` path alias in `tsconfig.json` pointing to `src/`
   - Install and configure Tailwind CSS; add design tokens to `tailwind.config.ts`; configure Normal and Haunted theme variants (e.g. a custom `haunted:` variant) in `tailwind.config.ts`

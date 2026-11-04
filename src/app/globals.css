@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base resets ────────────────────────────────────────────────────── */
+:root {
+  --foreground: #171717;
+  --background: #ffffff;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Haunted theme overrides ───────────────────────────────────────── */
+.theme-haunted {
+  --foreground: #e9d5ff;
+  --background: #0f0a1a;
+}
