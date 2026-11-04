@@ -65,8 +65,30 @@ This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the 
 
 ---
 
-## Next: Nov 4 (Step 0, day 3)
-- Scaffold the Next.js app (task 1 only) and deploy it to AWS Amplify in us-east-2
-- Add "Scaffolded with create-next-app" to the README
-- Book 5 calls with tradespeople and homeowners
-- Shortlist 3 startup names
+## Nov 4, 2026 (Step 1: project scaffolding)
+
+**Done**
+- Completed task 1 of the intake-and-triage spec: full project scaffolding confirmed
+- `tsconfig.json` has `"strict": true` and the `@/*` path alias pointing to `src/`
+- `tailwind.config.ts` has design tokens (brand, urgency, haunted palettes), custom shadows/animations, and a `haunted:` variant plugin activated by `.theme-haunted` on the root element
+- `amplify.yml` build spec: `nvm install 22` + `npm ci` in preBuild, then lint → type-check → test → build; caches `node_modules` and `.next/cache`
+- `package.json` test script changed to `vitest run --passWithNoTests` so Amplify builds pass before any tests are written
+- All runtime packages installed: `server-only`, `zod`, all five `@aws-sdk/*` packages
+- All dev packages installed: `vitest`, `@vitest/ui`, `fast-check`, `msw`
+- Full `src/` directory tree scaffolded: `app/`, `components/`, `lib/`, `types/`, `hooks/`, `test/`
+- `.env.example` has all six required keys; `.env.local` is in `.gitignore`
+
+**Kiro features used**
+- Spec mode to track task 1 status (marked completed via spec task system)
+- Vibe chat to execute and verify the scaffolding steps
+- Hook (`Update build log` trigger) to automate this log entry
+
+**Problems and fixes**
+- `amplify.yml` was missing `nvm install 22`; added it so Amplify picks up Node 22 LTS before `npm ci`
+- Vitest was failing the Amplify build with no tests found; fixed by adding `--passWithNoTests` flag
+
+**Next**
+- Write shared TypeScript types: `UrgencyLevel`, `ContextAnswers`, `InspectionResult` (task 2.1) and `BedrockInspectionResponse` (task 2.2)
+- Write Zod validation schemas for upload and inspection requests (task 3)
+- Implement utility functions: `urgencyLabel`, `formatCurrency`, `formatConfidence` (task 4)
+- Start the Safety Layer pure functions in `src/lib/safety/` (task 5)
