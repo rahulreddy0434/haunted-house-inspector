@@ -17,26 +17,26 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
   - Install dev dependencies: `vitest`, `@vitest/ui`, `fast-check`, `msw`
   - _Requirements: all (foundational)_
 
-- [ ] 2. Shared TypeScript types
-  - [ ] 2.1 Create `src/types/inspection.ts` — export `UrgencyLevel`, `ContextAnswers`, `InspectionResult`
+- [x] 2. Shared TypeScript types
+  - [x] 2.1 Create `src/types/inspection.ts` — export `UrgencyLevel`, `ContextAnswers`, `InspectionResult`
     - `UrgencyLevel = 'emergency' | 'urgent' | 'soon' | 'monitor'`
     - `ContextAnswers` with `location`, `duration`, `recentChanges` string fields
     - `InspectionResult` with all fields from the design: `id`, `createdAt`, `s3Keys`, `likelyIssue`, `trade`, `urgency`, `confidence`, `costRangeLow`, `costRangeHigh`, `jobBrief`, `followUpQuestions`, `diySteps`, `isEmergency`, `answers` — no `userId` field
     - _Requirements: 8.3, 9.1, 13.1_
-  - [ ] 2.2 Create `src/types/bedrock.ts` — export `BedrockInspectionResponse`
+  - [x] 2.2 Create `src/types/bedrock.ts` — export `BedrockInspectionResponse`
     - Matches the raw Amazon Nova Lite JSON structure; `urgency` is `'urgent' | 'soon' | 'monitor'` only (no `'emergency'`)
     - _Requirements: 8.3_
 
-- [ ] 3. Zod validation schemas
-  - [ ] 3.1 Create `src/lib/validation/uploadSchema.ts` — export `uploadUrlRequestSchema`
+- [~] 3. Zod validation schemas
+  - [x] 3.1 Create `src/lib/validation/uploadSchema.ts` — export `uploadUrlRequestSchema`
     - Validates `filename` (string), `contentType` (enum of accepted MIME types), `inspectionId` (UUID string)
     - _Requirements: 4.1, 4.2_
-  - [ ] 3.2 Create `src/lib/validation/inspectionSchema.ts` — export `contextAnswersSchema`, `inspectRequestSchema`, `bedrockResponseSchema`
+  - [x] 3.2 Create `src/lib/validation/inspectionSchema.ts` — export `contextAnswersSchema`, `inspectRequestSchema`, `bedrockResponseSchema`
     - `contextAnswersSchema`: `location` min 1, all fields max 500, optional defaults for `duration` and `recentChanges`
     - `bedrockResponseSchema`: all field types, ranges, and the `costRangeHigh >= costRangeLow` refinement
     - `inspectRequestSchema`: `s3Keys` array (1–5 non-empty strings), `answers: contextAnswersSchema`
     - _Requirements: 5.2, 5.5, 8.3, 8.4_
-  - [ ] 3.3 Write property test for `bedrockResponseSchema` (Property 19)
+  - [-] 3.3 Write property test for `bedrockResponseSchema` (Property 19)
     - **Property 19: Zod schema correctly classifies Bedrock responses**
     - **Validates: Requirements 8.3, 8.4**
     - Use `fc.object()` (arbitrary JSON); verify `safeParse` returns `success: true` iff all constraints are met

@@ -12,6 +12,75 @@
         "chatSessionId": "sess_e89f846e-d0c4-47be-8f7f-7a75d5e759bb",
         "timestamp": 1793809591419
       }
+    ],
+    "2.1 Create `src/types/inspection.ts` — export `UrgencyLevel`, `ContextAnswers`, `InspectionResult`": [
+      {
+        "executionId": "b14214b5-f384-4360-a9a0-c1a9e92a802c",
+        "chatSessionId": "sess_7dc36ba7-dde6-4d96-92ee-0452e45f11fd",
+        "timestamp": 1793891974563
+      },
+      {
+        "executionId": "b14214b5-f384-4360-a9a0-c1a9e92a802c",
+        "chatSessionId": "sess_7dc36ba7-dde6-4d96-92ee-0452e45f11fd",
+        "timestamp": 1793892020928
+      }
+    ],
+    "2.2 Create `src/types/bedrock.ts` — export `BedrockInspectionResponse`": [
+      {
+        "executionId": "b14214b5-f384-4360-a9a0-c1a9e92a802c",
+        "chatSessionId": "sess_7dc36ba7-dde6-4d96-92ee-0452e45f11fd",
+        "timestamp": 1793892023429
+      },
+      {
+        "executionId": "b14214b5-f384-4360-a9a0-c1a9e92a802c",
+        "chatSessionId": "sess_7dc36ba7-dde6-4d96-92ee-0452e45f11fd",
+        "timestamp": 1793892060598
+      }
+    ],
+    "2. Shared TypeScript types": [
+      {
+        "executionId": "b14214b5-f384-4360-a9a0-c1a9e92a802c",
+        "chatSessionId": "sess_7dc36ba7-dde6-4d96-92ee-0452e45f11fd",
+        "timestamp": 1793892060694
+      }
+    ],
+    "3.1 Create `src/lib/validation/uploadSchema.ts` — export `uploadUrlRequestSchema`": [
+      {
+        "executionId": "27fa8c1d-0d78-4b71-99de-c737a8c812ce",
+        "chatSessionId": "sess_a0b7ccc4-3814-46d1-83e6-1c5e16126db9",
+        "timestamp": 1793892097177
+      },
+      {
+        "executionId": "27fa8c1d-0d78-4b71-99de-c737a8c812ce",
+        "chatSessionId": "sess_a0b7ccc4-3814-46d1-83e6-1c5e16126db9",
+        "timestamp": 1793892126769
+      }
+    ],
+    "3.2 Create `src/lib/validation/inspectionSchema.ts` — export `contextAnswersSchema`, `inspectRequestSchema`, `bedrockResponseSchema`": [
+      {
+        "executionId": "27fa8c1d-0d78-4b71-99de-c737a8c812ce",
+        "chatSessionId": "sess_a0b7ccc4-3814-46d1-83e6-1c5e16126db9",
+        "timestamp": 1793892129226
+      },
+      {
+        "executionId": "27fa8c1d-0d78-4b71-99de-c737a8c812ce",
+        "chatSessionId": "sess_a0b7ccc4-3814-46d1-83e6-1c5e16126db9",
+        "timestamp": 1793892161424
+      }
+    ],
+    "3.3 Write property test for `bedrockResponseSchema` (Property 19)": [
+      {
+        "executionId": "27fa8c1d-0d78-4b71-99de-c737a8c812ce",
+        "chatSessionId": "sess_a0b7ccc4-3814-46d1-83e6-1c5e16126db9",
+        "timestamp": 1793892163584
+      }
+    ],
+    "3.4 Write property test for `contextAnswersSchema` whitespace location (Property 8)": [
+      {
+        "executionId": "27fa8c1d-0d78-4b71-99de-c737a8c812ce",
+        "chatSessionId": "sess_a0b7ccc4-3814-46d1-83e6-1c5e16126db9",
+        "timestamp": 1793892166067
+      }
     ]
   }
 }
