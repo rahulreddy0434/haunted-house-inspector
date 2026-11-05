@@ -1,0 +1,14 @@
+﻿{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Pre-commit check",
+      "trigger": "UserPromptSubmit",
+      "matcher": "run pre-commit check",
+      "action": {
+        "type": "command",
+        "command": "cd \"c:\\Users\\rahul\\Projects\\haunted-house-inspector\" && echo \"=== 1/3 TypeScript ===\"  && npx tsc --noEmit && echo \"TypeScript OK\" && echo \"=== 2/3 ESLint ===\" && npx next lint && echo \"Lint OK\" && echo \"=== 3/3 Tests ===\" && npx vitest --run && echo \"Tests OK\" && echo \"=== Secret scan ===\" && git diff --cached --diff-filter=ACM -U0 | Select-String -Pattern \"(AKIA[0-9A-Z]{16}|aws_secret_access_key\\s*=|sk-[A-Za-z0-9]{32,}|ghp_[A-Za-z0-9]{36,}|password\\s*=\\s*['\\\"][^'\\\"]{8,}['\\\"]|api[_-]?key\\s*=\\s*['\\\"][^'\\\"]{8,}['\\\"])\" && echo \"WARNING: Possible secrets found above — review before committing.\" ; if ($LASTEXITCODE -ne 0) { echo \"Secret scan: nothing flagged.\" }"
+      }
+    }
+  ]
+}

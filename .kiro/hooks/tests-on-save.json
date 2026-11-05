@@ -1,0 +1,14 @@
+﻿{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Tests on save",
+      "trigger": "PostFileSave",
+      "matcher": "src/.*\\.(ts|tsx)$",
+      "action": {
+        "type": "command",
+        "command": "cd \"c:\\Users\\rahul\\Projects\\haunted-house-inspector\" && npx vitest related \"$KIRO_FILE_PATH\" --run 2>&1 && echo \"Tests passed.\" || (echo \"TESTS FAILED — see output above.\"; exit 1)"
+      }
+    }
+  ]
+}

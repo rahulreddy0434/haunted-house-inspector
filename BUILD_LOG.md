@@ -77,6 +77,7 @@ This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the 
 - All dev packages installed: `vitest`, `@vitest/ui`, `fast-check`, `msw`
 - Full `src/` directory tree scaffolded: `app/`, `components/`, `lib/`, `types/`, `hooks/`, `test/`
 - `.env.example` has all six required keys; `.env.local` is in `.gitignore`
+- Amplify deployment was successful and here is the live link "https://main.d1vac6up7roci1.amplifyapp.com/" 
 
 **Kiro features used**
 - Spec mode to track task 1 status (marked completed via spec task system)

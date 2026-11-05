@@ -437,7 +437,6 @@ Orchestrates the full analysis pipeline.
 - `400` — invalid request body
 - `429` — rate limit exceeded; friendly message included
 - `502` — Bedrock failure or Zod validation failure AND no emergency trigger in context answers; body: `{ "error": "ANALYSIS_FAILED", "message": "We couldn't analyse your photos. Please try again." }`
-- `504` — reserved; treat Bedrock timeout as 502 per step 4 above
 
 ---
 
@@ -814,8 +813,8 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 | S3 PUT failure | Show per-file error; offer Retry for that file |
 | `POST /api/inspect` 429 (rate limit) | Display friendly rate-limit message; no console error |
 | `POST /api/inspect` 502 (Bedrock failure or invalid response, no safety trigger) | "We couldn't analyse your photos. Please try again."; Try Again returns user to upload with files still populated |
-| `POST /api/inspect` 504 (timeout) | "Inspection timed out – please try again"; same recovery |
-| 60-second client-side timeout | Abort fetch; same error copy and recovery as 504 |
+| `POST /api/inspect` 502 (Bedrock timeout) | "Inspection timed out – please try again"; same recovery |
+| 60-second client-side timeout | Abort fetch; same error copy and recovery as 502 |
 | Clipboard write failure | Show selectable `<textarea>` fallback for manual copy |
 | Stored result deserialisation failure | "This result could not be loaded" error page; no partial display |
 
@@ -827,7 +826,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 | Rate limit exceeded | 429 | Friendly plain-English message + `resetAt` |
 | S3 pre-sign failure | 500 | Generic "Upload service unavailable" |
 | Bedrock service error | 502 | "Analysis temporarily unavailable" |
-| Bedrock timeout (> 30 s) | 504 | "Analysis timed out" |
+| Bedrock timeout (> 30 s) | 502 | "Analysis timed out" |
 | Bedrock response fails Zod validation | 502 | "Analysis returned unexpected data" |
 | DynamoDB write failure | 207 (partial success) | Return result to client; log DynamoDB error; result is not persisted |
 | Inspection not found (`GET /api/inspections/[id]`) | 404 | "Inspection not found" |
@@ -895,7 +894,7 @@ Integration test scenarios:
 - Emergency trigger in context answers: verify response has urgency=emergency and suppressed fields (Bedrock still invoked; Safety Layer overrides post-response).
 - Emergency trigger in Bedrock output: verify override applied post-Bedrock.
 - Bedrock Zod validation failure: verify 502 response.
-- Bedrock timeout: verify 504 response.
+- Bedrock timeout: verify 502 response.
 - `GET /api/inspections/[id]` happy path: verify stored result returned.
 - `GET /api/inspections/[id]` not found: verify 404 response.
 - Stored result deserialisation failure: verify error page rendered.
