@@ -36,7 +36,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - `bedrockResponseSchema`: all field types, ranges, and the `costRangeHigh >= costRangeLow` refinement
     - `inspectRequestSchema`: `s3Keys` array (1–5 non-empty strings), `answers: contextAnswersSchema`
     - _Requirements: 5.2, 5.5, 8.3, 8.4_
-  - [-] 3.3 Write property test for `bedrockResponseSchema` (Property 19)
+  - [] 3.3 Write property test for `bedrockResponseSchema` (Property 19)
     - **Property 19: Zod schema correctly classifies Bedrock responses**
     - **Validates: Requirements 8.3, 8.4**
     - Use `fc.object()` (arbitrary JSON); verify `safeParse` returns `success: true` iff all constraints are met

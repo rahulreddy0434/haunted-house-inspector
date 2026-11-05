@@ -93,3 +93,32 @@ This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the 
 - Write Zod validation schemas for upload and inspection requests (task 3)
 - Implement utility functions: `urgencyLabel`, `formatCurrency`, `formatConfidence` (task 4)
 - Start the Safety Layer pure functions in `src/lib/safety/` (task 5)
+
+---
+
+## Nov 5, 2026 (Build week 1, day 1: spec fixes, hooks, types and schemas)
+
+**Done**
+- Fixed a spec conflict: a Bedrock timeout now returns HTTP 502 everywhere (design.md and task 12.6 said 504; the requirement said 502)
+- Made every safety, property and integration test task required; only some UI unit tests stay optional
+- Added two hooks: "Tests on save" (runs related Vitest tests when a file under src/ is saved) and "Pre-commit check" (type-check, lint, tests and a secret scan)
+- Task 2: shared types in src/types/inspection.ts and src/types/bedrock.ts
+- Task 3.1: uploadUrlRequestSchema
+- Task 3.2: contextAnswersSchema, inspectRequestSchema and bedrockResponseSchema
+
+**Kiro features used**
+- Vibe chat to fix the spec: one prompt updated design.md and tasks.md together
+- Agent hooks: two new command hooks (tests on save, pre-commit check)
+- Spec task execution: Kiro ran tasks 3.3 and 3.4 in parallel as sub-agents, following the task dependency graph
+- Steering: each sub-agent loaded the steering docs automatically
+
+**Problems and fixes**
+- Ran out of the 50 free Kiro credits partway through tasks 3.3 and 3.4; the Kiroween credits (requested Nov 1–2) haven't arrived. Deleted the half-finished test files and committed only tasks 2, 3.1 and 3.2
+- While writing the Property 8 test, Kiro found that contextAnswersSchema accepts a location of only spaces (.min(1) without .trim()), which breaks Requirement 5.2. It started writing the test to match the bug; the right fix is to change the schema so the test requires rejection. To do when credits arrive
+- The "Update build log" hook uses credits, so this entry was written outside Kiro
+
+**Next**
+- Set up AWS while waiting for credits: S3 bucket, DynamoDB table, IAM compute role, Amplify environment variables
+- When credits arrive: fix contextAnswersSchema, then redo tasks 3.3 and 3.4
+- Then task 4 (utility functions) and task 5 (Safety Layer)
+- Hold the first calls as people confirm
