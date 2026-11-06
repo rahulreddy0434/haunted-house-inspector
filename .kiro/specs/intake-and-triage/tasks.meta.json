@@ -243,6 +243,117 @@
         "chatSessionId": "sess_809fb267-52dd-40b4-bc0e-5f6b2e170a95",
         "timestamp": 1793991378364
       }
+    ],
+    "7. Bedrock prompt template": [
+      {
+        "executionId": "44b5b130-edd8-4fc6-ab97-f813fba6177a",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793991745466
+      },
+      {
+        "executionId": "44b5b130-edd8-4fc6-ab97-f813fba6177a",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793991796179
+      }
+    ],
+    "7.1 Create `src/lib/prompts/inspectPrompt.ts` — export `buildInspectPrompt(ctx: InspectPromptContext): string`": [
+      {
+        "executionId": "44b5b130-edd8-4fc6-ab97-f813fba6177a",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793991749823
+      },
+      {
+        "executionId": "44b5b130-edd8-4fc6-ab97-f813fba6177a",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793991796045
+      },
+      {
+        "executionId": "adc5e878-c516-4c54-896a-7981cb2ddacf",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793995057767
+      },
+      {
+        "executionId": "adc5e878-c516-4c54-896a-7981cb2ddacf",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793995326837
+      }
+    ],
+    "4.6 Create `src/lib/utils/currency.ts` and extend `formatCurrency` with a `currency` parameter (depends on / extends 4.2)": [
+      {
+        "executionId": "f5494d50-1400-4dc2-a3b9-d786f472162b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793992153847
+      },
+      {
+        "executionId": "f5494d50-1400-4dc2-a3b9-d786f472162b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793992195923
+      }
+    ],
+    "8.1 Create `src/lib/aws/s3.ts` — export `s3Client` singleton and `getUploadPresignedUrl` / `getDownloadPresignedUrl` functions": [
+      {
+        "executionId": "f5494d50-1400-4dc2-a3b9-d786f472162b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793992202004
+      },
+      {
+        "executionId": "f5494d50-1400-4dc2-a3b9-d786f472162b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793992269401
+      }
+    ],
+    "8.2 Create `src/lib/aws/bedrock.ts` — export `invokeInspectionModel(s3Keys, answers): Promise<BedrockInspectionResponse>`": [
+      {
+        "executionId": "f5494d50-1400-4dc2-a3b9-d786f472162b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793992202111
+      },
+      {
+        "executionId": "f5494d50-1400-4dc2-a3b9-d786f472162b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793992270138
+      },
+      {
+        "executionId": "adc5e878-c516-4c54-896a-7981cb2ddacf",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793995057900
+      },
+      {
+        "executionId": "adc5e878-c516-4c54-896a-7981cb2ddacf",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793995327568
+      }
+    ],
+    "8.3 Create `src/lib/aws/dynamodb.ts` — export `persistInspection` and `getInspection` functions": [
+      {
+        "executionId": "f5494d50-1400-4dc2-a3b9-d786f472162b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793992202882
+      },
+      {
+        "executionId": "f5494d50-1400-4dc2-a3b9-d786f472162b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793992270725
+      }
+    ],
+    "8. AWS SDK singletons": [
+      {
+        "executionId": "f5494d50-1400-4dc2-a3b9-d786f472162b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793992270819
+      }
+    ],
+    "4.2 Create `src/lib/utils/formatCurrency.ts` — export `formatCurrency(amount: number): string`": [
+      {
+        "executionId": "adc5e878-c516-4c54-896a-7981cb2ddacf",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793995057658
+      },
+      {
+        "executionId": "adc5e878-c516-4c54-896a-7981cb2ddacf",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1793995326032
+      }
     ]
   }
 }

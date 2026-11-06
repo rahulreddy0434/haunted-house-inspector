@@ -97,7 +97,7 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 
 #### Acceptance Criteria
 
-1. THE Context_Form SHALL present exactly three questions to the User: (a) "Where in your home is the problem?", (b) "How long has this been going on?", and (c) "Has anything changed recently that might be related?".
+1. THE Context_Form SHALL present exactly three questions to the User: (a) "Where in your home is the problem?", (b) "How long has this been going on?", and (c) "Anything else we should know? For example smells, sounds, sparks or recent changes.".
 2. THE Context_Form SHALL require the User to provide a non-empty, non-whitespace-only answer to question (a) before the Submission can be sent; a response consisting only of spaces, tabs, or newlines SHALL be treated as empty.
 3. THE Context_Form SHALL treat questions (b) and (c) as optional, allowing the User to leave them blank.
 4. WHEN the User submits the Context_Form, THE App SHALL include all three answers (including blank optional answers) in the Submission sent to the Inspect_API.
@@ -146,7 +146,7 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 4. WHEN the Bedrock_Client receives a response, THE Inspect_API SHALL validate it against a Zod schema before passing it to the Safety_Layer.
 5. IF the Bedrock_Client response fails Zod validation, THEN THE Inspect_API SHALL return an HTTP 502 error to the client with a message indicating analysis failed and the User should try again.
 6. THE Bedrock_Client SHALL be invoked server-side only and SHALL NOT be called from any React component or Client Component.
-7. IF the Bedrock_Client call returns a service error or does not respond within 30 seconds, THEN THE Inspect_API SHALL return an HTTP 502 error to the client with a message indicating analysis is temporarily unavailable and the User should try again.
+7. IF the Bedrock_Client call returns a service error or does not respond within 20 seconds, THEN THE Inspect_API SHALL return an HTTP 502 error to the client with a message indicating analysis is temporarily unavailable and the User should try again. The 20-second limit leaves time within the 30-second Amplify server request limit to return the emergency message when Bedrock is slow.
 
 ---
 
@@ -163,6 +163,7 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 5. THE Results_Page SHALL prefix every confidence value with a tilde (~) when displayed, including values that round to 100%, to reflect the probabilistic nature of the diagnosis.
 6. THE Results_Page SHALL provide a one-click copy-to-clipboard action for the Job_Brief and SHALL display a confirmation indicator (e.g. 'Copied!') for at least 2 seconds after a successful copy.
 7. WHEN the clipboard write fails, THE Results_Page SHALL display a fallback that allows the User to manually select and copy the Job_Brief text.
+8. THE Bedrock_Client SHALL request `costRangeLow` and `costRangeHigh` in Canadian dollars (CAD), THE DynamoDB_Store SHALL store them as plain numbers in CAD, and THE Results_Page SHALL display them in CAD formatted as CA$1,200 with no decimals.
 
 ---
 

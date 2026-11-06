@@ -163,6 +163,10 @@ interface UploadProgressProps {
 
 Renders the three context questions. Question (a) is required; (b) and (c) are optional.
 
+- (a) `location`: "Where in your home is the problem?"
+- (b) `duration`: "How long has this been going on?"
+- (c) `recentChanges`: "Anything else we should know? For example smells, sounds, sparks or recent changes."
+
 ```typescript
 interface ContextFormProps {
   value: ContextAnswers;
@@ -263,7 +267,13 @@ interface UrgencyBadgeProps {
 ```
 
 #### `CostRange` (`src/components/results/CostRange.tsx`)
-Renders `costRangeLow`–`costRangeHigh` formatted as local currency, with the mandatory label "rough range, not a quote" beneath. Hidden entirely when `urgency === 'emergency'`.
+Renders `costRangeLow`–`costRangeHigh` in Canadian dollars (CAD) via `formatCurrency`, for example `CA$1,200 – CA$2,400`, with the mandatory label "rough range, not a quote" beneath. Hidden entirely when `urgency === 'emergency'`. There is no currency selector.
+
+#### Currency (`src/lib/utils/formatCurrency.ts`)
+
+All costs are Canadian dollars (CAD). The app serves Ontario homeowners and the costs reflect Ontario tradespeople. Bedrock is asked for `costRangeLow` and `costRangeHigh` in CAD, DynamoDB and `InspectionResult` store CAD numbers, and the UI displays CAD. There is no conversion.
+
+`formatCurrency(amount: number): string` returns CAD with no decimals, for example `CA$1,200`. It uses `Intl.NumberFormat` with `style: 'currency'`, `currency: 'CAD'`, `minimumFractionDigits: 0` and `maximumFractionDigits: 0`. The `en-US` locale is used because it renders the `CA$` prefix; the `en-CA` locale renders a bare `$`. `currencyDisplay: 'narrowSymbol'` is not used.
 
 #### `JobBrief` (`src/components/results/JobBrief.tsx`)
 Renders `jobBrief` text with a one-click "Copy" button. On success, shows "Copied!" for 2 seconds. On clipboard failure, switches to a selectable `<textarea>` with an instruction to copy manually. Hidden entirely when `urgency === 'emergency'`.
@@ -292,8 +302,8 @@ export interface InspectionResult {
   trade: string;                 // max 100 chars
   urgency: UrgencyLevel;
   confidence: number;            // 0–1 inclusive
-  costRangeLow: number;          // 0–999999; absent when urgency=emergency
-  costRangeHigh: number;         // 0–999999; absent when urgency=emergency
+  costRangeLow: number;          // CAD; 0–999999; absent when urgency=emergency
+  costRangeHigh: number;         // CAD; 0–999999; absent when urgency=emergency
   jobBrief: string;              // max 1000 chars; absent when urgency=emergency
   followUpQuestions: [string, string]; // exactly 2, max 200 chars each
   diySteps: string[];            // empty array for electrical/gas/HVAC/furnace trades or emergency
@@ -425,7 +435,7 @@ Orchestrates the full analysis pipeline.
 1. Parse + Zod-validate request body; return 400 on failure.
 2. **Rate Limiter**: read httpOnly session cookie / IP fallback. If count ≥ 5 → return HTTP 429 with friendly message.
 3. **Safety Layer — context-answer check (always runs)**: call `checkEmergency({ contextAnswers, bedrockOutput: undefined })` on the three context answer fields. If emergency detected → skip steps 4–5, go directly to step 6 with `safetyResult.isEmergency = true`.
-4. Invoke `Bedrock_Client` with S3 keys + answers; enforce 30-second timeout.
+4. Invoke `Bedrock_Client` with S3 keys + answers; enforce a 20-second timeout (Amplify stops server requests at 30 seconds, so 20 seconds leaves time to return the emergency message when Bedrock is slow).
    - On timeout or service error: check if step 3 already set `isEmergency`. If yes → proceed to step 6 with emergency result. If no → return HTTP 502 with message "We couldn't analyse your photos. Please try again."
 5. Zod-validate Bedrock response; on failure → apply same Bedrock-failure logic as step 4 (check `isEmergency` from step 3; if not set → return HTTP 502 with retry message).
 6. **Safety Layer — post-Bedrock merge (only when Bedrock succeeds)**: call `checkEmergency({ contextAnswers, bedrockOutput: likelyIssue + jobBrief })`. Merge with step 3 result (either source triggering emergency is sufficient).
@@ -579,8 +589,8 @@ export async function invokeInspectionModel(
 The function:
 1. Fetches pre-signed GET URLs for each S3 key (for passing image bytes to the model's vision API).
 2. Builds the prompt via `buildInspectPrompt(answers)` from `src/lib/prompts/inspectPrompt.ts`.
-3. Constructs the model `messages` payload with image content blocks (base64-encoded JPEG) and the text prompt.
-4. Calls `InvokeModelCommand` with a 30-second timeout signal.
+3. Constructs the model `messages` payload with image content blocks (base64-encoded bytes) and the text prompt. Each image block's `format` (`jpeg`, `png` or `webp`) is set from the S3 object's `Content-Type`, falling back to the key's file extension; it is not always `jpeg`.
+4. Calls `InvokeModelCommand` with a 20-second timeout signal (see the rationale in the `POST /api/inspect` orchestration steps).
 5. Decodes the response body, extracts the JSON string from the model's reply.
 6. Returns the raw parsed object (Zod validation is the caller's responsibility).
 
@@ -619,6 +629,7 @@ The prompt instructs the model to:
 - Never return `urgency: 'emergency'` (that is the Safety Layer's job).
 - Use non-technical language suitable for a non-trade homeowner.
 - Label cost ranges as estimates and express confidence as a decimal 0–1.
+- Give `costRangeLow` and `costRangeHigh` in Canadian dollars (CAD), reflecting typical Ontario tradesperson pricing.
 
 ---
 
@@ -826,7 +837,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 | Rate limit exceeded | 429 | Friendly plain-English message + `resetAt` |
 | S3 pre-sign failure | 500 | Generic "Upload service unavailable" |
 | Bedrock service error | 502 | "Analysis temporarily unavailable" |
-| Bedrock timeout (> 30 s) | 502 | "Analysis timed out" |
+| Bedrock timeout (> 20 s) | 502 | "Analysis timed out" |
 | Bedrock response fails Zod validation | 502 | "Analysis returned unexpected data" |
 | DynamoDB write failure | 207 (partial success) | Return result to client; log DynamoDB error; result is not persisted |
 | Inspection not found (`GET /api/inspections/[id]`) | 404 | "Inspection not found" |
@@ -851,6 +862,7 @@ Key unit test targets:
 - `contextAnswersSchema` — whitespace, empty, length boundary.
 - `urgencyLabel()` — all four values.
 - `formatConfidence()` — boundary values (0, 0.5, 1.0) and mid-range values.
+- `formatCurrency()` — exact CAD output with no decimals (e.g. `1200` → `CA$1,200`).
 - `UrgencyBadge`, `CostRange`, `JobBrief`, `EmergencyBanner` — rendering with emergency vs. non-emergency props.
 - `DataRetentionNotice` — mock `IntersectionObserver`; verify `onVisible` fires on first intersection only.
 - `checkRateLimit()` — allowed under threshold, blocked at and above threshold, cookie vs. IP fallback.
@@ -891,7 +903,7 @@ Use **Vitest** + **MSW** (Mock Service Worker) to intercept Route Handler calls 
 Integration test scenarios:
 - Full upload + inspect happy path (mock S3 pre-sign, mock Bedrock, verify DynamoDB called).
 - Rate limit enforcement: 5th request succeeds; 6th returns 429 before Bedrock is invoked.
-- Emergency trigger in context answers: verify response has urgency=emergency and suppressed fields (Bedrock still invoked; Safety Layer overrides post-response).
+- Emergency trigger in context answers: verify response has urgency=emergency and suppressed fields (Bedrock is never invoked; the pre-Bedrock Safety Layer check returns the emergency result).
 - Emergency trigger in Bedrock output: verify override applied post-Bedrock.
 - Bedrock Zod validation failure: verify 502 response.
 - Bedrock timeout: verify 502 response.

@@ -51,9 +51,9 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
   - [x] 4.1 Create `src/lib/utils/urgencyLabel.ts` — export `urgencyLabel(urgency: UrgencyLevel): string`
     - Maps all four values to the exact plain-English labels from the design
     - _Requirements: 9.2_
-  - [x] 4.2 Create `src/lib/utils/formatCurrency.ts` — export `formatCurrency(amount: number, locale?: string): string`
-    - Formats numbers as local currency for cost range display
-    - _Requirements: 9.4_
+  - [x] 4.2 Create `src/lib/utils/formatCurrency.ts` — export `formatCurrency(amount: number): string`
+    - Formats CAD with no decimals as `CA$1,200`: `Intl.NumberFormat('en-US', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 })` (the `en-CA` locale renders a bare `$`, and `currencyDisplay: 'narrowSymbol'` is not used; output must be exactly `CA$1,200`)
+    - _Requirements: 9.4, 9.8_
   - [x] 4.3 Create `src/lib/utils/formatConfidence.ts` — export `formatConfidence(confidence: number): string`
     - Returns `~{Math.round(c * 100)}%` for any c in [0, 1]
     - _Requirements: 9.3, 9.5_
@@ -106,29 +106,31 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 - [x] 6. Checkpoint — Safety Layer verified
   - Ensure all Safety Layer tests pass. Ask the user if any questions arise.
 
-- [ ] 7. Bedrock prompt template
-  - [ ] 7.1 Create `src/lib/prompts/inspectPrompt.ts` — export `buildInspectPrompt(ctx: InspectPromptContext): string`
+- [x] 7. Bedrock prompt template
+  - [x] 7.1 Create `src/lib/prompts/inspectPrompt.ts` — export `buildInspectPrompt(ctx: InspectPromptContext): string`
     - Instructs Amazon Nova Lite to analyse images for visible home defects, use context answers, return JSON matching `BedrockInspectionResponse` exactly
     - Must instruct the model to never return `urgency: 'emergency'`
     - Must instruct the model to use non-technical language and label costs as estimates with confidence as a decimal 0–1
+    - Must ask for `costRangeLow` and `costRangeHigh` in Canadian dollars (CAD)
     - _Requirements: 8.1–8.3_
   - [ ]* 7.2 Write unit snapshot test for `buildInspectPrompt`
     - Snapshot test of rendered prompt for a known `InspectPromptContext` input using Vitest
     - Verify prompt contains JSON schema instructions
     - _Requirements: 8.2, 8.3_
 
-- [ ] 8. AWS SDK singletons
-  - [ ] 8.1 Create `src/lib/aws/s3.ts` — export `s3Client` singleton and `getUploadPresignedUrl` / `getDownloadPresignedUrl` functions
+- [x] 8. AWS SDK singletons
+  - [x] 8.1 Create `src/lib/aws/s3.ts` — export `s3Client` singleton and `getUploadPresignedUrl` / `getDownloadPresignedUrl` functions
     - Use `S3_BUCKET_NAME` and `APP_AWS_REGION` from `process.env`; guard with `server-only`
     - `getUploadPresignedUrl` uses `PutObjectCommand` with `expiresIn: 900`
     - _Requirements: 4.2, 4.4_
-  - [ ] 8.2 Create `src/lib/aws/bedrock.ts` — export `invokeInspectionModel(s3Keys, answers): Promise<BedrockInspectionResponse>`
+  - [x] 8.2 Create `src/lib/aws/bedrock.ts` — export `invokeInspectionModel(s3Keys, answers): Promise<BedrockInspectionResponse>`
     - Use `BEDROCK_MODEL_ID` from `process.env`; default model is Amazon Nova Lite using the cross-region inference profile ID (prefixed `us.`) for on-demand calls in us-east-2
     - Use `APP_AWS_REGION` from `process.env` for the `BedrockRuntimeClient` region; guard with `server-only`
-    - Fetch pre-signed GET URLs for S3 keys, build `messages` payload with image content blocks (base64 JPEG), call `InvokeModelCommand` with 30-second timeout signal
+    - Fetch pre-signed GET URLs for S3 keys, build `messages` payload with image content blocks (base64 bytes), call `InvokeModelCommand` with a 20-second timeout signal (Amplify stops server requests at 30 seconds, so 20 seconds leaves time to return the emergency message when Bedrock is slow)
+    - Set each image block's `format` (`jpeg`, `png` or `webp`) from the S3 object's `Content-Type`, falling back to the key's file extension; do not hard-code `jpeg`
     - Returns raw parsed object; Zod validation is caller's responsibility
     - _Requirements: 8.1–8.3, 8.6, 8.7_
-  - [ ] 8.3 Create `src/lib/aws/dynamodb.ts` — export `persistInspection` and `getInspection` functions
+  - [x] 8.3 Create `src/lib/aws/dynamodb.ts` — export `persistInspection` and `getInspection` functions
     - Use `DYNAMODB_TABLE_NAME` and `APP_AWS_REGION` from `process.env`; guard with `server-only`
     - Single-table design: `PK = JOB#{id}`, `SK = JOB#{id}`; `ttl` field = createdAt + 30 days in Unix epoch
     - Every job is persisted unconditionally — no authentication check, no guest branching
@@ -196,7 +198,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Step 1: Parse and Zod-validate request body with `inspectRequestSchema`; return 400 on failure
     - Step 2: Call `checkRateLimit(request)`; if `allowed: false` → return HTTP 429 with friendly message and `Retry-After` header before invoking Bedrock
     - Step 3: **Safety Layer — context-answer check (always runs)**: call `checkEmergency({ contextAnswers, bedrockOutput: undefined })`; if `isEmergency: true` → skip steps 4–5, assemble emergency `InspectionResult`, persist to DynamoDB, return result
-    - Step 4: Invoke `invokeInspectionModel` with 30-second timeout; on timeout or service error → if step 3 `isEmergency` was true (shouldn't reach here) handle gracefully; otherwise return HTTP 502 with message "We couldn't analyse your photos. Please try again."
+    - Step 4: Invoke `invokeInspectionModel` with 20-second timeout; on timeout or service error → if step 3 `isEmergency` was true (shouldn't reach here) handle gracefully; otherwise return HTTP 502 with message "We couldn't analyse your photos. Please try again."
     - Step 5: Zod-validate Bedrock response with `bedrockResponseSchema`; on failure → return HTTP 502 with same retry message (step 3 emergency was already handled in step 3)
     - Step 6: **Safety Layer — post-Bedrock merge**: call `checkEmergency({ contextAnswers, bedrockOutput: likelyIssue + jobBrief })`; merge with step 3 result; call `applyOverrides`
     - Step 7: Assemble `InspectionResult` with UUID and ISO 8601 timestamp
@@ -216,7 +218,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Mock Bedrock returning invalid JSON; verify 502 response with correct message
     - _Requirements: 8.4, 8.5_
   - [ ] 12.6 Write integration test: Bedrock timeout (Vitest + MSW)
-    - Mock Bedrock not responding within 30 s; verify 502 response
+    - Mock Bedrock not responding within 20 s; verify 502 response
     - _Requirements: 8.7_
   - [ ] 12.7 Write integration test: Bedrock fails but safety trigger present in context answers (Vitest + MSW)
     - POST with location containing `'carbon monoxide alarm'`; mock Bedrock to return a service error; verify response still has `urgency: 'emergency'` and the emergency message is shown; verify a 502 is NOT returned
@@ -288,6 +290,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - _Requirements: 10.1_
   - [ ] 15.8 Create `src/components/upload/ContextForm.tsx`
     - Three text fields: location (required), duration (optional), recentChanges (optional)
+    - Question (c) text: "Anything else we should know? For example smells, sounds, sparks or recent changes." (field name stays `recentChanges`)
     - Real-time character counter (`{n}/500`) for each field; block input beyond 500 chars
     - Inline error on location if submitted empty or whitespace-only
     - _Requirements: 5.1–5.5_
@@ -345,15 +348,16 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Verify banner does not render for other urgency levels
     - _Requirements: 6.4_
   - [ ] 18.5 Create `src/components/results/CostRange.tsx`
-    - Display `costRangeLow`–`costRangeHigh` formatted via `formatCurrency`
+    - Display `costRangeLow`–`costRangeHigh` in Canadian dollars (CAD) via `formatCurrency`, e.g. `CA$1,200`; no currency selector
     - Mandatory label "rough range, not a quote" beneath
     - Hidden entirely when `urgency === 'emergency'`
     - Supports Normal and Haunted Tailwind themes via active theme class at layout level
-    - _Requirements: 9.4, 6.5_
+    - _Requirements: 9.4, 9.8, 6.5_
   - [ ]* 18.6 Write unit test for `CostRange` with emergency props using Vitest
     - Verify CostRange renders normally for non-emergency urgency
     - Verify CostRange is not rendered when `urgency === 'emergency'`
-    - _Requirements: 6.5_
+    - Verify costs render in CAD with no decimals (e.g. `CA$1,200`) and the "rough range, not a quote" label is always present
+    - _Requirements: 6.5, 9.4, 9.8_
   - [ ] 18.7 Create `src/components/results/JobBrief.tsx`
     - Render `jobBrief` text with one-click "Copy" button
     - On clipboard success: show "Copied!" for at least 2 seconds
@@ -428,6 +432,9 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 - All AWS singleton clients use `APP_AWS_REGION` as the sole region parameter; there are no separate per-service region variables
 - The default Bedrock model is Amazon Nova Lite; use the cross-region inference profile ID (prefixed `us.`) for on-demand calls in us-east-2
 - All costs labelled "rough range, not a quote"; all confidence values prefixed with `~`
+- All costs are Canadian dollars (CAD) for Ontario homeowners: Bedrock is asked for CAD, CAD is stored and displayed, and amounts format as `CA$1,200` with no decimals
+- The Bedrock call timeout is 20 seconds because Amplify stops server requests at 30 seconds, leaving time to return the emergency message when Bedrock is slow
+- Image blocks sent to Bedrock take their format (jpeg, png or webp) from the S3 Content-Type, falling back to the key's file extension
 - All UI components support the Normal and Haunted Tailwind themes via the root layout theme class
 - Video max duration is 30 seconds; image max size is 10 MB (10 485 760 bytes); there is no file-size cap on video files
 - Every job is persisted to DynamoDB unconditionally — no authentication check, no guest/authenticated branching
