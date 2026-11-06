@@ -47,22 +47,22 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Use `fc.stringOf(fc.constantFrom(' ', '\t', '\n'))` for location
     - Tag: `// Feature: intake-and-triage, Property 8: Whitespace-only location answer is invalid`
 
-- [ ] 4. Utility functions
-  - [ ] 4.1 Create `src/lib/utils/urgencyLabel.ts` — export `urgencyLabel(urgency: UrgencyLevel): string`
+- [x] 4. Utility functions
+  - [x] 4.1 Create `src/lib/utils/urgencyLabel.ts` — export `urgencyLabel(urgency: UrgencyLevel): string`
     - Maps all four values to the exact plain-English labels from the design
     - _Requirements: 9.2_
-  - [ ] 4.2 Create `src/lib/utils/formatCurrency.ts` — export `formatCurrency(amount: number, locale?: string): string`
+  - [x] 4.2 Create `src/lib/utils/formatCurrency.ts` — export `formatCurrency(amount: number, locale?: string): string`
     - Formats numbers as local currency for cost range display
     - _Requirements: 9.4_
-  - [ ] 4.3 Create `src/lib/utils/formatConfidence.ts` — export `formatConfidence(confidence: number): string`
+  - [x] 4.3 Create `src/lib/utils/formatConfidence.ts` — export `formatConfidence(confidence: number): string`
     - Returns `~{Math.round(c * 100)}%` for any c in [0, 1]
     - _Requirements: 9.3, 9.5_
-  - [ ] 4.4 Write property test for `urgencyLabel` (Property 15)
+  - [x] 4.4 Write property test for `urgencyLabel` (Property 15)
     - **Property 15: Urgency label mapping is exhaustive and exact**
     - **Validates: Requirements 9.2**
     - Use `fc.constantFrom('emergency', 'urgent', 'soon', 'monitor')`; verify no value returns `undefined` or empty string and each maps to the exact specified string
     - Tag: `// Feature: intake-and-triage, Property 15: Urgency label mapping is exhaustive and exact`
-  - [ ] 4.5 Write property test for `formatConfidence` (Property 16)
+  - [x] 4.5 Write property test for `formatConfidence` (Property 16)
     - **Property 16: Confidence formatting always produces a tilde-prefixed percentage**
     - **Validates: Requirements 9.3, 9.5**
     - Use `fc.float({ min: 0, max: 1 })`; verify result starts with `~`, ends with `%`, numeric portion equals `Math.round(c * 100)`

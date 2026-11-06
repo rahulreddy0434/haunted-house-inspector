@@ -7,6 +7,14 @@
     "3.3 Write property test for `bedrockResponseSchema` (Property 19)": {
       "status": "passed",
       "lastRunTimestamp": 1793989351893
+    },
+    "4.4 Write property test for `urgencyLabel` (Property 15)": {
+      "status": "passed",
+      "lastRunTimestamp": 1793989829766
+    },
+    "4.5 Write property test for `formatConfidence` (Property 16)": {
+      "status": "passed",
+      "lastRunTimestamp": 1793989830297
     }
   },
   "executionHistory": {
@@ -116,6 +124,53 @@
         "executionId": "45056e84-451e-41c9-83f7-bb30af2bed39",
         "chatSessionId": "sess_fd955f5d-56d0-42d1-a114-4e86f9801b1d",
         "timestamp": 1793989358054
+      }
+    ],
+    "4. Utility functions": [
+      {
+        "executionId": "b79ad74d-9cb9-458b-8749-3720d46d20f0",
+        "chatSessionId": "sess_c0dddf5f-cea5-469b-9d58-eb4f19b1cd2d",
+        "timestamp": 1793989606806
+      },
+      {
+        "executionId": "b79ad74d-9cb9-458b-8749-3720d46d20f0",
+        "chatSessionId": "sess_c0dddf5f-cea5-469b-9d58-eb4f19b1cd2d",
+        "timestamp": 1793989839036
+      }
+    ],
+    "4.1 Create `src/lib/utils/urgencyLabel.ts` — export `urgencyLabel(urgency: UrgencyLevel): string`": [
+      {
+        "executionId": "b79ad74d-9cb9-458b-8749-3720d46d20f0",
+        "chatSessionId": "sess_c0dddf5f-cea5-469b-9d58-eb4f19b1cd2d",
+        "timestamp": 1793989845484
+      }
+    ],
+    "4.2 Create `src/lib/utils/formatCurrency.ts` — export `formatCurrency(amount: number, locale?: string): string`": [
+      {
+        "executionId": "b79ad74d-9cb9-458b-8749-3720d46d20f0",
+        "chatSessionId": "sess_c0dddf5f-cea5-469b-9d58-eb4f19b1cd2d",
+        "timestamp": 1793989846487
+      }
+    ],
+    "4.3 Create `src/lib/utils/formatConfidence.ts` — export `formatConfidence(confidence: number): string`": [
+      {
+        "executionId": "b79ad74d-9cb9-458b-8749-3720d46d20f0",
+        "chatSessionId": "sess_c0dddf5f-cea5-469b-9d58-eb4f19b1cd2d",
+        "timestamp": 1793989846929
+      }
+    ],
+    "4.4 Write property test for `urgencyLabel` (Property 15)": [
+      {
+        "executionId": "b79ad74d-9cb9-458b-8749-3720d46d20f0",
+        "chatSessionId": "sess_c0dddf5f-cea5-469b-9d58-eb4f19b1cd2d",
+        "timestamp": 1793989850446
+      }
+    ],
+    "4.5 Write property test for `formatConfidence` (Property 16)": [
+      {
+        "executionId": "b79ad74d-9cb9-458b-8749-3720d46d20f0",
+        "chatSessionId": "sess_c0dddf5f-cea5-469b-9d58-eb4f19b1cd2d",
+        "timestamp": 1793989851037
       }
     ]
   }
