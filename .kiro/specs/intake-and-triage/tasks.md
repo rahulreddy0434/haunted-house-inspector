@@ -32,7 +32,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Validates `filename` (string), `contentType` (enum of accepted MIME types), `inspectionId` (UUID string)
     - _Requirements: 4.1, 4.2_
   - [x] 3.2 Create `src/lib/validation/inspectionSchema.ts` — export `contextAnswersSchema`, `inspectRequestSchema`, `bedrockResponseSchema`
-    - `contextAnswersSchema`: `location` min 1, all fields max 500, optional defaults for `duration` and `recentChanges`
+    - `contextAnswersSchema`: `location` trimmed (`.trim()`) then min 1 so whitespace-only is invalid, all fields max 500, optional defaults for `duration` and `recentChanges`
     - `bedrockResponseSchema`: all field types, ranges, and the `costRangeHigh >= costRangeLow` refinement
     - `inspectRequestSchema`: `s3Keys` array (1–5 non-empty strings), `answers: contextAnswersSchema`
     - _Requirements: 5.2, 5.5, 8.3, 8.4_
@@ -70,15 +70,15 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 
 - [ ] 5. Safety Layer
   - [ ] 5.1 Create `src/lib/safety/safetyLayer.ts` — export `checkEmergency` and `applyOverrides`
-    - `checkEmergency(input: SafetyCheckInput): SafetyCheckResult` — `bedrockOutput` is optional; when `undefined`, evaluates context answers only. When provided, evaluates context answers AND Bedrock output. Case-insensitive substring matching with 200-char proximity window for all four `EmergencyConditionCode` values.
+    - `checkEmergency(input: SafetyCheckInput): SafetyCheckResult` — `bedrockOutput` is optional; when `undefined`, evaluates context answers only. When provided, evaluates context answers AND Bedrock output. Case-insensitive substring matching for all four `EmergencyConditionCode` values, except `gas` and `co` which match whole words only (not directly preceded or followed by a letter or digit). Proximity means 200 characters or fewer between the end of one term and the start of the other, in either order.
     - The function is called **twice** in the `POST /api/inspect` pipeline: once immediately (before Bedrock, with `bedrockOutput: undefined`) and once after a successful Bedrock response (with `bedrockOutput` set). Either call returning `isEmergency: true` is sufficient to trigger the emergency override.
-    - `applyOverrides(bedrockResult, safetyResult, trade): InspectionResult` — sets `urgency = 'emergency'`, zeros/clears cost and job brief, empties `diySteps` for emergency; empties `diySteps` for `electrician` / `gas engineer` trade regardless of urgency
+    - `applyOverrides(bedrockResult, safetyResult, trade): InspectionResult` — sets `urgency = 'emergency'`, zeros/clears cost and job brief, empties `diySteps` for emergency; empties `diySteps` when the trade (case-insensitive) contains `electric`, `gas`, `hvac` or `furnace`, regardless of urgency
     - Pure module: no I/O, no async, no Bedrock dependency; guard with `server-only`
     - _Requirements: 6.1–6.7, 7.1_
   - [ ] 5.2 Write property test for `checkEmergency` (Property 11)
     - **Property 11: Emergency detection on any trigger-containing text**
     - **Validates: Requirements 6.1, 6.2**
-    - Use `fc.string()` and inject trigger phrase at a random position; verify `isEmergency: true`; use clean `fc.string()` without triggers for negative case
+    - Use `fc.string()` and inject a trigger pair at a random position, separated by a filler gap of 0–200 characters between the end of one term and the start of the other (single-phrase rules inject the phrase alone); verify `isEmergency: true`; use clean `fc.string()` without triggers for negative case
     - Tag: `// Feature: intake-and-triage, Property 11: Emergency detection on any trigger-containing text`
   - [ ] 5.3 Write property test for emergency urgency override (Property 12)
     - **Property 12: Emergency urgency override is unconditional after Bedrock**
@@ -88,11 +88,17 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
   - [ ] 5.4 Write property test for DIY suppression by trade (Property 14)
     - **Property 14: DIY steps suppressed for dangerous trades**
     - **Validates: Requirements 7.1**
-    - Use `fc.constantFrom('electrician', 'gas engineer')` as trade with arbitrary `diySteps`; verify result has empty `diySteps`
+    - Build `trade` from a keyword in `fc.constantFrom('electric', 'gas', 'hvac', 'furnace')` with random casing and random prefix/suffix (e.g. `Licensed Electrician`, `Gas fitter`, `HVAC technician`) and arbitrary `diySteps`; verify result has empty `diySteps`
     - Tag: `// Feature: intake-and-triage, Property 14: DIY steps suppressed for dangerous trades`
   - [ ] 5.5 Write unit tests for `checkEmergency` and `applyOverrides`
     - Test all four emergency condition codes with exact trigger phrases and case variants
-    - Test proximity boundary (within 200 chars vs. beyond 200 chars)
+    - Required test cases that MUST trigger (`isEmergency: true`):
+      - `GAS_SMELL`: "I smell gas", "smells like gas", "gas leak", "rotten egg"
+      - `CO_ALARM`: "CO detector is beeping", "carbon monoxide", "co alarm"
+      - `ELECTRICAL_FIRE`: "the outlet is sparking", "burning plastic smell from the breaker panel"
+      - `WATER_ELECTRICAL`: "basement flooded near the breaker panel", "water dripping onto the electrical outlet"
+    - Required test cases that MUST NOT trigger (`isEmergency: false`): "our gas bill is high", "the dishwasher is leaking", "water stain on the ceiling", "faucet drips all night", "the toilet gasket is leaking", "the dishwasher door gasket leaks"
+    - Test proximity boundary, measured as characters between the end of one term and the start of the other: 199 and 200 characters apart trigger; 201 does not (e.g. `spark` + N filler characters + `outlet`)
     - Test non-trigger inputs return `isEmergency: false`
     - Test emergency field suppression: cost range, job brief, DIY steps all cleared
     - _Requirements: 6.1–6.7, 7.1_

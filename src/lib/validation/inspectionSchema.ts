@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const contextAnswersSchema = z.object({
-  location: z.string().min(1, 'Location is required').max(500),
+  location: z.string().trim().min(1, 'Location is required').max(500),
   duration: z.string().max(500).optional().default(''),
   recentChanges: z.string().max(500).optional().default(''),
 });

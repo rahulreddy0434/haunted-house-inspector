@@ -296,7 +296,7 @@ export interface InspectionResult {
   costRangeHigh: number;         // 0–999999; absent when urgency=emergency
   jobBrief: string;              // max 1000 chars; absent when urgency=emergency
   followUpQuestions: [string, string]; // exactly 2, max 200 chars each
-  diySteps: string[];            // empty array for electrician/gas engineer trades or emergency
+  diySteps: string[];            // empty array for electrical/gas/HVAC/furnace trades or emergency
   isEmergency: boolean;
 
   // Context answers
@@ -345,7 +345,7 @@ export const bedrockResponseSchema = z.object({
 });
 
 export const contextAnswersSchema = z.object({
-  location: z.string().min(1, 'Location is required').max(500),
+  location: z.string().trim().min(1, 'Location is required').max(500),
   duration: z.string().max(500).optional().default(''),
   recentChanges: z.string().max(500).optional().default(''),
 });
@@ -541,14 +541,14 @@ export function applyOverrides(
 
 ### Emergency Trigger Matching Rules
 
-All matching is **case-insensitive substring** search. "Proximity" is defined as both terms appearing within the same 200-character window of the evaluated string.
+All matching is **case-insensitive substring** search, except that `'gas'` and `'co'` match **whole words only**: a match directly preceded or followed by a letter or digit does not count (so `'gasket'` and `'taco'` do not match; `'gas'` in "gas leak" and `'co'` in "CO detector" do). "Within 200 chars" (proximity) is defined as **200 characters or fewer between the end of one term and the start of the other**, in either order. For example, `'spark'` + 200 characters + `'outlet'` triggers; with 201 characters between them it does not.
 
 | Code | Triggers when… |
 |---|---|
-| `GAS_SMELL` | Input contains `'gas smell'` OR `'rotten egg'` |
-| `ELECTRICAL_FIRE` | Input contains (`'sparks'` OR `'burning smell'` OR `'scorch marks'`) AND (within 200 chars) (`'outlet'` OR `'panel'` OR `'appliance'`) |
-| `WATER_ELECTRICAL` | Input contains `'water'` AND (`'flood'` OR `'flooding'`) AND (within 200 chars) (`'electrical outlet'` OR `'panel'` OR `'appliance'`) |
-| `CO_ALARM` | Input contains `'carbon monoxide alarm'` |
+| `GAS_SMELL` | Input contains `'rotten egg'`, OR `'gas'` within 200 chars of (`'smell'` OR `'odor'` OR `'odour'` OR `'leak'` OR `'hiss'`) |
+| `ELECTRICAL_FIRE` | Input contains (`'spark'` OR `'burning'` OR `'scorch'` OR `'smoke'` OR `'melt'`) within 200 chars of (`'outlet'` OR `'socket'` OR `'plug'` OR `'panel'` OR `'breaker'` OR `'wire'` OR `'wiring'` OR `'switch'` OR `'appliance'` OR `'electrical'`) |
+| `WATER_ELECTRICAL` | Input contains (`'water'` OR `'flood'` OR `'leak'` OR `'wet'`) within 200 chars of (`'outlet'` OR `'socket'` OR `'panel'` OR `'breaker'` OR `'wiring'` OR `'electrical'`) |
+| `CO_ALARM` | Input contains `'carbon monoxide'`, `'co alarm'` OR `'co detector'` |
 
 ### Override Rules (applied in `applyOverrides`)
 
@@ -557,7 +557,7 @@ All matching is **case-insensitive substring** search. "Proximity" is defined as
    - Set `costRangeLow = 0`, `costRangeHigh = 0` (field suppressed in UI, not null to satisfy schema).
    - Set `jobBrief = ''` (suppressed in UI).
    - Set `diySteps = []`.
-2. If `trade` (normalised, lowercase) is `'electrician'` or `'gas engineer'`:
+2. If `trade` (case-insensitive) contains `'electric'`, `'gas'`, `'hvac'` or `'furnace'`:
    - Set `diySteps = []`.
 3. These rules are applied regardless of Bedrock output.
 
@@ -714,7 +714,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 11: Emergency detection on any trigger-containing text
 
-*For any* text string that contains a trigger phrase (case-insensitive substring match per the Safety Layer rules), `checkEmergency` SHALL return `isEmergency: true`; and for any text that contains none of the trigger phrases, `checkEmergency` SHALL return `isEmergency: false`.
+*For any* text string that contains a trigger (case-insensitive substring match per the Safety Layer rules, where `'gas'` and `'co'` match whole words only, each two-part rule has its trigger pair placed with 200 characters or fewer between the end of one term and the start of the other, and each single-phrase rule has its phrase present), `checkEmergency` SHALL return `isEmergency: true`; and for any text that contains none of the trigger phrases, `checkEmergency` SHALL return `isEmergency: false`.
 
 **Validates: Requirements 6.1, 6.2**
 
@@ -738,7 +738,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 14: DIY steps suppressed for dangerous trades
 
-*For any* `BedrockInspectionResponse` where `trade` (normalised to lowercase) is `'electrician'` or `'gas engineer'`, `applyOverrides` SHALL return a result with an empty `diySteps` array, regardless of what Bedrock returned in that field.
+*For any* `BedrockInspectionResponse` where `trade`, compared case-insensitively, contains `'electric'`, `'gas'`, `'hvac'` or `'furnace'` (e.g. `'Licensed Electrician'`, `'Gas fitter'`, `'HVAC technician'`), `applyOverrides` SHALL return a result with an empty `diySteps` array, regardless of what Bedrock returned in that field.
 
 **Validates: Requirements 7.1**
 
@@ -871,10 +871,10 @@ Use **fast-check** for property-based testing. Each test runs a minimum of 100 i
 | P8 — Whitespace location | `fc.stringOf(fc.constantFrom(' ', '\t', '\n'))` |
 | P9 — Context answer payload | `fc.record({ location: fc.string(), duration: fc.string(), recentChanges: fc.string() })` |
 | P10 — Char limit | `fc.string({ minLength: 501, maxLength: 2000 })` |
-| P11 — Emergency detection | `fc.string()` + inject trigger phrase at random position; `fc.string()` without trigger |
+| P11 — Emergency detection | `fc.string()` + inject a trigger pair (or single phrase) with a gap of 0–200 chars between the end of one term and the start of the other at a random position; `fc.string()` without trigger |
 | P12 — Emergency override | `fc.record(BedrockResponseArb)` with emergency context; verify urgency |
 | P13 — Emergency field suppression | `InspectionResultArb` with urgency=emergency; render; verify absent fields |
-| P14 — DIY suppression | `fc.constantFrom('electrician', 'gas engineer')` as trade; arbitrary diySteps array |
+| P14 — DIY suppression | trade built from a keyword (`'electric'`, `'gas'`, `'hvac'`, `'furnace'`) with random case and random prefix/suffix; arbitrary diySteps array |
 | P15 — Urgency label | `fc.constantFrom('emergency', 'urgent', 'soon', 'monitor')` |
 | P16 — Confidence formatting | `fc.float({ min: 0, max: 1 })` |
 | P17 — Every job persisted | `InspectionSubmissionArb`; spy on DynamoDB.persist; verify always called |
