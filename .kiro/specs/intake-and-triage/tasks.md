@@ -27,7 +27,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Matches the raw Amazon Nova Lite JSON structure; `urgency` is `'urgent' | 'soon' | 'monitor'` only (no `'emergency'`)
     - _Requirements: 8.3_
 
-- [ ] 3. Zod validation schemas
+- [x] 3. Zod validation schemas
   - [x] 3.1 Create `src/lib/validation/uploadSchema.ts` — export `uploadUrlRequestSchema`
     - Validates `filename` (string), `contentType` (enum of accepted MIME types), `inspectionId` (UUID string)
     - _Requirements: 4.1, 4.2_
@@ -36,12 +36,12 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - `bedrockResponseSchema`: all field types, ranges, and the `costRangeHigh >= costRangeLow` refinement
     - `inspectRequestSchema`: `s3Keys` array (1–5 non-empty strings), `answers: contextAnswersSchema`
     - _Requirements: 5.2, 5.5, 8.3, 8.4_
-  - [ ] 3.3 Write property test for `bedrockResponseSchema` (Property 19)
+  - [x] 3.3 Write property test for `bedrockResponseSchema` (Property 19)
     - **Property 19: Zod schema correctly classifies Bedrock responses**
     - **Validates: Requirements 8.3, 8.4**
     - Use `fc.object()` (arbitrary JSON); verify `safeParse` returns `success: true` iff all constraints are met
     - Tag: `// Feature: intake-and-triage, Property 19: Zod schema correctly classifies Bedrock responses`
-  - [ ] 3.4 Write property test for `contextAnswersSchema` whitespace location (Property 8)
+  - [x] 3.4 Write property test for `contextAnswersSchema` whitespace location (Property 8)
     - **Property 8: Whitespace-only location answer is invalid**
     - **Validates: Requirements 5.2**
     - Use `fc.stringOf(fc.constantFrom(' ', '\t', '\n'))` for location
