@@ -15,6 +15,18 @@
     "4.5 Write property test for `formatConfidence` (Property 16)": {
       "status": "passed",
       "lastRunTimestamp": 1793989830297
+    },
+    "5.2 Write property test for `checkEmergency` (Property 11)": {
+      "status": "passed",
+      "lastRunTimestamp": 1793990441061
+    },
+    "5.3 Write property test for emergency urgency override (Property 12)": {
+      "status": "passed",
+      "lastRunTimestamp": 1793990441114
+    },
+    "5.4 Write property test for DIY suppression by trade (Property 14)": {
+      "status": "passed",
+      "lastRunTimestamp": 1793990441641
     }
   },
   "executionHistory": {
@@ -171,6 +183,65 @@
         "executionId": "b79ad74d-9cb9-458b-8749-3720d46d20f0",
         "chatSessionId": "sess_c0dddf5f-cea5-469b-9d58-eb4f19b1cd2d",
         "timestamp": 1793989851037
+      }
+    ],
+    "5.1 Create `src/lib/safety/safetyLayer.ts` — export `checkEmergency` and `applyOverrides`": [
+      {
+        "executionId": "326f1d07-ed2f-4419-8364-3c901910079f",
+        "chatSessionId": "sess_2cafd7d0-7e60-4e4d-8884-cf9abf769d11",
+        "timestamp": 1793990329624
+      },
+      {
+        "executionId": "326f1d07-ed2f-4419-8364-3c901910079f",
+        "chatSessionId": "sess_2cafd7d0-7e60-4e4d-8884-cf9abf769d11",
+        "timestamp": 1793990458876
+      }
+    ],
+    "5.2 Write property test for `checkEmergency` (Property 11)": [
+      {
+        "executionId": "326f1d07-ed2f-4419-8364-3c901910079f",
+        "chatSessionId": "sess_2cafd7d0-7e60-4e4d-8884-cf9abf769d11",
+        "timestamp": 1793990458972
+      }
+    ],
+    "5.3 Write property test for emergency urgency override (Property 12)": [
+      {
+        "executionId": "326f1d07-ed2f-4419-8364-3c901910079f",
+        "chatSessionId": "sess_2cafd7d0-7e60-4e4d-8884-cf9abf769d11",
+        "timestamp": 1793990459415
+      }
+    ],
+    "5.4 Write property test for DIY suppression by trade (Property 14)": [
+      {
+        "executionId": "326f1d07-ed2f-4419-8364-3c901910079f",
+        "chatSessionId": "sess_2cafd7d0-7e60-4e4d-8884-cf9abf769d11",
+        "timestamp": 1793990461996
+      }
+    ],
+    "5.5 Write unit tests for `checkEmergency` and `applyOverrides`": [
+      {
+        "executionId": "326f1d07-ed2f-4419-8364-3c901910079f",
+        "chatSessionId": "sess_2cafd7d0-7e60-4e4d-8884-cf9abf769d11",
+        "timestamp": 1793990462125
+      }
+    ],
+    "5. Safety Layer": [
+      {
+        "executionId": "326f1d07-ed2f-4419-8364-3c901910079f",
+        "chatSessionId": "sess_2cafd7d0-7e60-4e4d-8884-cf9abf769d11",
+        "timestamp": 1793990462210
+      }
+    ],
+    "6. Checkpoint — Safety Layer verified": [
+      {
+        "executionId": "141ce42f-3aa4-4ca9-9fae-fb52540869de",
+        "chatSessionId": "sess_809fb267-52dd-40b4-bc0e-5f6b2e170a95",
+        "timestamp": 1793991353019
+      },
+      {
+        "executionId": "141ce42f-3aa4-4ca9-9fae-fb52540869de",
+        "chatSessionId": "sess_809fb267-52dd-40b4-bc0e-5f6b2e170a95",
+        "timestamp": 1793991378364
       }
     ]
   }

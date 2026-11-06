@@ -68,29 +68,29 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Use `fc.float({ min: 0, max: 1 })`; verify result starts with `~`, ends with `%`, numeric portion equals `Math.round(c * 100)`
     - Tag: `// Feature: intake-and-triage, Property 16: Confidence formatting always produces a tilde-prefixed percentage`
 
-- [ ] 5. Safety Layer
-  - [ ] 5.1 Create `src/lib/safety/safetyLayer.ts` — export `checkEmergency` and `applyOverrides`
+- [x] 5. Safety Layer
+  - [x] 5.1 Create `src/lib/safety/safetyLayer.ts` — export `checkEmergency` and `applyOverrides`
     - `checkEmergency(input: SafetyCheckInput): SafetyCheckResult` — `bedrockOutput` is optional; when `undefined`, evaluates context answers only. When provided, evaluates context answers AND Bedrock output. Case-insensitive substring matching for all four `EmergencyConditionCode` values, except `gas` and `co` which match whole words only (not directly preceded or followed by a letter or digit). Proximity means 200 characters or fewer between the end of one term and the start of the other, in either order.
     - The function is called **twice** in the `POST /api/inspect` pipeline: once immediately (before Bedrock, with `bedrockOutput: undefined`) and once after a successful Bedrock response (with `bedrockOutput` set). Either call returning `isEmergency: true` is sufficient to trigger the emergency override.
     - `applyOverrides(bedrockResult, safetyResult, trade): InspectionResult` — sets `urgency = 'emergency'`, zeros/clears cost and job brief, empties `diySteps` for emergency; empties `diySteps` when the trade (case-insensitive) contains `electric`, `gas`, `hvac` or `furnace`, regardless of urgency
     - Pure module: no I/O, no async, no Bedrock dependency; guard with `server-only`
     - _Requirements: 6.1–6.7, 7.1_
-  - [ ] 5.2 Write property test for `checkEmergency` (Property 11)
+  - [x] 5.2 Write property test for `checkEmergency` (Property 11)
     - **Property 11: Emergency detection on any trigger-containing text**
     - **Validates: Requirements 6.1, 6.2**
     - Use `fc.string()` and inject a trigger pair at a random position, separated by a filler gap of 0–200 characters between the end of one term and the start of the other (single-phrase rules inject the phrase alone); verify `isEmergency: true`; use clean `fc.string()` without triggers for negative case
     - Tag: `// Feature: intake-and-triage, Property 11: Emergency detection on any trigger-containing text`
-  - [ ] 5.3 Write property test for emergency urgency override (Property 12)
+  - [x] 5.3 Write property test for emergency urgency override (Property 12)
     - **Property 12: Emergency urgency override is unconditional after Bedrock**
     - **Validates: Requirements 6.3, 6.7**
     - Use `fc.record(BedrockResponseArb)` with emergency context; verify `applyOverrides` always sets `urgency = 'emergency'`; also verify that `checkEmergency` returns `isEmergency: true` when called with `bedrockOutput: undefined` (context-only mode) and the context answers contain a trigger phrase
     - Tag: `// Feature: intake-and-triage, Property 12: Emergency urgency override is unconditional after Bedrock`
-  - [ ] 5.4 Write property test for DIY suppression by trade (Property 14)
+  - [x] 5.4 Write property test for DIY suppression by trade (Property 14)
     - **Property 14: DIY steps suppressed for dangerous trades**
     - **Validates: Requirements 7.1**
     - Build `trade` from a keyword in `fc.constantFrom('electric', 'gas', 'hvac', 'furnace')` with random casing and random prefix/suffix (e.g. `Licensed Electrician`, `Gas fitter`, `HVAC technician`) and arbitrary `diySteps`; verify result has empty `diySteps`
     - Tag: `// Feature: intake-and-triage, Property 14: DIY steps suppressed for dangerous trades`
-  - [ ] 5.5 Write unit tests for `checkEmergency` and `applyOverrides`
+  - [x] 5.5 Write unit tests for `checkEmergency` and `applyOverrides`
     - Test all four emergency condition codes with exact trigger phrases and case variants
     - Required test cases that MUST trigger (`isEmergency: true`):
       - `GAS_SMELL`: "I smell gas", "smells like gas", "gas leak", "rotten egg"
@@ -103,7 +103,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Test emergency field suppression: cost range, job brief, DIY steps all cleared
     - _Requirements: 6.1–6.7, 7.1_
 
-- [ ] 6. Checkpoint — Safety Layer verified
+- [x] 6. Checkpoint — Safety Layer verified
   - Ensure all Safety Layer tests pass. Ask the user if any questions arise.
 
 - [ ] 7. Bedrock prompt template
