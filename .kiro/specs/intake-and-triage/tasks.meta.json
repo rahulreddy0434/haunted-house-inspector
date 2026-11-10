@@ -873,6 +873,61 @@
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794338537361
       }
+    ],
+    "16.1 Create `src/hooks/useUpload.ts`": [
+      {
+        "executionId": "c51e76b4-a4e1-40d9-ab3b-036636ece2d6",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794350572522
+      },
+      {
+        "executionId": "c51e76b4-a4e1-40d9-ab3b-036636ece2d6",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794350867897
+      }
+    ],
+    "16.2 Create `src/hooks/useInspection.ts`": [
+      {
+        "executionId": "fb252d8f-e2c7-485b-971f-68d1c60b34dc",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794350940326
+      },
+      {
+        "executionId": "fb252d8f-e2c7-485b-971f-68d1c60b34dc",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794351103553
+      }
+    ],
+    "16.3 Write unit tests for the session cache helpers (`src/lib/sessionResultCache.ts`)": [
+      {
+        "executionId": "1d9014bf-1d16-4e4c-82c4-575366771c33",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794351269118
+      },
+      {
+        "executionId": "1d9014bf-1d16-4e4c-82c4-575366771c33",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794351317815
+      }
+    ],
+    "16. Custom hooks": [
+      {
+        "executionId": "1d9014bf-1d16-4e4c-82c4-575366771c33",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794351317948
+      }
+    ],
+    "17. Checkpoint — Upload pipeline and hooks verified": [
+      {
+        "executionId": "5e8be531-8cdf-4d59-b5f2-529fe43d0f60",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794351840728
+      },
+      {
+        "executionId": "5e8be531-8cdf-4d59-b5f2-529fe43d0f60",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794351930625
+      }
     ]
   }
 }

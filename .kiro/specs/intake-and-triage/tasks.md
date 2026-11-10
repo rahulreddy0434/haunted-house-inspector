@@ -327,8 +327,8 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Verify `onVisible` does not fire again on subsequent intersections
     - _Requirements: 2.3, 2.4_
 
-- [ ] 16. Custom hooks
-  - [ ] 16.1 Create `src/hooks/useUpload.ts`
+- [x] 16. Custom hooks
+  - [x] 16.1 Create `src/hooks/useUpload.ts`
     - Orchestrates full client-side upload flow: validate answers → `GET /api/upload-url` per file → PUT to pre-signed URL → `POST /api/inspect`
     - Tracks `uploadStatus`: `'idle' | 'uploading' | 'analysing' | 'done' | 'error'`
     - 60-second client-side timeout: abort fetch, set error state with "try again" option
@@ -336,14 +336,14 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Expose `reset()` to restore previously selected files on retry
     - Create the small helper module `src/lib/sessionResultCache.ts` in this task (used by `useUpload` and `useInspection`): export `cacheResult(result: InspectionResult): void` (writes `JSON.stringify(result)` under key `hhi_result_{result.id}`, swallowing storage errors) and `readCachedResult(id: string): InspectionResult | null` (reads the key, parses JSON, validates with `inspectionResultSchema`; returns `null` when missing, invalid JSON, schema-invalid, or when `sessionStorage` throws)
     - _Requirements: 4.1–4.5, 10.1–10.4, 14.6_
-  - [ ] 16.2 Create `src/hooks/useInspection.ts`
+  - [x] 16.2 Create `src/hooks/useInspection.ts`
     - Reads the session cache first via `readCachedResult(id)`; if a valid cached result exists, expose it immediately (`loading: false`)
     - Falls back to / continues with `GET /api/inspections/[id]`: with no cached copy the GET is the source of the result; with a cached copy the GET is still issued in the background and, if it succeeds, its validated result replaces the cached copy (refresh via `cacheResult`)
     - A GET failure, 404, or schema-invalid response does NOT hide a valid cached result (keep `result`, do not set `error`); this keeps the result, and especially the emergency banner, visible if the DynamoDB save failed (non-fatal) or the read is slow
     - Shared links (new browser or tab, another person) have no cached copy and use GET only; `sessionStorage` is per-tab, cleared when the tab closes, and holds only the current visitor's own inspection; no guest branching, every job is still persisted server-side
     - Exposes `{ result, loading, error }`; with no cached result, a 404 yields a not-found state and a schema-invalid response sets `error` (no partial display)
     - _Requirements: 13.2, 13.4, 14.3, 14.7, 14.8, 14.9_
-  - [ ] 16.3 Write unit tests for the session cache helpers (`src/lib/sessionResultCache.ts`)
+  - [x] 16.3 Write unit tests for the session cache helpers (`src/lib/sessionResultCache.ts`)
     - Write then read round-trip: `cacheResult(r)` then `readCachedResult(r.id)` returns an equal result (include an emergency-shaped result)
     - Invalid JSON in the stored entry is ignored (`null`)
     - Schema-invalid entry is ignored (`null`)
@@ -351,7 +351,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Key format is exactly `hhi_result_{id}`
     - _Requirements: 14.6, 14.7, 14.8_
 
-- [ ] 17. Checkpoint — Upload pipeline and hooks verified
+- [x] 17. Checkpoint — Upload pipeline and hooks verified
   - Ensure all upload component tests and hook logic compile correctly. Ask the user if any questions arise.
 
 - [ ] 18. Results UI components
