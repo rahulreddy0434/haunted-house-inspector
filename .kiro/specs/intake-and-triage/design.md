@@ -139,7 +139,8 @@ Algorithm:
 1. Create a `<video>` element (off-screen), set `src = URL.createObjectURL(videoFile)`, load metadata.
 2. Enforce maximum duration of 30 seconds; reject with `PROCESSING_ERROR` if `duration > 30`.
 3. Determine frame timestamps:
-   - If `duration < 3 s`: timestamps = [1, 2, …, floor(duration)] (whole-second frames; at least 1).
+   - If `1 s ≤ duration < 3 s`: timestamps = [1, 2, …, floor(duration)] (whole-second frames; at least 1).
+   - If `duration < 1 s`: timestamps = [0] (exactly one frame at 0 seconds).
    - Otherwise: 3–5 evenly spaced timestamps across [0, duration].
 4. For each timestamp: seek via `currentTime`, wait for `seeked` event, draw to `<canvas>` (scale so shorter side ≥ 640 px), call `canvas.toBlob('image/jpeg', 0.82)`.
 5. Wrap the whole operation in a 15-second `AbortController` / `Promise.race` timeout.
@@ -694,7 +695,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 7: Frame count for short videos
 
-*For any* video file with duration d where 0 < d < 3 seconds, the Frame Extractor SHALL return exactly floor(d) frames (each at a whole-second timestamp), provided floor(d) ≥ 1.
+*For any* video file with duration d where 0 < d < 3 seconds, the Frame Extractor SHALL return exactly max(1, floor(d)) frames; for 1 ≤ d < 3 the timestamps are the whole seconds 1…floor(d), and for d < 1 the single frame has timestamp 0.
 
 **Validates: Requirements 3.6**
 
@@ -855,7 +856,7 @@ Focus on pure functions and component rendering. Use **Vitest**.
 
 Key unit test targets:
 - `validateFiles()` — all rejection conditions (type, count, size, duration, mixed media).
-- `extractFrames()` — mock `HTMLVideoElement`; test frame count for standard/short/boundary durations.
+- `extractFrames()` — mock `HTMLVideoElement`; test frame count for standard/short/sub-second/boundary durations.
 - `checkEmergency()` — all four trigger conditions, case variations, proximity rules, non-trigger inputs.
 - `applyOverrides()` — emergency override, DIY suppression by trade, normal passthrough.
 - `buildInspectPrompt()` — snapshot test of rendered prompt given known context.
@@ -880,7 +881,7 @@ Use **fast-check** for property-based testing. Each test runs a minimum of 100 i
 | P4 — Video duration | `fc.float({ min: 0, max: 60 })` |
 | P5 — Image file size | `fc.integer({ min: 0, max: 20_000_000 })` |
 | P6 — Frame count standard | `fc.float({ min: 3, max: 30 })` for duration |
-| P7 — Frame count short | `fc.float({ min: 0.001, max: 2.999 })` for duration |
+| P7 — Frame count short | `fc.float({ min: 0.001, max: 2.999, noNaN: true })` for duration (covers d < 1; expect `max(1, floor(d))` frames) |
 | P8 — Whitespace location | `fc.stringOf(fc.constantFrom(' ', '\t', '\n'))` |
 | P9 — Context answer payload | `fc.record({ location: fc.string(), duration: fc.string(), recentChanges: fc.string() })` |
 | P10 — Char limit | `fc.string({ minLength: 501, maxLength: 2000 })` |

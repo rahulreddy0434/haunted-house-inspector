@@ -71,7 +71,7 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 3. WHEN frame extraction completes, THE App SHALL upload only the extracted frames to S3_Store, not the original video file.
 4. WHEN frame extraction fails due to an unsupported format, excessive file size, or exceeded duration, THE App SHALL display an error message identifying which constraint was not met.
 5. WHEN frame extraction fails due to a processing error, THE App SHALL display an error message and offer two actions: retry extraction on the same file, or switch to photo upload.
-6. WHEN the selected video is shorter than 3 seconds, THE Frame_Extractor SHALL extract all available whole-second frames rather than evenly spaced frames, and SHALL proceed if at least 1 frame is extracted.
+6. WHEN the selected video is shorter than 3 seconds, THE Frame_Extractor SHALL extract all available whole-second frames (timestamps 1, 2, …, floor(duration)) rather than evenly spaced frames, and SHALL proceed if at least 1 frame is extracted; WHEN the selected video is shorter than 1 second, THE Frame_Extractor SHALL extract exactly one frame at 0 seconds.
 7. THE Frame_Extractor SHALL complete extraction within 15 seconds using only browser-native APIs (HTML video element and canvas); IF extraction has not completed within 15 seconds, THE App SHALL abort extraction and display an error message.
 8. THE Frame_Extractor SHALL enforce a maximum video duration of 30 seconds; WHEN the selected video exceeds 30 seconds, THE App SHALL reject it and display a message stating the maximum video length is 30 seconds.
 

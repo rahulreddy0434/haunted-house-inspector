@@ -31,6 +31,14 @@
     "9.2 Write property test for rate limiter threshold (Property 20)": {
       "status": "passed",
       "lastRunTimestamp": 1794325984770
+    },
+    "10.3 Write property test for frame count (short videos) (Property 7)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794327872901
+    },
+    "10.2 Write property test for frame count (standard videos) (Property 6)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794327953347
     }
   },
   "executionHistory": {
@@ -400,6 +408,49 @@
         "executionId": "2f5606e2-c5fe-47b2-bd53-8b05180ed6f6",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794325997876
+      }
+    ],
+    "10.1 Create `src/lib/frameExtractor.ts` — export `extractFrames(videoFile: File): Promise<FrameExtractionResult | FrameExtractionError>`": [
+      {
+        "executionId": "c2c7474e-4f94-46ae-b56e-45f98068c9a1",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794327284220
+      },
+      {
+        "executionId": "c2c7474e-4f94-46ae-b56e-45f98068c9a1",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794327394343
+      }
+    ],
+    "10.2 Write property test for frame count (standard videos) (Property 6)": [
+      {
+        "executionId": "b4ddd1da-b0db-40d1-a2ba-f9c3f603bf47",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794327497558
+      },
+      {
+        "executionId": "b4ddd1da-b0db-40d1-a2ba-f9c3f603bf47",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794327963515
+      }
+    ],
+    "10.3 Write property test for frame count (short videos) (Property 7)": [
+      {
+        "executionId": "b4ddd1da-b0db-40d1-a2ba-f9c3f603bf47",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794327497741
+      },
+      {
+        "executionId": "b4ddd1da-b0db-40d1-a2ba-f9c3f603bf47",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794327964291
+      }
+    ],
+    "10. Frame extractor": [
+      {
+        "executionId": "b4ddd1da-b0db-40d1-a2ba-f9c3f603bf47",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794327964359
       }
     ]
   }

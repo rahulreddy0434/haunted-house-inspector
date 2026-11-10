@@ -160,26 +160,26 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Test missing secret: with `SESSION_SECRET` unset or empty, the request does not fail, no cookie is read or set, limiting falls back to IP only, and a single warning is logged
     - _Requirements: 11.1, 11.3, 11.4, 11.6, 11.7_
 
-- [ ] 10. Frame extractor
-  - [ ] 10.1 Create `src/lib/frameExtractor.ts` — export `extractFrames(videoFile: File): Promise<FrameExtractionResult | FrameExtractionError>`
+- [x] 10. Frame extractor
+  - [x] 10.1 Create `src/lib/frameExtractor.ts` — export `extractFrames(videoFile: File): Promise<FrameExtractionResult | FrameExtractionError>`
     - Use browser-native `HTMLVideoElement` and `CanvasRenderingContext2D` only; no third-party library
     - Enforce maximum duration of 30 seconds; reject with `PROCESSING_ERROR` if `duration > 30`
-    - Duration ≥ 3 s: extract 3–5 evenly spaced frames; duration < 3 s: extract all whole-second frames (at least 1)
+    - Duration ≥ 3 s: extract 3–5 evenly spaced frames; 1 s ≤ duration < 3 s: extract all whole-second frames (timestamps 1…floor(duration)); duration < 1 s: extract exactly one frame at timestamp 0
     - Scale canvas so shorter side ≥ 640 px; encode as JPEG at quality 0.82
     - Wrap entire operation in a 15-second `Promise.race` timeout; clean up `URL.createObjectURL` via `URL.revokeObjectURL`
     - _Requirements: 3.1–3.8_
-  - [ ] 10.2 Write property test for frame count (standard videos) (Property 6)
+  - [x] 10.2 Write property test for frame count (standard videos) (Property 6)
     - **Property 6: Frame count for standard-length videos**
     - **Validates: Requirements 3.1**
     - Use `fc.float({ min: 3, max: 30 })` for duration; mock `HTMLVideoElement`; verify 3–5 frames returned with evenly distributed timestamps
     - Tag: `// Feature: intake-and-triage, Property 6: Frame count for standard-length videos`
-  - [ ] 10.3 Write property test for frame count (short videos) (Property 7)
+  - [x] 10.3 Write property test for frame count (short videos) (Property 7)
     - **Property 7: Frame count for short videos**
     - **Validates: Requirements 3.6**
-    - Use `fc.float({ min: 0.001, max: 2.999 })` for duration; verify exactly `floor(d)` frames returned
+    - Use `fc.float({ min: 0.001, max: 2.999, noNaN: true })` for duration; verify exactly `max(1, floor(d))` frames returned, and for `d < 1` the single frame timestamp is 0
     - Tag: `// Feature: intake-and-triage, Property 7: Frame count for short videos`
   - [ ]* 10.4 Write unit tests for `extractFrames`
-    - Mock `HTMLVideoElement`; test standard duration (3–30 s), short duration (< 3 s), boundary at exactly 3 s, rejection when duration > 30 s
+    - Mock `HTMLVideoElement`; test standard duration (3–30 s), short duration (1 s ≤ d < 3 s), sub-second duration (e.g. 0.5 s → exactly one frame at 0 s), boundary at exactly 1 s, boundary at exactly 3 s, rejection when duration > 30 s
     - Test timeout after 15 s returns `TIMEOUT` error code
     - Test extraction processing error returns `PROCESSING_ERROR` code
     - _Requirements: 3.1, 3.4, 3.5, 3.6, 3.7, 3.8_
