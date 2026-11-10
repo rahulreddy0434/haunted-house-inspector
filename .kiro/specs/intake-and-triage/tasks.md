@@ -133,6 +133,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
   - [x] 8.3 Create `src/lib/aws/dynamodb.ts` — export `persistInspection` and `getInspection` functions
     - Use `DYNAMODB_TABLE_NAME` and `APP_AWS_REGION` from `process.env`; guard with `server-only`
     - Single-table design: `PK = JOB#{id}`, `SK = JOB#{id}`; `ttl` field = createdAt + 30 days in Unix epoch
+    - `getInspection` uses DynamoDB `ConsistentRead: true` because the results page reads a job immediately after it is saved
     - Every job is persisted unconditionally — no authentication check, no guest branching
     - DynamoDB write failures are non-fatal (log error, return result to client anyway)
     - _Requirements: 12.1, 14.1_
@@ -191,7 +192,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Call `getUploadPresignedUrl` with `expiresIn: 900`; return `{ url, key }`
     - Return 400 on Zod validation failure; never expose AWS credentials
     - _Requirements: 4.1–4.5_
-  - [ ]* 11.2 Write integration tests for `GET /api/upload-url` using Vitest + MSW
+  - [ ]* 11.2 Write integration tests for `GET /api/upload-url` using Vitest with mocked AWS clients
     - Happy path: valid params → returns `{ url, key }`
     - Invalid `contentType` → 400
     - S3 pre-sign failure → 500
@@ -209,26 +210,26 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Step 8: Persist to DynamoDB unconditionally (every job, including emergency results; DynamoDB failure is non-fatal — log and continue)
     - Step 9: Return `InspectionResult` JSON
     - _Requirements: 6.1, 6.3, 6.6, 6.7, 6.8, 6.9, 6.10, 8.1, 8.4, 8.5, 8.6, 8.7, 11.1, 11.2, 11.8, 14.1_
-  - [x] 12.2 Write integration test: rate limit exceeded (Vitest + MSW)
+  - [x] 12.2 Write integration test: rate limit exceeded (Vitest with mocked AWS clients)
     - POST with clean context answers (no Emergency_Trigger phrases) as visitor with count ≥ 15; verify HTTP 429 response with friendly message; verify Bedrock was never invoked
     - _Requirements: 11.1, 11.2_
-  - [x] 12.3 Write integration test: emergency trigger in context answers (Vitest + MSW)
+  - [x] 12.3 Write integration test: emergency trigger in context answers (Vitest with mocked AWS clients)
     - POST with location containing `'gas smell'`; verify response has `urgency: 'emergency'`, `isEmergency: true`, suppressed fields; verify Bedrock was **never invoked** (emergency detected in context answers during step 2, before the rate limit; Bedrock skipped)
     - _Requirements: 6.1–6.7_
-  - [x] 12.4 Write integration test: emergency trigger in Bedrock output (Vitest + MSW)
+  - [x] 12.4 Write integration test: emergency trigger in Bedrock output (Vitest with mocked AWS clients)
     - POST with clean context answers; mock Bedrock response containing `'carbon monoxide alarm'` in `jobBrief`; verify Safety Layer override applied post-Bedrock
     - _Requirements: 6.1, 6.3_
-  - [x] 12.5 Write integration test: Bedrock Zod validation failure (Vitest + MSW)
+  - [x] 12.5 Write integration test: Bedrock Zod validation failure (Vitest with mocked AWS clients)
     - Mock Bedrock returning invalid JSON; verify 502 response with correct message
     - _Requirements: 8.4, 8.5_
-  - [x] 12.6 Write integration test: Bedrock timeout (Vitest + MSW)
+  - [x] 12.6 Write integration test: Bedrock timeout (Vitest with mocked AWS clients)
     - Mock Bedrock not responding within 20 s; verify 502 response
     - _Requirements: 8.7_
-  - [x] 12.7 Write integration test: Bedrock fails but safety trigger present in context answers (Vitest + MSW)
-    - POST with location containing `'carbon monoxide alarm'`; mock Bedrock to return a service error; verify response still has `urgency: 'emergency'` and the emergency message is shown; verify a 502 is NOT returned
+  - [x] 12.7 Write integration test: emergency trigger in context answers with Bedrock failing (Vitest with mocked AWS clients)
+    - POST with location `'carbon monoxide alarm'`; mock Bedrock to reject (service error and timeout); verify HTTP 200 with `urgency: 'emergency'` and `isEmergency: true` (the emergency check runs in step 2 before Bedrock, so Bedrock is never invoked); verify a 502 is NOT returned and the failing Bedrock mock is never called
     - _Requirements: 6.8, 6.9_
     - Tag: integration test
-  - [x] 12.8 Write integration test: Bedrock fails with no safety trigger (Vitest + MSW)
+  - [x] 12.8 Write integration test: Bedrock fails with no safety trigger (Vitest with mocked AWS clients)
     - POST with clean context answers (no trigger phrases); mock Bedrock to return a service error; verify HTTP 502 response with body containing message 'We couldn't analyse your photos. Please try again.'
     - _Requirements: 6.8_
     - Tag: integration test
@@ -237,27 +238,30 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - **Validates: Requirements 6.1, 6.3, 6.8, 6.9**
     - Use `fc.record(ContextAnswersArb)` where location contains an injected trigger phrase; test three scenarios: (a) `bedrockOutput: undefined` (pre-Bedrock call), (b) `bedrockOutput` set to a valid Bedrock response string, (c) `bedrockOutput` set to a string representing invalid/malformed JSON; verify `checkEmergency` returns `isEmergency: true` in all three cases
     - Tag: `// Feature: intake-and-triage, Property 21: Safety trigger in context answers produces emergency regardless of Bedrock outcome`
-  - [x] 12.10 Write integration test: emergency in context answers while over the daily limit (Vitest + MSW)
+  - [x] 12.10 Write integration test: emergency in context answers while over the daily limit (Vitest with mocked AWS clients)
     - POST with a visitor whose rate-limit counter is at or over 15 and location containing `'gas smell'`
     - Verify HTTP 200 (not 429) with `urgency: 'emergency'`, `isEmergency: true`, suppressed fields (cost range, job brief, DIY steps), and the exact emergency message data
     - Verify Bedrock was never invoked and the rate-limit counter was not incremented (`incrementRateLimitCounter` not called)
     - Verify the emergency result was still persisted to DynamoDB
     - _Requirements: 6.1-6.7, 11.8_
 
-- [ ] 13. Route Handler: `GET /api/inspections/[id]`
-  - [ ] 13.1 Create `src/app/api/inspections/[id]/route.ts` — implement `GET` handler
+- [x] 13. Route Handler: `GET /api/inspections/[id]`
+  - [x] 13.1 Create `src/app/api/inspections/[id]/route.ts` — implement `GET` handler
     - Extract `id` from path params
     - Call `getInspection(id)` — `GetItem` with `PK = JOB#{id}`, `SK = JOB#{id}`
     - If item not found → return HTTP 404 `{ "error": "Inspection not found" }`
-    - Parse stored `result` blob through `inspectionResultSchema`; if validation fails → return HTTP 500
+    - The read is strongly consistent (`getInspection` uses `ConsistentRead: true`) because the results page reads a job immediately after it is saved
+    - Parse stored `result` blob through `inspectionResultSchema` (which accepts emergency results, see 20.1); if validation fails → return HTTP 500
     - Return validated `InspectionResult` JSON with HTTP 200
     - _Requirements: 14.3, 14.4, 13.4_
-  - [ ] 13.2 Write integration tests for `GET /api/inspections/[id]` (Vitest + MSW)
+  - [x] 13.2 Write integration tests for `GET /api/inspections/[id]` (Vitest with mocked AWS clients)
     - Happy path: valid UUID, DynamoDB returns stored result → 200 with `InspectionResult`
+    - Emergency result: stored emergency result (`costRangeLow` 0, `costRangeHigh` 0, empty `jobBrief`, empty `diySteps`, `urgency: 'emergency'`, `isEmergency: true`) → 200 with the same result (required case)
     - Not found: DynamoDB returns no item → 404
-    - _Requirements: 14.3, 14.4_
+    - Verify the `getInspection` read is issued with `ConsistentRead: true`
+    - _Requirements: 13.3, 14.3, 14.4_
 
-- [ ] 14. Checkpoint — Server pipeline verified
+- [x] 14. Checkpoint — Server pipeline verified
   - Ensure all Route Handler, Rate Limiter, and Safety Layer tests pass. Ask the user if any questions arise.
 
 - [ ] 15. Upload UI components
@@ -327,15 +331,25 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
   - [ ] 16.1 Create `src/hooks/useUpload.ts`
     - Orchestrates full client-side upload flow: validate answers → `GET /api/upload-url` per file → PUT to pre-signed URL → `POST /api/inspect`
     - Tracks `uploadStatus`: `'idle' | 'uploading' | 'analysing' | 'done' | 'error'`
-    - 60-second client-side timeout: abort fetch, set error state with "try again" option; on success navigate to `/inspect/[id]`
+    - 60-second client-side timeout: abort fetch, set error state with "try again" option
+    - On success: store the full `POST /api/inspect` response (the `InspectionResult` JSON) in `sessionStorage` under `hhi_result_{id}` (use the result's `id`) by calling `cacheResult(result)` from `src/lib/sessionResultCache.ts` BEFORE navigating to `/inspect/[id]`; a storage failure must not block navigation
     - Expose `reset()` to restore previously selected files on retry
-    - _Requirements: 4.1–4.5, 10.1–10.4_
+    - Create the small helper module `src/lib/sessionResultCache.ts` in this task (used by `useUpload` and `useInspection`): export `cacheResult(result: InspectionResult): void` (writes `JSON.stringify(result)` under key `hhi_result_{result.id}`, swallowing storage errors) and `readCachedResult(id: string): InspectionResult | null` (reads the key, parses JSON, validates with `inspectionResultSchema`; returns `null` when missing, invalid JSON, schema-invalid, or when `sessionStorage` throws)
+    - _Requirements: 4.1–4.5, 10.1–10.4, 14.6_
   - [ ] 16.2 Create `src/hooks/useInspection.ts`
-    - Fetches inspection result for Results Page by calling `GET /api/inspections/[id]`
-    - Always fetches from the DynamoDB-backed API — no session-local state store, no guest branching
-    - Exposes `{ result, loading, error }`
-    - When deserialisation fails Zod schema: sets `error` (no partial display)
-    - _Requirements: 13.2, 13.4, 14.3_
+    - Reads the session cache first via `readCachedResult(id)`; if a valid cached result exists, expose it immediately (`loading: false`)
+    - Falls back to / continues with `GET /api/inspections/[id]`: with no cached copy the GET is the source of the result; with a cached copy the GET is still issued in the background and, if it succeeds, its validated result replaces the cached copy (refresh via `cacheResult`)
+    - A GET failure, 404, or schema-invalid response does NOT hide a valid cached result (keep `result`, do not set `error`); this keeps the result, and especially the emergency banner, visible if the DynamoDB save failed (non-fatal) or the read is slow
+    - Shared links (new browser or tab, another person) have no cached copy and use GET only; `sessionStorage` is per-tab, cleared when the tab closes, and holds only the current visitor's own inspection; no guest branching, every job is still persisted server-side
+    - Exposes `{ result, loading, error }`; with no cached result, a 404 yields a not-found state and a schema-invalid response sets `error` (no partial display)
+    - _Requirements: 13.2, 13.4, 14.3, 14.7, 14.8, 14.9_
+  - [ ] 16.3 Write unit tests for the session cache helpers (`src/lib/sessionResultCache.ts`)
+    - Write then read round-trip: `cacheResult(r)` then `readCachedResult(r.id)` returns an equal result (include an emergency-shaped result)
+    - Invalid JSON in the stored entry is ignored (`null`)
+    - Schema-invalid entry is ignored (`null`)
+    - `sessionStorage` throwing on get and on set is ignored (no exception; `readCachedResult` returns `null`)
+    - Key format is exactly `hhi_result_{id}`
+    - _Requirements: 14.6, 14.7, 14.8_
 
 - [ ] 17. Checkpoint — Upload pipeline and hooks verified
   - Ensure all upload component tests and hook logic compile correctly. Ask the user if any questions arise.
@@ -404,28 +418,34 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - All components respond to Normal and Haunted Tailwind themes via the root theme class
     - _Requirements: 2.3–2.5, 5.1–5.5, 10.1–10.4_
   - [ ] 19.3 Create results page `src/app/inspect/[id]/page.tsx`
-    - Use `useInspection(id)` hook to fetch result from `GET /api/inspections/[id]`
+    - Use `useInspection(id)` hook: it shows a valid session-cached result immediately and also fetches a fresh copy from `GET /api/inspections/[id]`; if the fetch of a fresh copy fails, keep showing the cached result (including the emergency banner)
     - Compose `EmergencyBanner`, `UrgencyBadge`, `IssueSummary`, `CostRange`, `JobBrief`
     - Display confidence as `formatConfidence(result.confidence)` labelled "AI confidence in this diagnosis"
-    - On result not found (404): render message "Result could not be found" with option to start a new inspection
-    - On deserialisation failure: render error message only (no partial display)
+    - On result not found (404): render message "Result could not be found" with option to start a new inspection, ONLY when there is neither a cached nor a fetched result
+    - On deserialisation failure with no valid cached result: render error message only (no partial display)
     - All components respond to Normal and Haunted Tailwind themes via the root theme class
-    - _Requirements: 9.1–9.7, 13.4, 14.3, 14.4_
+    - _Requirements: 9.1–9.7, 13.4, 14.3, 14.4, 14.7, 14.8_
 
 - [ ] 20. InspectionResult serialisation round-trip
-  - [ ] 20.1 Add and export `inspectionResultSchema` to `src/lib/validation/inspectionSchema.ts` (full Zod schema for `InspectionResult`)
-    - Used for deserialisation validation in `useInspection` hook and in `GET /api/inspections/[id]`
+  - [x] 20.1 Add and export `inspectionResultSchema` to `src/lib/validation/inspectionSchema.ts` (full Zod schema for `InspectionResult`)
+    - Used for deserialisation validation in the `useInspection` hook, the session cache helper (`readCachedResult`), and `GET /api/inspections/[id]`
+    - MUST accept emergency results: `costRangeLow` 0, `costRangeHigh` 0, `jobBrief` `''` (empty string), `diySteps` `[]`, `urgency` `'emergency'`, `isEmergency` `true`
+    - `jobBrief: z.string().max(1000)` (empty allowed; do NOT require `min(1)`); `costRangeLow` / `costRangeHigh` `z.number().min(0).max(999999)`; keep the `costRangeHigh >= costRangeLow` refinement so 0/0 passes
     - _Requirements: 13.1, 13.2, 13.4_
-  - [ ] 20.2 Write property test for round-trip serialisation (Property 18)
+  - [x] 20.2 Write property test for round-trip serialisation (Property 18)
     - **Property 18: InspectionResult serialisation round-trip**
     - **Validates: Requirements 13.3**
-    - Generate valid `InspectionResult` objects with `fast-check`; `JSON.parse(JSON.stringify(x))` then `inspectionResultSchema.parse`; verify every field value and type is identical to original
+    - Generate valid `InspectionResult` objects with `fast-check` (`ValidInspectionResultArb` MUST include the emergency shape: costs 0/0, empty `jobBrief`, empty `diySteps`, `urgency: 'emergency'`, `isEmergency: true`); `JSON.parse(JSON.stringify(x))` then `inspectionResultSchema.parse`; verify every field value and type is identical to original
     - Tag: `// Feature: intake-and-triage, Property 18: InspectionResult serialisation round-trip`
   - [ ] 20.3 Write property test for every-job-persisted (Property 17)
     - **Property 17: Every job is always persisted**
     - **Validates: Requirements 14.1**
     - Spy on `persistInspection`; generate `InspectionSubmission` using `fast-check`; verify `persistInspection` is called exactly once for every submission regardless of visitor identity or session state
     - Tag: `// Feature: intake-and-triage, Property 17: Every job is always persisted`
+  - [x] 20.4 Write unit test: emergency result round-trips through `inspectionResultSchema`
+    - An emergency result produced by the `POST /api/inspect` context-answer path (the 12.3 path, via `applyOverrides` with the placeholder) goes `JSON.stringify` → `JSON.parse` → `inspectionResultSchema.safeParse` with success, and the parsed value deep-equals the original
+    - Assert the emergency shape: `costRangeLow` 0, `costRangeHigh` 0, `jobBrief` `''`, `diySteps` `[]`, `urgency` `'emergency'`, `isEmergency` `true`
+    - _Requirements: 6.7, 13.3_
 
 - [ ] 21. Final checkpoint — All tests pass
   - Ensure all property-based tests, unit tests, and integration tests pass. Run `next lint` and `tsc --noEmit`. Ask the user if any questions arise.
@@ -437,7 +457,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 - The Safety Layer (tasks 5.x) must be implemented and verified before the `POST /api/inspect` route handler (task 12.x)
 - In `POST /api/inspect`, the Safety Layer context-answer check runs BEFORE the rate limit: emergency requests bypass the rate limiter entirely, so they are never blocked by and never counted against the daily limit of 15 (a life-safety message must never be blocked by a usage limit); the emergency result is still persisted and the job link works as usual (task 12.10)
 - The `server-only` package must be imported at the top of every file in `src/lib/aws/`, `src/lib/safety/`, and `src/lib/rateLimiter.ts` to prevent accidental client-side imports
-- All tests use **Vitest**; property-based tests use **fast-check**; integration tests use **Vitest + MSW**
+- All tests use **Vitest**; property-based tests use **fast-check**; integration tests use **Vitest with mocked AWS clients** (the AWS client modules are mocked at module level; MSW is not used for these tests)
 - Tag format for each property test: `// Feature: intake-and-triage, Property {N}: {property title}`
 - DynamoDB write failures in `POST /api/inspect` are non-fatal — return the result to the client and log the error
 - All AWS singleton clients use `APP_AWS_REGION` as the sole region parameter; there are no separate per-service region variables
@@ -449,6 +469,9 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 - All UI components support the Normal and Haunted Tailwind themes via the root layout theme class
 - Video max duration is 30 seconds; image max size is 10 MB (10 485 760 bytes); there is no file-size cap on video files
 - Every job is persisted to DynamoDB unconditionally — no authentication check, no guest/authenticated branching
+- `getInspection` uses `ConsistentRead: true` because the results page reads a job immediately after it is saved (task 8.3 is already complete; the bullet was added to its text and the change will be reopened separately)
+- `inspectionResultSchema` (task 20.1) must accept emergency results (costs 0/0, empty `jobBrief`, empty `diySteps`); tests 13.2, 20.2 and 20.4 cover this
+- Session cache: `useUpload` stores the `POST /api/inspect` result in `sessionStorage` under `hhi_result_{id}` before navigating; `useInspection` shows a valid cached result immediately and still fetches `GET /api/inspections/[id]`; a GET failure or 404 does not hide a valid cached result. The read/write logic lives in `src/lib/sessionResultCache.ts` (`cacheResult`, `readCachedResult`), created in 16.1 and tested in 16.3. `sessionStorage` is per-tab and holds only the current visitor's own result; shared links use GET only
 
 ## Task Dependency Graph
 
@@ -460,11 +483,11 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     { "id": 2, "tasks": ["3.3", "3.4", "4.4", "4.5", "5.1", "7.1"] },
     { "id": 3, "tasks": ["5.2", "5.3", "5.4", "5.5", "7.2", "8.1", "8.2", "8.3", "9.1", "10.1"] },
     { "id": 4, "tasks": ["9.2", "9.3", "10.2", "10.3", "10.4", "11.1"] },
-    { "id": 5, "tasks": ["11.2", "12.1", "13.1", "20.1"] },
-    { "id": 6, "tasks": ["12.2", "12.3", "12.4", "12.5", "12.6", "12.7", "12.8", "12.9", "12.10", "13.2", "15.1", "16.1", "16.2"] },
-    { "id": 7, "tasks": ["15.2", "15.3", "15.4", "15.5", "15.6", "15.7", "15.8", "15.9", "15.10", "15.11", "15.12", "18.1", "18.3", "18.5", "18.7", "18.9"] },
+    { "id": 5, "tasks": ["11.2", "12.1", "20.1"] },
+    { "id": 6, "tasks": ["12.2", "12.3", "12.4", "12.5", "12.6", "12.7", "12.8", "12.9", "12.10", "13.1", "15.1", "16.1", "20.2", "20.4"] },
+    { "id": 7, "tasks": ["13.2", "15.2", "15.3", "15.4", "15.5", "15.6", "15.7", "15.8", "15.9", "15.10", "15.11", "15.12", "16.2", "16.3", "18.1", "18.3", "18.5", "18.7", "18.9"] },
     { "id": 8, "tasks": ["18.2", "18.4", "18.6", "18.8", "18.10", "19.1"] },
-    { "id": 9, "tasks": ["19.2", "19.3", "20.2", "20.3"] }
+    { "id": 9, "tasks": ["19.2", "19.3", "20.3"] }
   ]
 }
 ```

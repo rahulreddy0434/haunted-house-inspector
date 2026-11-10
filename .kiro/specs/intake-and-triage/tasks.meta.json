@@ -43,6 +43,10 @@
     "12.9 Write property test for safety trigger invariant across Bedrock outcomes (Property 21)": {
       "status": "passed",
       "lastRunTimestamp": 1794330028414
+    },
+    "20.2 Write property test for round-trip serialisation (Property 18)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794332322016
     }
   },
   "executionHistory": {
@@ -350,6 +354,16 @@
         "executionId": "f5494d50-1400-4dc2-a3b9-d786f472162b",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1793992270725
+      },
+      {
+        "executionId": "ec6c256f-1f28-4051-9a45-cfa5eb4cc67b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794331812617
+      },
+      {
+        "executionId": "ec6c256f-1f28-4051-9a45-cfa5eb4cc67b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794331888919
       }
     ],
     "8. AWS SDK singletons": [
@@ -601,6 +615,80 @@
         "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794330098768
+      }
+    ],
+    "20.1 Add and export `inspectionResultSchema` to `src/lib/validation/inspectionSchema.ts` (full Zod schema for `InspectionResult`)": [
+      {
+        "executionId": "ec6c256f-1f28-4051-9a45-cfa5eb4cc67b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794331813174
+      },
+      {
+        "executionId": "ec6c256f-1f28-4051-9a45-cfa5eb4cc67b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794331889073
+      }
+    ],
+    "20.4 Write unit test: emergency result round-trips through `inspectionResultSchema`": [
+      {
+        "executionId": "ec6c256f-1f28-4051-9a45-cfa5eb4cc67b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794331893916
+      }
+    ],
+    "13.1 Create `src/app/api/inspections/[id]/route.ts` — implement `GET` handler": [
+      {
+        "executionId": "ec6c256f-1f28-4051-9a45-cfa5eb4cc67b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794331894044
+      },
+      {
+        "executionId": "ec6c256f-1f28-4051-9a45-cfa5eb4cc67b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794331987190
+      }
+    ],
+    "13.2 Write integration tests for `GET /api/inspections/[id]` (Vitest with mocked AWS clients)": [
+      {
+        "executionId": "a544a768-1795-4acd-843b-847e1963af26",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794332264154
+      },
+      {
+        "executionId": "a544a768-1795-4acd-843b-847e1963af26",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794332396873
+      }
+    ],
+    "20.2 Write property test for round-trip serialisation (Property 18)": [
+      {
+        "executionId": "a544a768-1795-4acd-843b-847e1963af26",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794332264832
+      },
+      {
+        "executionId": "a544a768-1795-4acd-843b-847e1963af26",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794332397457
+      }
+    ],
+    "13. Route Handler: `GET /api/inspections/[id]`": [
+      {
+        "executionId": "a544a768-1795-4acd-843b-847e1963af26",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794332397124
+      }
+    ],
+    "14. Checkpoint — Server pipeline verified": [
+      {
+        "executionId": "a544a768-1795-4acd-843b-847e1963af26",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794332436348
+      },
+      {
+        "executionId": "a544a768-1795-4acd-843b-847e1963af26",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794332439126
       }
     ]
   }

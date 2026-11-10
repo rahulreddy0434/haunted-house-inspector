@@ -22,6 +22,35 @@ export const bedrockResponseSchema = z
     message: 'costRangeHigh must be >= costRangeLow',
   });
 
+/**
+ * Full schema for a stored/serialised InspectionResult. Lenient on read:
+ * accepts emergency results (costs 0/0, empty jobBrief, empty diySteps).
+ */
+export const inspectionResultSchema = z
+  .object({
+    id: z.string().min(1),
+    createdAt: z.string().datetime(),
+    s3Keys: z.array(z.string()),
+    likelyIssue: z.string().max(500),
+    trade: z.string().max(100),
+    urgency: z.enum(['emergency', 'urgent', 'soon', 'monitor']),
+    confidence: z.number().min(0).max(1),
+    costRangeLow: z.number().min(0).max(999999),
+    costRangeHigh: z.number().min(0).max(999999),
+    jobBrief: z.string().max(1000),
+    followUpQuestions: z.tuple([z.string().max(200), z.string().max(200)]),
+    diySteps: z.array(z.string()),
+    isEmergency: z.boolean(),
+    answers: z.object({
+      location: z.string().max(500),
+      duration: z.string().max(500),
+      recentChanges: z.string().max(500),
+    }),
+  })
+  .refine((d) => d.costRangeHigh >= d.costRangeLow, {
+    message: 'costRangeHigh must be >= costRangeLow',
+  });
+
 export const inspectRequestSchema = z.object({
   s3Keys: z.array(z.string().min(1)).min(1).max(5),
   answers: contextAnswersSchema,

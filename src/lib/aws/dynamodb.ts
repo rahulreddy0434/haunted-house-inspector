@@ -71,6 +71,8 @@ export async function getInspection(id: string): Promise<InspectionResult | null
     new GetCommand({
       TableName: tableName,
       Key: { PK: jobKey(id), SK: jobKey(id) },
+      // The results page reads a job immediately after it is saved.
+      ConsistentRead: true,
     }),
   );
   if (!response.Item) {
@@ -152,7 +154,10 @@ export async function incrementRateLimitCounter(
   }
 
   // Condition failed: either the window expired or the limit is reached.
-  const existing = await client.send(new GetCommand({ TableName: tableName, Key: key }));
+  // Consistent read: must see the latest count after the failed conditional update.
+  const existing = await client.send(
+    new GetCommand({ TableName: tableName, Key: key, ConsistentRead: true }),
+  );
   const windowStart = Number(existing.Item?.windowStart ?? 0);
   if (existing.Item && windowStart > cutoff) {
     return { allowed: false, count: Number(existing.Item.count ?? limit), windowStart };

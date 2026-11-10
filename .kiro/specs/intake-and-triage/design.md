@@ -2,7 +2,7 @@
 
 ## Overview
 
-The intake-and-triage feature is the end-to-end core flow of Haunted House Inspector. A homeowner uploads up to 5 photos or one short video (≤30 s) of a home problem, answers three context questions, and receives an AI-powered structured diagnosis. Video files are never sent to the server — a client-side Frame Extractor pulls 3–5 still frames using browser-native APIs before upload. A server-side Safety Layer **always** evaluates the homeowner's context answers for emergency trigger conditions on every request — even when the Bedrock call fails or times out. It additionally evaluates Bedrock output when the call succeeds. An emergency detected in the context answers is returned immediately; a Bedrock failure with no safety trigger returns a friendly retry message. Every job is identified by a random, unguessable UUID; the job link `/inspect/[id]` is the only access mechanism — no accounts or sign-in are required. The results page displays all diagnosis fields with urgency badges, tilde-prefixed confidence, and a clipboard-ready job brief.
+The intake-and-triage feature is the end-to-end core flow of Haunted House Inspector. A homeowner uploads up to 5 photos or one short video (≤30 s) of a home problem, answers three context questions, and receives an AI-powered structured diagnosis. Video files are never sent to the server — a client-side Frame Extractor pulls 3–5 still frames using browser-native APIs before upload. A server-side Safety Layer **always** evaluates the homeowner's context answers for emergency trigger conditions on every request — even when the Bedrock call fails or times out. It additionally evaluates Bedrock output when the call succeeds. An emergency detected in the context answers is returned immediately; a Bedrock failure with no safety trigger returns a friendly retry message. Every job is identified by a random, unguessable UUID; the job link `/inspect/[id]` is the only access mechanism — no accounts or sign-in are required. Every job is persisted server-side (no guest branching); in addition, the browser keeps a per-tab session cache (`sessionStorage`) of the visitor's own just-created result so the result, especially the emergency banner, still shows if the DynamoDB save failed (non-fatal) or the read is slow. Shared links have no cached copy and use the DynamoDB-backed GET alone. The results page displays all diagnosis fields with urgency badges, tilde-prefixed confidence, and a clipboard-ready job brief.
 
 The feature spans four concerns:
 
@@ -62,6 +62,7 @@ Browser (Client Components)
 |---|---|---|
 | Client Components | `src/components/upload/`, `src/components/results/` | No AWS SDK imports; communicate via Route Handlers only |
 | Custom hooks | `src/hooks/useUpload.ts`, `src/hooks/useInspection.ts` | Client-side only; orchestrate API calls and local state |
+| Session cache helper | `src/lib/sessionResultCache.ts` | Small client-side module; `cacheResult(result)` and `readCachedResult(id)` wrap `sessionStorage`; no AWS calls; swallows storage errors |
 | Route Handlers | `src/app/api/upload-url/route.ts`, `src/app/api/inspect/route.ts`, `src/app/api/inspections/[id]/route.ts` | Server-side only; guarded with `server-only` package |
 | AWS singletons | `src/lib/aws/bedrock.ts`, `src/lib/aws/s3.ts`, `src/lib/aws/dynamodb.ts` | Server-side only; instantiated once per cold start |
 | Safety Layer | `src/lib/safety/safetyLayer.ts` | Pure function module; no I/O; no Bedrock dependency |
@@ -228,14 +229,14 @@ interface UseUploadReturn {
 1. Validate answers (location non-empty).
 2. For each file: `GET /api/upload-url` → PUT to pre-signed URL → collect S3 key.
 3. `POST /api/inspect` with `{ s3Keys, answers }`.
-4. On success: navigate to `/inspect/[id]`.
+4. On success: call `cacheResult(result)` (from `src/lib/sessionResultCache.ts`), which stores the full `InspectionResult` JSON in `sessionStorage` under `hhi_result_{result.id}`, BEFORE navigating to `/inspect/[id]`. A storage failure is ignored and never blocks navigation.
 5. On timeout (60 s): abort, set error state.
 
 ---
 
 ### `useInspection` hook (`src/hooks/useInspection.ts`)
 
-Fetches an inspection result for the Results Page by calling `GET /api/inspections/[id]`.
+Provides the inspection result for the Results Page: it reads the session cache first, then fetches from `GET /api/inspections/[id]`.
 
 ```typescript
 interface UseInspectionReturn {
@@ -247,7 +248,25 @@ interface UseInspectionReturn {
 function useInspection(id: string): UseInspectionReturn;
 ```
 
-The hook always fetches from the DynamoDB-backed API (`GET /api/inspections/[id]`). There is no session-local state store or guest branching — every job result is persisted server-side and retrieved by UUID.
+Behaviour:
+1. Call `readCachedResult(id)`. It reads `sessionStorage` key `hhi_result_{id}`, parses the JSON and validates it with `inspectionResultSchema`; a missing entry, invalid JSON, a schema-invalid entry, or a throwing `sessionStorage` all yield `null` (ignored). If a valid cached result exists, the hook returns it immediately (`result` set, `loading: false`).
+2. Always issue `GET /api/inspections/[id]` (immediately when there is no cached copy, in the background when there is one). The response is validated with `inspectionResultSchema`. On success the fetched result replaces the cached copy (the hook updates `result` and refreshes the cache via `cacheResult`).
+3. A GET failure, a 404, or a deserialisation failure does NOT hide a valid cached result: the hook keeps the cached `result` and does not surface `error`. With no cached result, a 404 is reported as not found and a failure or schema-invalid response sets `error` (no partial display). The not-found message therefore only shows when there is neither a cached nor a fetched result.
+
+The session cache is a per-tab `sessionStorage` entry, cleared when the tab closes, and holds only the result of the current visitor's own inspection. Shared links (opened in a new browser or tab, or by another person) have no cached copy and use the GET alone. This is not a guest mode: there is no guest branching, and every job is still persisted server-side to DynamoDB and retrievable by UUID. The cache exists so the result, and especially the emergency banner, still shows if the DynamoDB save failed (a non-fatal error) or the read is slow.
+
+The cache logic lives in the small helper module `src/lib/sessionResultCache.ts`:
+
+```typescript
+export const RESULT_CACHE_KEY_PREFIX = 'hhi_result_';
+
+// Stores JSON.stringify(result) under `hhi_result_${result.id}`; swallows storage errors.
+export function cacheResult(result: InspectionResult): void;
+
+// Returns the schema-valid cached result for id, or null if missing, invalid JSON,
+// schema-invalid, or sessionStorage throws.
+export function readCachedResult(id: string): InspectionResult | null;
+```
 
 ---
 
@@ -356,6 +375,28 @@ export const bedrockResponseSchema = z.object({
   message: 'costRangeHigh must be >= costRangeLow',
 });
 
+// Full InspectionResult schema (used by GET /api/inspections/[id], useInspection and the session cache).
+// It MUST accept emergency results: costRangeLow 0, costRangeHigh 0, jobBrief '' (empty),
+// diySteps [], urgency 'emergency', isEmergency true.
+export const inspectionResultSchema = z.object({
+  id: z.string().uuid(),
+  createdAt: z.string(),
+  s3Keys: z.array(z.string()),
+  likelyIssue: z.string().max(500),
+  trade: z.string().max(100),
+  urgency: z.enum(['emergency', 'urgent', 'soon', 'monitor']),
+  confidence: z.number().min(0).max(1),
+  costRangeLow: z.number().min(0).max(999999),
+  costRangeHigh: z.number().min(0).max(999999),
+  jobBrief: z.string().max(1000), // no min(1): emergency results use ''
+  followUpQuestions: z.tuple([z.string().max(200), z.string().max(200)]),
+  diySteps: z.array(z.string()),
+  isEmergency: z.boolean(),
+  answers: contextAnswersSchema,
+}).refine(d => d.costRangeHigh >= d.costRangeLow, {
+  message: 'costRangeHigh must be >= costRangeLow', // 0/0 passes
+});
+
 export const contextAnswersSchema = z.object({
   location: z.string().trim().min(1, 'Location is required').max(500),
   duration: z.string().max(500).optional().default(''),
@@ -385,8 +426,10 @@ Every job is persisted unconditionally — there is no authentication check and 
 | `ttl` | Number | Unix epoch; `createdAt + 30 days` — aligns with S3 lifecycle |
 
 Access patterns:
-- **Get single inspection**: `PK = JOB#{id}`, `SK = JOB#{id}` (used by `GET /api/inspections/[id]`)
+- **Get single inspection**: `GetItem` with `PK = JOB#{id}`, `SK = JOB#{id}` and `ConsistentRead: true` (used by `GET /api/inspections/[id]`)
 - **Write inspection**: `PutItem` with `PK = JOB#{id}`, `SK = JOB#{id}`
+
+**Strongly consistent read.** `getInspection` sets `ConsistentRead: true` because the Results Page reads a job immediately after it is saved; an eventually consistent read could miss the just-written item and wrongly return 404.
 
 There is no user-scoped listing access pattern; jobs are retrieved only by UUID via the job link.
 
@@ -473,7 +516,7 @@ Retrieves a persisted inspection result by its UUID job identifier.
 
 Server-side steps:
 1. Extract `id` from the path.
-2. Call `DynamoDB_Store.get(id)` — `GetItem` with `PK = JOB#{id}`, `SK = JOB#{id}`.
+2. Call `DynamoDB_Store.get(id)` — `GetItem` with `PK = JOB#{id}`, `SK = JOB#{id}` and `ConsistentRead: true` (strongly consistent, because the results page reads a job immediately after it is saved).
 3. If item not found → return HTTP 404.
 4. Parse the stored `result` blob through `inspectionResultSchema`; if validation fails → return HTTP 500.
 5. Return the validated `InspectionResult`.
@@ -786,7 +829,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 18: InspectionResult serialisation round-trip
 
-*For any* `InspectionResult` object that passes `inspectionResultSchema` validation, serialising to JSON via `JSON.stringify` and then deserialising via `JSON.parse` followed by Zod `inspectionResultSchema.parse` SHALL produce an object in which every field value and type is identical to the original.
+*For any* `InspectionResult` object that passes `inspectionResultSchema` validation, serialising to JSON via `JSON.stringify` and then deserialising via `JSON.parse` followed by Zod `inspectionResultSchema.parse` SHALL produce an object in which every field value and type is identical to the original. The generator (`ValidInspectionResultArb`) includes the emergency shape (`urgency: 'emergency'`, `isEmergency: true`, `costRangeLow: 0`, `costRangeHigh: 0`, `jobBrief: ''`, `diySteps: []`), so emergency results are covered by the round-trip.
 
 **Validates: Requirements 13.3**
 
@@ -870,6 +913,7 @@ Key unit test targets:
 - `formatCurrency()` — exact CAD output with no decimals (e.g. `1200` → `CA$1,200`).
 - `UrgencyBadge`, `CostRange`, `JobBrief`, `EmergencyBanner` — rendering with emergency vs. non-emergency props.
 - `DataRetentionNotice` — mock `IntersectionObserver`; verify `onVisible` fires on first intersection only.
+- `cacheResult()` / `readCachedResult()` — write then read round-trip, invalid JSON ignored, schema-invalid ignored, storage throwing ignored, key format `hhi_result_{id}`.
 - `checkRateLimit()` — allowed under threshold, blocked at and above threshold, cookie vs. IP fallback, valid vs. tampered cookie signature, and missing `SESSION_SECRET` falling back to IP-only limiting.
 
 ### Property-Based Tests
@@ -895,7 +939,7 @@ Use **fast-check** for property-based testing. Each test runs a minimum of 100 i
 | P15 — Urgency label | `fc.constantFrom('emergency', 'urgent', 'soon', 'monitor')` |
 | P16 — Confidence formatting | `fc.float({ min: 0, max: 1 })` |
 | P17 — Every job persisted | `InspectionSubmissionArb`; spy on DynamoDB.persist; verify always called |
-| P18 — Round-trip serialisation | `ValidInspectionResultArb`; `JSON.parse(JSON.stringify(x))` then schema parse |
+| P18 — Round-trip serialisation | `ValidInspectionResultArb` (includes the emergency shape: costs 0/0, empty `jobBrief`, empty `diySteps`, `urgency: 'emergency'`, `isEmergency: true`); `JSON.parse(JSON.stringify(x))` then schema parse |
 | P19 — Zod schema classification | `fc.object()` (arbitrary JSON); compare schema.safeParse with expected validity |
 | P20 — Rate limiter threshold | `fc.integer({ min: 0, max: 30 })` for count; verify allowed iff count < 15 |
 
@@ -903,7 +947,7 @@ Tag format for each property test: `// Feature: intake-and-triage, Property {N}:
 
 ### Integration Tests
 
-Use **Vitest** + **MSW** (Mock Service Worker) to intercept Route Handler calls in a Node environment.
+Use **Vitest with mocked AWS clients**: the AWS client modules (`src/lib/aws/*`) are mocked at module level and the Route Handlers are called directly in a Node environment. MSW is not used for these tests.
 
 Integration test scenarios:
 - Full upload + inspect happy path (mock S3 pre-sign, mock Bedrock, verify DynamoDB called).
@@ -914,8 +958,11 @@ Integration test scenarios:
 - Bedrock Zod validation failure: verify 502 response.
 - Bedrock timeout: verify 502 response.
 - `GET /api/inspections/[id]` happy path: verify stored result returned.
+- `GET /api/inspections/[id]` stored emergency result (costs 0, empty `jobBrief`, empty `diySteps`): verify 200 with the same result.
 - `GET /api/inspections/[id]` not found: verify 404 response.
 - Stored result deserialisation failure: verify error page rendered.
+- Emergency result produced by the `POST /api/inspect` context-answer path (via `applyOverrides` with the placeholder) round-trips through `inspectionResultSchema` (`JSON.stringify` -> parse -> `safeParse` success, deep equal).
+- Session cache helpers (`cacheResult` / `readCachedResult`): write-then-read round-trip, invalid JSON ignored, schema-invalid entry ignored, throwing `sessionStorage` ignored, key format `hhi_result_{id}`.
 
 ### Smoke Tests
 

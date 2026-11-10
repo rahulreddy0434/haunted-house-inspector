@@ -23,6 +23,7 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 - **S3_Store**: The private Amazon S3 bucket where uploaded Media is stored.
 - **Urgency_Level**: One of four values: `emergency`, `urgent` (act today), `soon` (within a week), or `monitor` (keep an eye on it).
 - **Emergency_Trigger**: Any of the four conditions (gas smell, sparks/burning/scorch marks, flooding near electrics, CO alarm) that activate the Safety_Layer override.
+- **Session_Cache**: The browser `sessionStorage` entry, keyed `hhi_result_{id}`, that holds the Inspection_Result JSON of the current Visitor's own just-created inspection. It is per-tab, is cleared when the tab closes, and is never shared with other tabs, browsers, or people.
 - **Job_Brief**: A short paragraph summarising the observed problem, suitable for pasting into a message to a tradesperson.
 
 ---
@@ -231,5 +232,9 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 1. WHEN the Inspect_API produces an Inspection_Result, THE DynamoDB_Store SHALL persist the result associated with a randomly generated, unguessable UUID job identifier.
 2. THE App SHALL construct the Results_Page URL using the job UUID in the format `/inspect/[id]`, and SHALL return this URL to the browser upon successful analysis.
 3. WHEN a User navigates to `/inspect/[id]`, THE App SHALL retrieve the Inspection_Result from the DynamoDB_Store using the job UUID and display it on the Results_Page.
-4. IF no Inspection_Result exists for the supplied job UUID, THEN THE App SHALL display a message stating the result could not be found and offer the User the option to start a new inspection.
+4. IF no Inspection_Result exists in the DynamoDB_Store for the supplied job UUID AND the Session_Cache holds no valid Inspection_Result for that UUID, THEN THE App SHALL display a message stating the result could not be found and offer the User the option to start a new inspection.
 5. THE App SHALL NOT require any authentication or account creation to create, store, or retrieve an Inspection_Result.
+6. WHEN the Inspect_API returns an Inspection_Result to the browser, THE App SHALL store the Inspection_Result in the Session_Cache under the key `hhi_result_{id}` (where `{id}` is the Inspection_Result `id`) before navigating to `/inspect/[id]`.
+7. WHEN a User navigates to `/inspect/[id]` and the Session_Cache holds an Inspection_Result for that `id` that passes schema validation, THE Results_Page SHALL display the cached Inspection_Result immediately and SHALL still request a fresh copy from the DynamoDB_Store in the background, replacing the cached copy when the request succeeds; WHEN the Session_Cache holds no entry for that `id`, or the entry is unreadable or fails schema validation, THE Results_Page SHALL retrieve the Inspection_Result from the DynamoDB_Store as described in criterion 3.
+8. IF the request for a fresh copy of the Inspection_Result fails or returns not found AND the Session_Cache holds a valid Inspection_Result for that `id`, THEN THE Results_Page SHALL continue to display the cached Inspection_Result, including the emergency message when the cached `urgency` is `emergency`.
+9. WHEN a User opens a shared job link (a new browser, a new tab, or another person) for which the Session_Cache holds no entry, THE Results_Page SHALL retrieve the Inspection_Result using the DynamoDB-backed request alone.
