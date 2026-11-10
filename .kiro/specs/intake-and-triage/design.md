@@ -35,7 +35,7 @@ Browser (Client Components)
   │
   └─ POST /api/inspect  { s3Keys[], answers }
        │
-       ├─ Rate Limiter (cookie/IP — reject with 429 if ≥ 5/day)
+       ├─ Rate Limiter (cookie/IP — reject with 429 if ≥ 15/day)
        │
        ├─ Safety Layer (context-answer check — always runs first)
        │   └─ Emergency detected? → return emergency result immediately (skip Bedrock)
@@ -433,7 +433,7 @@ Orchestrates the full analysis pipeline.
 
 **Orchestration steps:**
 1. Parse + Zod-validate request body; return 400 on failure.
-2. **Rate Limiter**: read httpOnly session cookie / IP fallback. If count ≥ 5 → return HTTP 429 with friendly message.
+2. **Rate Limiter**: read httpOnly session cookie / IP fallback. If count ≥ 15 → return HTTP 429 with friendly message.
 3. **Safety Layer — context-answer check (always runs)**: call `checkEmergency({ contextAnswers, bedrockOutput: undefined })` on the three context answer fields. If emergency detected → skip steps 4–5, go directly to step 6 with `safetyResult.isEmergency = true`.
 4. Invoke `Bedrock_Client` with S3 keys + answers; enforce a 20-second timeout (Amplify stops server requests at 30 seconds, so 20 seconds leaves time to return the emergency message when Bedrock is slow).
    - On timeout or service error: check if step 3 already set `isEmergency`. If yes → proceed to step 6 with emergency result. If no → return HTTP 502 with message "We couldn't analyse your photos. Please try again."
@@ -478,7 +478,7 @@ Server-side steps:
 
 ## Rate Limiter Design (`src/lib/rateLimiter.ts`)
 
-The Rate Limiter is a server-side module used exclusively within the `POST /api/inspect` Route Handler. It enforces a maximum of 5 inspections per visitor per 24-hour rolling window.
+The Rate Limiter is a server-side module used exclusively within the `POST /api/inspect` Route Handler. It enforces a maximum of 15 inspections per visitor per 24-hour rolling window.
 
 ```typescript
 export interface RateLimitResult {
@@ -494,18 +494,19 @@ export function checkRateLimit(
 
 ### Tracking Mechanism
 
-1. **Cookie-first**: Read the httpOnly cookie `hhi_session` from the request. The cookie value is a signed, opaque token encoding `{ visitorId, count, windowStart }`. If present and valid, use `visitorId` to look up and increment the counter.
-2. **IP fallback**: If the cookie is absent or invalid, derive `visitorId` from the `x-forwarded-for` header (first IP) or `request.ip`. Apply the same 24-hour rolling window logic.
+1. **Cookie-first**: Read the httpOnly cookie `hhi_session` from the request. The cookie value is `base64url(payload).base64url(hmac)`, where `payload` encodes `{ visitorId, count, windowStart }` and `hmac = HMAC-SHA256(SESSION_SECRET, payload)`. Verification recomputes the HMAC and compares it with `crypto.timingSafeEqual` (after checking the buffer lengths match). A cookie with an invalid or tampered signature is treated as absent. If the cookie is present and valid, use `visitorId` to look up and increment the counter.
+   - **Secret handling**: The signing key is read from the `SESSION_SECRET` environment variable (set in the Amplify console; listed in `.env.example`; never hard-coded). If `SESSION_SECRET` is missing or empty, the Rate Limiter does NOT throw: it ignores any cookie, does not set a cookie, limits by IP address only, and logs a single warning per process.
+2. **IP fallback**: If the cookie is absent or invalid (or `SESSION_SECRET` is not configured), derive `visitorId` from the `x-forwarded-for` header (first IP) or `request.ip`. Apply the same 24-hour rolling window logic.
 3. **Counter storage**: Counters are stored in DynamoDB using a separate item pattern: `PK = RATELIMIT#{visitorId}`, `SK = RATELIMIT#{visitorId}`, with a `ttl` of 24 hours from `windowStart`.
-4. **Response**: If `count >= 5`, return `{ allowed: false, ... }`. The Route Handler responds with HTTP 429 and sets the `Retry-After` header to seconds until `resetAt`. The response body contains a plain-English message at or below an 8th-grade reading level.
-5. **Cookie refresh**: On each allowed request, set (or refresh) the `hhi_session` cookie with `HttpOnly`, `SameSite=Strict`, `Secure`, `Max-Age=86400` (24 hours).
+4. **Response**: If `count >= 15`, return `{ allowed: false, ... }`. The Route Handler responds with HTTP 429 and sets the `Retry-After` header to seconds until `resetAt`. The response body contains a plain-English message at or below an 8th-grade reading level.
+5. **Cookie refresh**: On each allowed request, when `SESSION_SECRET` is configured, set (or refresh) the signed `hhi_session` cookie with `HttpOnly`, `SameSite=Strict`, `Secure`, `Max-Age=86400` (24 hours).
 
 ### 429 Response Body
 
 ```json
 {
   "error": "RATE_LIMIT_EXCEEDED",
-  "message": "You've reached the 5-inspection daily limit. Come back tomorrow to run more inspections.",
+  "message": "You've reached the 15-inspection daily limit. Come back tomorrow to run more inspections.",
   "resetAt": "<ISO 8601 UTC>"
 }
 ```
@@ -797,7 +798,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 20: Rate limiter blocks at the threshold
 
-*For any* visitor with a count ≥ 5 submissions in the current 24-hour rolling window, the rate limiter SHALL return `{ allowed: false }` and the `POST /api/inspect` Route Handler SHALL respond with HTTP 429 before invoking the Bedrock_Client.
+*For any* visitor with a count ≥ 15 submissions in the current 24-hour rolling window, the rate limiter SHALL return `{ allowed: false }` and the `POST /api/inspect` Route Handler SHALL respond with HTTP 429 before invoking the Bedrock_Client.
 
 **Validates: Requirements 11.1, 11.2**
 
@@ -865,7 +866,7 @@ Key unit test targets:
 - `formatCurrency()` — exact CAD output with no decimals (e.g. `1200` → `CA$1,200`).
 - `UrgencyBadge`, `CostRange`, `JobBrief`, `EmergencyBanner` — rendering with emergency vs. non-emergency props.
 - `DataRetentionNotice` — mock `IntersectionObserver`; verify `onVisible` fires on first intersection only.
-- `checkRateLimit()` — allowed under threshold, blocked at and above threshold, cookie vs. IP fallback.
+- `checkRateLimit()` — allowed under threshold, blocked at and above threshold, cookie vs. IP fallback, valid vs. tampered cookie signature, and missing `SESSION_SECRET` falling back to IP-only limiting.
 
 ### Property-Based Tests
 
@@ -892,7 +893,7 @@ Use **fast-check** for property-based testing. Each test runs a minimum of 100 i
 | P17 — Every job persisted | `InspectionSubmissionArb`; spy on DynamoDB.persist; verify always called |
 | P18 — Round-trip serialisation | `ValidInspectionResultArb`; `JSON.parse(JSON.stringify(x))` then schema parse |
 | P19 — Zod schema classification | `fc.object()` (arbitrary JSON); compare schema.safeParse with expected validity |
-| P20 — Rate limiter threshold | `fc.integer({ min: 0, max: 10 })` for count; verify allowed iff count < 5 |
+| P20 — Rate limiter threshold | `fc.integer({ min: 0, max: 30 })` for count; verify allowed iff count < 15 |
 
 Tag format for each property test: `// Feature: intake-and-triage, Property {N}: {property title}`
 
@@ -902,7 +903,7 @@ Use **Vitest** + **MSW** (Mock Service Worker) to intercept Route Handler calls 
 
 Integration test scenarios:
 - Full upload + inspect happy path (mock S3 pre-sign, mock Bedrock, verify DynamoDB called).
-- Rate limit enforcement: 5th request succeeds; 6th returns 429 before Bedrock is invoked.
+- Rate limit enforcement: 15th request succeeds; 16th returns 429 before Bedrock is invoked.
 - Emergency trigger in context answers: verify response has urgency=emergency and suppressed fields (Bedrock is never invoked; the pre-Bedrock Safety Layer check returns the emergency result).
 - Emergency trigger in Bedrock output: verify override applied post-Bedrock.
 - Bedrock Zod validation failure: verify 502 response.

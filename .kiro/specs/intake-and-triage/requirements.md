@@ -186,11 +186,13 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 
 #### Acceptance Criteria
 
-1. THE App SHALL permit each Visitor a maximum of 5 inspections per calendar day; WHEN the Visitor has reached this limit, THE App SHALL display a friendly message stating that the daily limit has been reached and inviting the Visitor to return tomorrow.
+1. THE App SHALL permit each Visitor a maximum of 15 inspections per calendar day; WHEN the Visitor has reached this limit, THE App SHALL display a friendly message stating that the daily limit has been reached and inviting the Visitor to return tomorrow.
 2. WHEN a Visitor attempts to start a new inspection after reaching the daily limit, THE App SHALL prevent the Submission from being sent and SHALL display the limit-reached message without returning an error to the console.
 3. THE App SHALL track the per-Visitor inspection count using a session cookie or, where a session cookie is unavailable, by IP address; the tracking mechanism SHALL be an implementation detail resolved in the design phase.
 4. IF a Visitor's session cookie is cleared or absent, THE App SHALL apply the rate limit based on the available identifier (IP address) rather than blocking all access.
 5. THE App SHALL display the limit-reached message in plain language at or below an 8th-grade reading level, with no technical jargon.
+6. IF the `SESSION_SECRET` environment variable is not configured, THEN THE App SHALL apply the rate limit by IP address only and SHALL NOT fail the request.
+7. THE App SHALL sign the session cookie with HMAC-SHA256 using the `SESSION_SECRET` environment variable, and THE App SHALL treat a session cookie with an invalid signature as absent.
 
 ---
 

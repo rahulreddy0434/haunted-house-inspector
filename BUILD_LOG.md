@@ -1,11 +1,11 @@
-# Haunted House Inspector – Build Log
+﻿# Haunted House Inspector â€“ Build Log
 
 A daily record of what I built, which Kiro features I used, and what went wrong.
 This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the social post.
 
 ---
 
-## Nov 2, 2026 (Step 0, days 1–2)
+## Nov 2, 2026 (Step 0, days 1â€“2)
 
 **Done**
 - Requested Kiro hackathon credits; joined the Kiro Discord (#kiroween-hackathon)
@@ -71,7 +71,7 @@ This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the 
 - Completed task 1 of the intake-and-triage spec: full project scaffolding confirmed
 - `tsconfig.json` has `"strict": true` and the `@/*` path alias pointing to `src/`
 - `tailwind.config.ts` has design tokens (brand, urgency, haunted palettes), custom shadows/animations, and a `haunted:` variant plugin activated by `.theme-haunted` on the root element
-- `amplify.yml` build spec: `nvm install 22` + `npm ci` in preBuild, then lint → type-check → test → build; caches `node_modules` and `.next/cache`
+- `amplify.yml` build spec: `nvm install 22` + `npm ci` in preBuild, then lint â†’ type-check â†’ test â†’ build; caches `node_modules` and `.next/cache`
 - `package.json` test script changed to `vitest run --passWithNoTests` so Amplify builds pass before any tests are written
 - All runtime packages installed: `server-only`, `zod`, all five `@aws-sdk/*` packages
 - All dev packages installed: `vitest`, `@vitest/ui`, `fast-check`, `msw`
@@ -113,7 +113,7 @@ This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the 
 - Steering: each sub-agent loaded the steering docs automatically
 
 **Problems and fixes**
-- Ran out of the 50 free Kiro credits partway through tasks 3.3 and 3.4; the Kiroween credits (requested Nov 1–2) haven't arrived. Deleted the half-finished test files and committed only tasks 2, 3.1 and 3.2
+- Ran out of the 50 free Kiro credits partway through tasks 3.3 and 3.4; the Kiroween credits (requested Nov 1â€“2) haven't arrived. Deleted the half-finished test files and committed only tasks 2, 3.1 and 3.2
 - While writing the Property 8 test, Kiro found that contextAnswersSchema accepts a location of only spaces (.min(1) without .trim()), which breaks Requirement 5.2. It started writing the test to match the bug; the right fix is to change the schema so the test requires rejection. To do when credits arrive
 - The "Update build log" hook uses credits, so this entry was written outside Kiro
 
@@ -122,3 +122,37 @@ This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the 
 - When credits arrive: fix contextAnswersSchema, then redo tasks 3.3 and 3.4
 - Then task 4 (utility functions) and task 5 (Safety Layer)
 - Hold the first calls as people confirm
+---
+
+## Nov 6, 2026 (Build week 1, day 2: safety layer, prompt and AWS clients)
+
+**Done**
+- Tasks 3.3 and 3.4: property tests for the Bedrock schema and the whitespace-only location (the schema now trims location)
+- Task 4: urgencyLabel, formatConfidence and formatCurrency, with Properties 15 and 16
+- Task 5: Safety Layer (checkEmergency and applyOverrides) with unit and property tests; widened emergency triggers, whole-word match for "gas" and "co", and DIY steps removed by trade keyword
+- Task 7: Bedrock prompt template in src/lib/prompts/inspectPrompt.ts
+- Task 8: S3, Bedrock and DynamoDB clients in src/lib/aws/ (pre-signed URLs, 30-day ttl, non-fatal save errors)
+- Costs are now Canadian dollars only (Ontario homeowners), shown as CA$1,200 with no decimals; the multi-currency idea was added and then removed
+- Bedrock timeout cut from 30 to 20 seconds so the emergency message can still be returned within the Amplify 30-second limit
+- Bedrock image format is now read from the S3 Content-Type, then the file extension, so PNG and WebP uploads work
+- Context question (c) now reads "Anything else we should know? For example smells, sounds, sparks or recent changes." so a gas smell is not missed
+- All five @aws-sdk packages pinned to 3.1163.0 and server-only to 0.0.1; lint, type-check, 49 tests and build all pass
+- Committed tasks 7 and 8 (d62627b)
+
+**Kiro features used**
+- Spec task execution: sub-agents built tasks 7 and 8; the three AWS clients ran in parallel
+- Spec editing: one request updated requirements, design and tasks together for CAD, the 20-second timeout and question (c)
+- Steering: tech.md and safety.md rules (no access keys, structured JSON, safety rules in code) guided the code
+
+**Problems and fixes**
+- Reviewing the first version showed bedrock.ts sent every image as JPEG; fixed by reading the real format
+- A 30-second Bedrock timeout left no time for the emergency message on Amplify; fixed with 20 seconds
+- An agent overwrote design.md by mistake; it was restored from git and only the requested edits were reapplied
+- A type-check showed missing @aws-sdk packages while npm install was still running; it passed once the install finished
+- bedrock.ts and dynamodb.ts have no direct tests yet; only the image-format helper does
+
+**Next**
+- Task 9: rate limiter (5 inspections per day) and its property test
+- Task 10: browser video frame extractor
+- Tasks 11 to 13: upload-url, inspect and inspections route handlers
+- Tasks 15 to 19: upload and results UI after the server checkpoint

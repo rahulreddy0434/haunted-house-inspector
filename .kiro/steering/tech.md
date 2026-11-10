@@ -1,4 +1,4 @@
-# Tech Stack — Haunted House Inspector
+﻿# Tech Stack â€” Haunted House Inspector
 
 ## Core framework
 - **Next.js** (App Router) with **TypeScript**, strict mode. All new files are `.ts` or `.tsx`.
@@ -19,7 +19,7 @@
   - Model: [Amazon Nova Lite]. The model ID comes from `BEDROCK_MODEL_ID` so it can be swapped without code changes. In us-east-2, use the cross-region inference profile ID (starts with `us.`) if on-demand calls fail.
   - Prompts live in `/lib/prompts/` as typed template functions, unit-tested separately from the API call.
   - Always request structured JSON and validate it with Zod before returning it.
-- **Video handling:** extract 3–5 still frames from the video in the browser (HTML video + canvas). Send only the frames to the server; never upload full videos.
+- **Video handling:** extract 3â€“5 still frames from the video in the browser (HTML video + canvas). Send only the frames to the server; never upload full videos.
 
 ## Safety (see safety.md)
 - Safety rules live in `/lib/safety/` as pure functions with no AWS calls.
@@ -36,7 +36,7 @@
 
 ## Limits and cost controls
 - Uploads: max 5 photos or 1 video of up to 30 seconds; max 10 MB per image.
-- Per-visitor limit: 5 inspections per day; show a friendly message when reached.
+- Per-visitor limit: 15 inspections per day; show a friendly message when reached.
 
 ## Maps
 - **Leaflet** with **OpenStreetMap** tiles, loaded client-side only (dynamic import with `ssr: false`).
@@ -46,7 +46,7 @@
 - Two themes: Normal and Haunted, switched with a toggle.
 
 ## API layer
-- All AWS calls happen in Next.js **Route Handlers** (`app/api/…`). No AWS SDK calls from React components.
+- All AWS calls happen in Next.js **Route Handlers** (`app/api/â€¦`). No AWS SDK calls from React components.
 - Validate all request bodies with **Zod**.
 
 ## Testing
@@ -61,6 +61,7 @@
 | `S3_BUCKET_NAME` | Upload bucket |
 | `DYNAMODB_TABLE_NAME` | Jobs table |
 | `PRO_ACCESS_CODE` | Demo code for the tradesperson dashboard |
+| `SESSION_SECRET` | HMAC-SHA256 key for the signed `hhi_session` cookie; if unset, rate limiting uses IP only |
 | `NEXT_PUBLIC_APP_URL` | Public base URL |
 
 ## Conventions

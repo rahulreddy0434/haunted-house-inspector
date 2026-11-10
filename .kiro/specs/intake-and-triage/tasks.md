@@ -137,24 +137,28 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - DynamoDB write failures are non-fatal (log error, return result to client anyway)
     - _Requirements: 12.1, 14.1_
 
-- [ ] 9. Rate Limiter
-  - [ ] 9.1 Create `src/lib/rateLimiter.ts` — export `checkRateLimit(request: NextRequest): Promise<RateLimitResult>`
-    - Cookie-first strategy: read httpOnly cookie `hhi_session` (signed, opaque token encoding `{ visitorId, count, windowStart }`); fall back to IP address from `x-forwarded-for` header or `request.ip` if cookie is absent or invalid
+- [x] 9. Rate Limiter
+  - [x] 9.1 Create `src/lib/rateLimiter.ts` — export `checkRateLimit(request: NextRequest): Promise<RateLimitResult>`
+    - Cookie-first strategy: read httpOnly cookie `hhi_session` (signed token); fall back to IP address from `x-forwarded-for` header or `request.ip` if cookie is absent, invalid, or `SESSION_SECRET` is not configured
+    - Cookie format: value is `base64url(payload).base64url(hmac)`, where `payload` encodes `{ visitorId, count, windowStart }` and `hmac = HMAC-SHA256(SESSION_SECRET, payload)`; verify with `crypto.timingSafeEqual` (check buffer lengths first); an invalid or tampered signature is treated as no cookie
+    - `SESSION_SECRET` handling: read from `process.env`; if missing or empty, do NOT throw — ignore the cookie, do not set one, limit by IP address only, and log a single warning. Add `SESSION_SECRET` to `.env.example` (additional note; task 1 is already complete) and to the Amplify console environment variables
     - Counter storage: DynamoDB item with `PK = RATELIMIT#{visitorId}`, `SK = RATELIMIT#{visitorId}`, `ttl` = 24 hours from `windowStart`
-    - Return `{ allowed: boolean, remaining: number, resetAt: number }`: if `count >= 5` → `{ allowed: false, remaining: 0, resetAt }`; otherwise increment counter and return `{ allowed: true, remaining: 5 - count, resetAt }`
-    - On each allowed request, set (or refresh) the `hhi_session` cookie: `HttpOnly`, `SameSite=Strict`, `Secure`, `Max-Age=86400`
+    - Return `{ allowed: boolean, remaining: number, resetAt: number }`: if `count >= 15` → `{ allowed: false, remaining: 0, resetAt }`; otherwise increment counter and return `{ allowed: true, remaining: 15 - count, resetAt }`
+    - On each allowed request, when `SESSION_SECRET` is configured, set (or refresh) the signed `hhi_session` cookie: `HttpOnly`, `SameSite=Strict`, `Secure`, `Max-Age=86400`
     - Pure server-side module; guard with `server-only`; no AWS calls except through the DynamoDB singleton
-    - _Requirements: 11.1–11.5_
-  - [ ] 9.2 Write property test for rate limiter threshold (Property 20)
+    - _Requirements: 11.1–11.7_
+  - [x] 9.2 Write property test for rate limiter threshold (Property 20)
     - **Property 20: Rate limiter blocks at the threshold**
     - **Validates: Requirements 11.1, 11.2**
-    - Use `fc.integer({ min: 0, max: 10 })` for visitor count; verify `checkRateLimit` returns `allowed: true` when count < 5 and `allowed: false` when count ≥ 5; verify POST /api/inspect responds with HTTP 429 before invoking the Bedrock_Client when rate-limited
+    - Use `fc.integer({ min: 0, max: 30 })` for visitor count; verify `checkRateLimit` returns `allowed: true` when count < 15 and `allowed: false` when count ≥ 15; verify POST /api/inspect responds with HTTP 429 before invoking the Bedrock_Client when rate-limited
     - Tag: `// Feature: intake-and-triage, Property 20: Rate limiter blocks at the threshold`
-  - [ ]* 9.3 Write unit tests for `checkRateLimit`
-    - Test allowed when count is 0–4; blocked when count is 5 or above
-    - Test cookie-first path: valid `hhi_session` cookie uses `visitorId` from cookie
+  - [x] 9.3 Write unit tests for `checkRateLimit`
+    - Test allowed when count is 0–14; blocked when count is 15 or above
+    - Test cookie-first path: valid `hhi_session` cookie (valid HMAC signature) uses `visitorId` from cookie
+    - Test tampered signature: a cookie with a modified payload or signature is treated as absent and falls back to IP
     - Test IP fallback: absent or invalid cookie falls back to IP
-    - _Requirements: 11.1, 11.3, 11.4_
+    - Test missing secret: with `SESSION_SECRET` unset or empty, the request does not fail, no cookie is read or set, limiting falls back to IP only, and a single warning is logged
+    - _Requirements: 11.1, 11.3, 11.4, 11.6, 11.7_
 
 - [ ] 10. Frame extractor
   - [ ] 10.1 Create `src/lib/frameExtractor.ts` — export `extractFrames(videoFile: File): Promise<FrameExtractionResult | FrameExtractionError>`
@@ -206,7 +210,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Step 9: Return `InspectionResult` JSON
     - _Requirements: 6.1, 6.3, 6.6, 6.7, 6.8, 6.9, 8.1, 8.4, 8.5, 8.6, 8.7, 11.1, 11.2, 14.1_
   - [ ] 12.2 Write integration test: rate limit exceeded (Vitest + MSW)
-    - POST as visitor with count ≥ 5; verify HTTP 429 response with friendly message; verify Bedrock was never invoked
+    - POST as visitor with count ≥ 15; verify HTTP 429 response with friendly message; verify Bedrock was never invoked
     - _Requirements: 11.1, 11.2_
   - [ ] 12.3 Write integration test: emergency trigger in context answers (Vitest + MSW)
     - POST with location containing `'gas smell'`; verify response has `urgency: 'emergency'`, `isEmergency: true`, suppressed fields; verify Bedrock was **never invoked** (emergency detected in context answers during step 3, Bedrock skipped)

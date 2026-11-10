@@ -1,0 +1,22 @@
+﻿# AWS region for all services (us-east-2 recommended)
+APP_AWS_REGION=us-east-2
+
+# Amazon Bedrock model or cross-region inference profile ID
+# For Amazon Nova Lite in us-east-2 use the cross-region profile: us.amazon.nova-lite-v1:0
+BEDROCK_MODEL_ID=us.amazon.nova-lite-v1:0
+
+# S3 bucket name for uploaded images and video frames
+S3_BUCKET_NAME=
+
+# DynamoDB table name for inspection jobs
+DYNAMODB_TABLE_NAME=
+
+# Shared demo access code for the tradesperson dashboard
+PRO_ACCESS_CODE=
+
+# Secret used to sign the hhi_session cookie with HMAC-SHA256 (use 32+ random characters).
+# If unset, rate limiting falls back to IP address only. Generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+SESSION_SECRET= 8946714f3d0d47c7369a0621323acba688e2a1886b5ed5a5a5a121c55a2531e4
+
+# Public base URL for the app (e.g. https://yourapp.amplifyapp.com)
+NEXT_PUBLIC_APP_URL=
