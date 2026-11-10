@@ -150,7 +150,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
   - [x] 9.2 Write property test for rate limiter threshold (Property 20)
     - **Property 20: Rate limiter blocks at the threshold**
     - **Validates: Requirements 11.1, 11.2**
-    - Use `fc.integer({ min: 0, max: 30 })` for visitor count; verify `checkRateLimit` returns `allowed: true` when count < 15 and `allowed: false` when count ≥ 15; verify POST /api/inspect responds with HTTP 429 before invoking the Bedrock_Client when rate-limited
+    - Use `fc.integer({ min: 0, max: 30 })` for visitor count; verify `checkRateLimit` returns `allowed: true` when count < 15 and `allowed: false` when count ≥ 15; verify POST /api/inspect responds with HTTP 429 before invoking the Bedrock_Client when rate-limited and the context answers contain no Emergency_Trigger (emergency requests bypass the limiter; see 12.10)
     - Tag: `// Feature: intake-and-triage, Property 20: Rate limiter blocks at the threshold`
   - [x] 9.3 Write unit tests for `checkRateLimit`
     - Test allowed when count is 0–14; blocked when count is 15 or above
@@ -184,8 +184,8 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Test extraction processing error returns `PROCESSING_ERROR` code
     - _Requirements: 3.1, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-- [ ] 11. Route Handler: `GET /api/upload-url`
-  - [ ] 11.1 Create `src/app/api/upload-url/route.ts` — implement `GET` handler
+- [x] 11. Route Handler: `GET /api/upload-url`
+  - [x] 11.1 Create `src/app/api/upload-url/route.ts` — implement `GET` handler
     - Validate query params (`filename`, `contentType`, `inspectionId`) with `uploadUrlRequestSchema`
     - Build S3 key as `{inspectionId}/{sanitised filename}`
     - Call `getUploadPresignedUrl` with `expiresIn: 900`; return `{ url, key }`
@@ -197,46 +197,52 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - S3 pre-sign failure → 500
     - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 12. Route Handler: `POST /api/inspect`
-  - [ ] 12.1 Create `src/app/api/inspect/route.ts` — implement `POST` handler (orchestration pipeline)
+- [x] 12. Route Handler: `POST /api/inspect`
+  - [x] 12.1 Create `src/app/api/inspect/route.ts` — implement `POST` handler (orchestration pipeline)
     - Step 1: Parse and Zod-validate request body with `inspectRequestSchema`; return 400 on failure
-    - Step 2: Call `checkRateLimit(request)`; if `allowed: false` → return HTTP 429 with friendly message and `Retry-After` header before invoking Bedrock
-    - Step 3: **Safety Layer — context-answer check (always runs)**: call `checkEmergency({ contextAnswers, bedrockOutput: undefined })`; if `isEmergency: true` → skip steps 4–5, assemble emergency `InspectionResult`, persist to DynamoDB, return result
-    - Step 4: Invoke `invokeInspectionModel` with 20-second timeout; on timeout or service error → if step 3 `isEmergency` was true (shouldn't reach here) handle gracefully; otherwise return HTTP 502 with message "We couldn't analyse your photos. Please try again."
-    - Step 5: Zod-validate Bedrock response with `bedrockResponseSchema`; on failure → return HTTP 502 with same retry message (step 3 emergency was already handled in step 3)
-    - Step 6: **Safety Layer — post-Bedrock merge**: call `checkEmergency({ contextAnswers, bedrockOutput: likelyIssue + jobBrief })`; merge with step 3 result; call `applyOverrides`
-    - Step 7: Assemble `InspectionResult` with UUID and ISO 8601 timestamp
-    - Step 8: Persist to DynamoDB unconditionally (every job; DynamoDB failure is non-fatal — log and continue)
+    - Step 2: **Safety Layer — context-answer check (always runs, BEFORE the rate limit)**: call `checkEmergency({ contextAnswers, bedrockOutput: undefined })`; if `isEmergency: true` → skip steps 3–6 (do NOT call `checkRateLimit`, do NOT increment the rate-limit counter, do NOT invoke Bedrock), assemble the emergency `InspectionResult` (step 7), persist to DynamoDB (step 8), return it with HTTP 200 (step 9), even when the visitor is over the daily limit of 15
+    - Step 3: Only when no emergency was detected in step 2: call `checkRateLimit(request)`; if `allowed: false` → return HTTP 429 with friendly message and `Retry-After` header before invoking Bedrock
+    - Step 4: Invoke `invokeInspectionModel` with 20-second timeout; on timeout or service error → return HTTP 502 with message "We couldn't analyse your photos. Please try again." (step 2 found no emergency, otherwise this step is never reached)
+    - Step 5: Zod-validate Bedrock response with `bedrockResponseSchema`; on failure → return HTTP 502 with same retry message
+    - Step 6: **Safety Layer — post-Bedrock merge**: call `checkEmergency({ contextAnswers, bedrockOutput: likelyIssue + jobBrief })`; merge with step 2 result (either source triggering emergency is sufficient)
+    - Step 7: Call `applyOverrides`; assemble `InspectionResult` with UUID and ISO 8601 timestamp (emergency requests from step 2 arrive here directly)
+    - Step 8: Persist to DynamoDB unconditionally (every job, including emergency results; DynamoDB failure is non-fatal — log and continue)
     - Step 9: Return `InspectionResult` JSON
-    - _Requirements: 6.1, 6.3, 6.6, 6.7, 6.8, 6.9, 8.1, 8.4, 8.5, 8.6, 8.7, 11.1, 11.2, 14.1_
-  - [ ] 12.2 Write integration test: rate limit exceeded (Vitest + MSW)
-    - POST as visitor with count ≥ 15; verify HTTP 429 response with friendly message; verify Bedrock was never invoked
+    - _Requirements: 6.1, 6.3, 6.6, 6.7, 6.8, 6.9, 6.10, 8.1, 8.4, 8.5, 8.6, 8.7, 11.1, 11.2, 11.8, 14.1_
+  - [x] 12.2 Write integration test: rate limit exceeded (Vitest + MSW)
+    - POST with clean context answers (no Emergency_Trigger phrases) as visitor with count ≥ 15; verify HTTP 429 response with friendly message; verify Bedrock was never invoked
     - _Requirements: 11.1, 11.2_
-  - [ ] 12.3 Write integration test: emergency trigger in context answers (Vitest + MSW)
-    - POST with location containing `'gas smell'`; verify response has `urgency: 'emergency'`, `isEmergency: true`, suppressed fields; verify Bedrock was **never invoked** (emergency detected in context answers during step 3, Bedrock skipped)
+  - [x] 12.3 Write integration test: emergency trigger in context answers (Vitest + MSW)
+    - POST with location containing `'gas smell'`; verify response has `urgency: 'emergency'`, `isEmergency: true`, suppressed fields; verify Bedrock was **never invoked** (emergency detected in context answers during step 2, before the rate limit; Bedrock skipped)
     - _Requirements: 6.1–6.7_
-  - [ ] 12.4 Write integration test: emergency trigger in Bedrock output (Vitest + MSW)
+  - [x] 12.4 Write integration test: emergency trigger in Bedrock output (Vitest + MSW)
     - POST with clean context answers; mock Bedrock response containing `'carbon monoxide alarm'` in `jobBrief`; verify Safety Layer override applied post-Bedrock
     - _Requirements: 6.1, 6.3_
-  - [ ] 12.5 Write integration test: Bedrock Zod validation failure (Vitest + MSW)
+  - [x] 12.5 Write integration test: Bedrock Zod validation failure (Vitest + MSW)
     - Mock Bedrock returning invalid JSON; verify 502 response with correct message
     - _Requirements: 8.4, 8.5_
-  - [ ] 12.6 Write integration test: Bedrock timeout (Vitest + MSW)
+  - [x] 12.6 Write integration test: Bedrock timeout (Vitest + MSW)
     - Mock Bedrock not responding within 20 s; verify 502 response
     - _Requirements: 8.7_
-  - [ ] 12.7 Write integration test: Bedrock fails but safety trigger present in context answers (Vitest + MSW)
+  - [x] 12.7 Write integration test: Bedrock fails but safety trigger present in context answers (Vitest + MSW)
     - POST with location containing `'carbon monoxide alarm'`; mock Bedrock to return a service error; verify response still has `urgency: 'emergency'` and the emergency message is shown; verify a 502 is NOT returned
     - _Requirements: 6.8, 6.9_
     - Tag: integration test
-  - [ ] 12.8 Write integration test: Bedrock fails with no safety trigger (Vitest + MSW)
+  - [x] 12.8 Write integration test: Bedrock fails with no safety trigger (Vitest + MSW)
     - POST with clean context answers (no trigger phrases); mock Bedrock to return a service error; verify HTTP 502 response with body containing message 'We couldn't analyse your photos. Please try again.'
     - _Requirements: 6.8_
     - Tag: integration test
-  - [ ] 12.9 Write property test for safety trigger invariant across Bedrock outcomes (Property 21)
+  - [x] 12.9 Write property test for safety trigger invariant across Bedrock outcomes (Property 21)
     - **Property 21: Safety trigger in context answers produces emergency regardless of Bedrock outcome**
     - **Validates: Requirements 6.1, 6.3, 6.8, 6.9**
     - Use `fc.record(ContextAnswersArb)` where location contains an injected trigger phrase; test three scenarios: (a) `bedrockOutput: undefined` (pre-Bedrock call), (b) `bedrockOutput` set to a valid Bedrock response string, (c) `bedrockOutput` set to a string representing invalid/malformed JSON; verify `checkEmergency` returns `isEmergency: true` in all three cases
     - Tag: `// Feature: intake-and-triage, Property 21: Safety trigger in context answers produces emergency regardless of Bedrock outcome`
+  - [x] 12.10 Write integration test: emergency in context answers while over the daily limit (Vitest + MSW)
+    - POST with a visitor whose rate-limit counter is at or over 15 and location containing `'gas smell'`
+    - Verify HTTP 200 (not 429) with `urgency: 'emergency'`, `isEmergency: true`, suppressed fields (cost range, job brief, DIY steps), and the exact emergency message data
+    - Verify Bedrock was never invoked and the rate-limit counter was not incremented (`incrementRateLimitCounter` not called)
+    - Verify the emergency result was still persisted to DynamoDB
+    - _Requirements: 6.1-6.7, 11.8_
 
 - [ ] 13. Route Handler: `GET /api/inspections/[id]`
   - [ ] 13.1 Create `src/app/api/inspections/[id]/route.ts` — implement `GET` handler
@@ -429,6 +435,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 - Tasks marked with `*` are optional and can be skipped for faster MVP delivery; optional tasks are the UI unit tests for non-emergency components: 7.2, 9.3, 10.4, 11.2, 15.12, 18.2, 18.6, 18.8
 - Each task references specific requirements for traceability
 - The Safety Layer (tasks 5.x) must be implemented and verified before the `POST /api/inspect` route handler (task 12.x)
+- In `POST /api/inspect`, the Safety Layer context-answer check runs BEFORE the rate limit: emergency requests bypass the rate limiter entirely, so they are never blocked by and never counted against the daily limit of 15 (a life-safety message must never be blocked by a usage limit); the emergency result is still persisted and the job link works as usual (task 12.10)
 - The `server-only` package must be imported at the top of every file in `src/lib/aws/`, `src/lib/safety/`, and `src/lib/rateLimiter.ts` to prevent accidental client-side imports
 - All tests use **Vitest**; property-based tests use **fast-check**; integration tests use **Vitest + MSW**
 - Tag format for each property test: `// Feature: intake-and-triage, Property {N}: {property title}`
@@ -454,7 +461,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     { "id": 3, "tasks": ["5.2", "5.3", "5.4", "5.5", "7.2", "8.1", "8.2", "8.3", "9.1", "10.1"] },
     { "id": 4, "tasks": ["9.2", "9.3", "10.2", "10.3", "10.4", "11.1"] },
     { "id": 5, "tasks": ["11.2", "12.1", "13.1", "20.1"] },
-    { "id": 6, "tasks": ["12.2", "12.3", "12.4", "12.5", "12.6", "12.7", "12.8", "12.9", "13.2", "15.1", "16.1", "16.2"] },
+    { "id": 6, "tasks": ["12.2", "12.3", "12.4", "12.5", "12.6", "12.7", "12.8", "12.9", "12.10", "13.2", "15.1", "16.1", "16.2"] },
     { "id": 7, "tasks": ["15.2", "15.3", "15.4", "15.5", "15.6", "15.7", "15.8", "15.9", "15.10", "15.11", "15.12", "18.1", "18.3", "18.5", "18.7", "18.9"] },
     { "id": 8, "tasks": ["18.2", "18.4", "18.6", "18.8", "18.10", "19.1"] },
     { "id": 9, "tasks": ["19.2", "19.3", "20.2", "20.3"] }

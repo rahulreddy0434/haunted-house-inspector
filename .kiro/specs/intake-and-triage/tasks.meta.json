@@ -39,6 +39,10 @@
     "10.2 Write property test for frame count (standard videos) (Property 6)": {
       "status": "passed",
       "lastRunTimestamp": 1794327953347
+    },
+    "12.9 Write property test for safety trigger invariant across Bedrock outcomes (Property 21)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794330028414
     }
   },
   "executionHistory": {
@@ -451,6 +455,152 @@
         "executionId": "b4ddd1da-b0db-40d1-a2ba-f9c3f603bf47",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794327964359
+      }
+    ],
+    "11.1 Create `src/app/api/upload-url/route.ts` — implement `GET` handler": [
+      {
+        "executionId": "64839afe-c2cd-4459-a49b-c7d8b707c597",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794328447122
+      },
+      {
+        "executionId": "64839afe-c2cd-4459-a49b-c7d8b707c597",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794328682649
+      }
+    ],
+    "11. Route Handler: `GET /api/upload-url`": [
+      {
+        "executionId": "64839afe-c2cd-4459-a49b-c7d8b707c597",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794328682755
+      }
+    ],
+    "12.1 Create `src/app/api/inspect/route.ts` — implement `POST` handler (orchestration pipeline)": [
+      {
+        "executionId": "ce66d43d-660b-4901-89e9-d4f888829984",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329154222
+      },
+      {
+        "executionId": "ce66d43d-660b-4901-89e9-d4f888829984",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329307977
+      }
+    ],
+    "12.2 Write integration test: rate limit exceeded (Vitest + MSW)": [
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329780725
+      },
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329946844
+      }
+    ],
+    "12.3 Write integration test: emergency trigger in context answers (Vitest + MSW)": [
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329780923
+      },
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329947084
+      }
+    ],
+    "12.4 Write integration test: emergency trigger in Bedrock output (Vitest + MSW)": [
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329781050
+      },
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329947764
+      }
+    ],
+    "12.5 Write integration test: Bedrock Zod validation failure (Vitest + MSW)": [
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329781339
+      },
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329948538
+      }
+    ],
+    "12.6 Write integration test: Bedrock timeout (Vitest + MSW)": [
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329781953
+      },
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329949239
+      }
+    ],
+    "12.7 Write integration test: Bedrock fails but safety trigger present in context answers (Vitest + MSW)": [
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329782991
+      },
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794330096265
+      }
+    ],
+    "12.8 Write integration test: Bedrock fails with no safety trigger (Vitest + MSW)": [
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329783833
+      },
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794330097017
+      }
+    ],
+    "12.9 Write property test for safety trigger invariant across Bedrock outcomes (Property 21)": [
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329784592
+      },
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794330097822
+      }
+    ],
+    "12.10 Write integration test: emergency in context answers while over the daily limit (Vitest + MSW)": [
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794329785197
+      },
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794330098683
+      }
+    ],
+    "12. Route Handler: `POST /api/inspect`": [
+      {
+        "executionId": "b22ecf6b-474c-4e9a-a249-3d2228f99415",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794330098768
       }
     ]
   }

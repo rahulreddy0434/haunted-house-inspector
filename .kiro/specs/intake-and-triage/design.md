@@ -35,10 +35,11 @@ Browser (Client Components)
   │
   └─ POST /api/inspect  { s3Keys[], answers }
        │
-       ├─ Rate Limiter (cookie/IP — reject with 429 if ≥ 15/day)
-       │
        ├─ Safety Layer (context-answer check — always runs first)
-       │   └─ Emergency detected? → return emergency result immediately (skip Bedrock)
+       │   └─ Emergency detected? → persist + return emergency result immediately
+       │      (skips Rate Limiter and Bedrock; never blocked by or counted against the daily limit)
+       │
+       ├─ Rate Limiter (non-emergency only; cookie/IP — reject with 429 if ≥ 15/day)
        │
        ├─ Bedrock_Client  ──── Amazon Nova Lite vision model
        │   ├─ Success: structured JSON response
@@ -434,19 +435,21 @@ Orchestrates the full analysis pipeline.
 
 **Orchestration steps:**
 1. Parse + Zod-validate request body; return 400 on failure.
-2. **Rate Limiter**: read httpOnly session cookie / IP fallback. If count ≥ 15 → return HTTP 429 with friendly message.
-3. **Safety Layer — context-answer check (always runs)**: call `checkEmergency({ contextAnswers, bedrockOutput: undefined })` on the three context answer fields. If emergency detected → skip steps 4–5, go directly to step 6 with `safetyResult.isEmergency = true`.
+2. **Safety Layer — context-answer check (always runs, before the rate limit)**: call `checkEmergency({ contextAnswers, bedrockOutput: undefined })` on the three context answer fields. If emergency detected → skip steps 3–6, go directly to step 7 with `safetyResult.isEmergency = true`. The rate limiter is never called, so the request is neither blocked nor counted against the daily limit, even when the Visitor is already at or over 15. The emergency result is still persisted (step 8) and returned (step 9), so the job link works as usual.
+3. **Rate Limiter (only when no emergency was detected in step 2)**: read httpOnly session cookie / IP fallback. If count ≥ 15 → return HTTP 429 with friendly message and `Retry-After` header before invoking Bedrock.
 4. Invoke `Bedrock_Client` with S3 keys + answers; enforce a 20-second timeout (Amplify stops server requests at 30 seconds, so 20 seconds leaves time to return the emergency message when Bedrock is slow).
-   - On timeout or service error: check if step 3 already set `isEmergency`. If yes → proceed to step 6 with emergency result. If no → return HTTP 502 with message "We couldn't analyse your photos. Please try again."
-5. Zod-validate Bedrock response; on failure → apply same Bedrock-failure logic as step 4 (check `isEmergency` from step 3; if not set → return HTTP 502 with retry message).
-6. **Safety Layer — post-Bedrock merge (only when Bedrock succeeds)**: call `checkEmergency({ contextAnswers, bedrockOutput: likelyIssue + jobBrief })`. Merge with step 3 result (either source triggering emergency is sufficient).
-7. Call `applyOverrides`; assemble `InspectionResult` (UUID, timestamp).
+   - On timeout or service error: step 2 found no emergency (otherwise this step is never reached), so return HTTP 502 with message "We couldn't analyse your photos. Please try again."
+5. Zod-validate Bedrock response; on failure → return HTTP 502 with the same retry message.
+6. **Safety Layer — post-Bedrock merge (only when Bedrock succeeds)**: call `checkEmergency({ contextAnswers, bedrockOutput: likelyIssue + jobBrief })`. Either this result or the step 2 result being an emergency is sufficient (step 2 can only be non-emergency here).
+7. Call `applyOverrides`; assemble `InspectionResult` (UUID, timestamp). Emergency requests from step 2 arrive here directly.
 8. Persist to DynamoDB unconditionally (DynamoDB failure is non-fatal — log and continue).
 9. Return `InspectionResult` JSON.
 
+**Design decision — emergency requests bypass the rate limiter entirely.** A life-safety message must never be blocked by a usage limit. Emergency requests are therefore neither blocked nor counted against the daily limit (the limiter is not invoked, so `incrementRateLimitCounter` is not called), while the emergency `InspectionResult` is still persisted to DynamoDB and the job link works as usual. Because emergency context answers short-circuit before Bedrock, the Bedrock-failure emergency path (Requirement 6.9) is satisfied by the same early return.
+
 **Error responses:**
 - `400` — invalid request body
-- `429` — rate limit exceeded; friendly message included
+- `429` — rate limit exceeded on a non-emergency request; friendly message included (never returned when the context answers trigger an emergency)
 - `502` — Bedrock failure or Zod validation failure AND no emergency trigger in context answers; body: `{ "error": "ANALYSIS_FAILED", "message": "We couldn't analyse your photos. Please try again." }`
 
 ---
@@ -479,7 +482,7 @@ Server-side steps:
 
 ## Rate Limiter Design (`src/lib/rateLimiter.ts`)
 
-The Rate Limiter is a server-side module used exclusively within the `POST /api/inspect` Route Handler. It enforces a maximum of 15 inspections per visitor per 24-hour rolling window.
+The Rate Limiter is a server-side module used exclusively within the `POST /api/inspect` Route Handler. It runs only for non-emergency requests: the handler calls it after the Safety Layer context-answer check, and skips it entirely when that check detects an emergency (such requests are not blocked and do not increment the counter). It enforces a maximum of 15 inspections per visitor per 24-hour rolling window.
 
 ```typescript
 export interface RateLimitResult {
@@ -526,7 +529,7 @@ export interface SafetyCheckInput {
 ```
 
 **Calling sequence in `POST /api/inspect`:**
-1. Called once immediately after rate-limit check, with `bedrockOutput: undefined` — evaluates context answers only.
+1. Called once immediately after request-body validation and before the rate limit, with `bedrockOutput: undefined` — evaluates context answers only. If it returns `isEmergency: true`, the handler skips the rate limiter and Bedrock and returns the emergency result.
 2. Called again after a successful Bedrock response, with `bedrockOutput` set — evaluates context answers + Bedrock output together.
 If either call returns `isEmergency: true`, the emergency override is applied. If Bedrock fails and call 1 returned `isEmergency: false`, the handler returns HTTP 502 with the retry message without calling `applyOverrides`.
 
@@ -799,7 +802,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 20: Rate limiter blocks at the threshold
 
-*For any* visitor with a count ≥ 15 submissions in the current 24-hour rolling window, the rate limiter SHALL return `{ allowed: false }` and the `POST /api/inspect` Route Handler SHALL respond with HTTP 429 before invoking the Bedrock_Client.
+*For any* visitor with a count ≥ 15 submissions in the current 24-hour rolling window, the rate limiter SHALL return `{ allowed: false }` and the `POST /api/inspect` Route Handler SHALL respond with HTTP 429 before invoking the Bedrock_Client, provided the request's context answers contain no Emergency_Trigger (emergency requests bypass the limiter).
 
 **Validates: Requirements 11.1, 11.2**
 
@@ -904,8 +907,9 @@ Use **Vitest** + **MSW** (Mock Service Worker) to intercept Route Handler calls 
 
 Integration test scenarios:
 - Full upload + inspect happy path (mock S3 pre-sign, mock Bedrock, verify DynamoDB called).
-- Rate limit enforcement: 15th request succeeds; 16th returns 429 before Bedrock is invoked.
+- Rate limit enforcement (clean context answers): 15th request succeeds; 16th returns 429 before Bedrock is invoked.
 - Emergency trigger in context answers: verify response has urgency=emergency and suppressed fields (Bedrock is never invoked; the pre-Bedrock Safety Layer check returns the emergency result).
+- Emergency in context answers while over the daily limit: visitor counter at or over 15 and location containing `gas smell` => HTTP 200 emergency result (not 429), Bedrock never invoked, rate-limit counter not incremented, result still persisted.
 - Emergency trigger in Bedrock output: verify override applied post-Bedrock.
 - Bedrock Zod validation failure: verify 502 response.
 - Bedrock timeout: verify 502 response.

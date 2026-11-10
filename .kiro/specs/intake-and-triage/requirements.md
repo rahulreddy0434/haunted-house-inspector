@@ -120,6 +120,7 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 7. WHEN the Urgency_Level is `emergency`, THE App SHALL apply the override before any Inspection_Result data is returned to the browser.
 8. WHEN the Bedrock_Client call fails or times out AND the Safety_Layer detects no Emergency_Trigger condition in the context answers, THE Inspect_API SHALL return an error response to the client with a plain-language message stating 'We couldn't analyse your photos. Please try again.' and SHALL NOT return a partial Inspection_Result.
 9. WHEN the Bedrock_Client call fails or times out AND the Safety_Layer detects an Emergency_Trigger condition in the context answers, THE Inspect_API SHALL return an Inspection_Result with urgency set to 'emergency' and SHALL display the emergency message, regardless of the Bedrock failure.
+10. THE Inspect_API SHALL evaluate the Context_Form answers with the Safety_Layer before applying the daily rate limit defined in Requirement 11, so that the emergency check is not subject to that limit (see criterion 11.8).
 
 ---
 
@@ -187,12 +188,13 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 #### Acceptance Criteria
 
 1. THE App SHALL permit each Visitor a maximum of 15 inspections per calendar day; WHEN the Visitor has reached this limit, THE App SHALL display a friendly message stating that the daily limit has been reached and inviting the Visitor to return tomorrow.
-2. WHEN a Visitor attempts to start a new inspection after reaching the daily limit, THE App SHALL prevent the Submission from being sent and SHALL display the limit-reached message without returning an error to the console.
+2. WHEN a Visitor who has reached the daily limit attempts to start a new inspection whose context answers contain no Emergency_Trigger condition, THE App SHALL prevent the Submission from being analysed and SHALL display the limit-reached message without returning an error to the console.
 3. THE App SHALL track the per-Visitor inspection count using a session cookie or, where a session cookie is unavailable, by IP address; the tracking mechanism SHALL be an implementation detail resolved in the design phase.
 4. IF a Visitor's session cookie is cleared or absent, THE App SHALL apply the rate limit based on the available identifier (IP address) rather than blocking all access.
 5. THE App SHALL display the limit-reached message in plain language at or below an 8th-grade reading level, with no technical jargon.
 6. IF the `SESSION_SECRET` environment variable is not configured, THEN THE App SHALL apply the rate limit by IP address only and SHALL NOT fail the request.
 7. THE App SHALL sign the session cookie with HMAC-SHA256 using the `SESSION_SECRET` environment variable, and THE App SHALL treat a session cookie with an invalid signature as absent.
+8. WHEN the Safety_Layer detects an Emergency_Trigger in the context answers, THE Inspect_API SHALL return the emergency Inspection_Result without invoking the Bedrock_Client and SHALL NOT apply the daily rate limit, even if the Visitor has reached the limit; such a request SHALL NOT count toward the daily limit, and the Inspection_Result SHALL still be persisted by the DynamoDB_Store.
 
 ---
 
