@@ -47,6 +47,26 @@
     "20.2 Write property test for round-trip serialisation (Property 18)": {
       "status": "passed",
       "lastRunTimestamp": 1794332322016
+    },
+    "15.2 Write property test for file type validation (Property 1)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794338393481
+    },
+    "15.4 Write property test for image count constraint (Property 3)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794338398719
+    },
+    "15.5 Write property test for video duration constraint (Property 4)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794338402577
+    },
+    "15.3 Write property test for mixed-media rejection (Property 2)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794338410949
+    },
+    "15.10 Write property test for character limit enforcement (Property 10)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794338503112
     }
   },
   "executionHistory": {
@@ -689,6 +709,169 @@
         "executionId": "a544a768-1795-4acd-843b-847e1963af26",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794332439126
+      }
+    ],
+    "11.2 Write integration tests for `GET /api/upload-url` using Vitest with mocked AWS clients": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794337860208
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338032075
+      }
+    ],
+    "15.1 Create `src/components/upload/DropZone.tsx`": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338045121
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338272267
+      }
+    ],
+    "15.7 Create `src/components/upload/UploadProgress.tsx`": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338045292
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338310283
+      }
+    ],
+    "15.8 Create `src/components/upload/ContextForm.tsx`": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338045396
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338310533
+      }
+    ],
+    "15.11 Create `src/components/upload/DataRetentionNotice.tsx`": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338045531
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338310727
+      }
+    ],
+    "15.2 Write property test for file type validation (Property 1)": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338334328
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338422731
+      }
+    ],
+    "15.3 Write property test for mixed-media rejection (Property 2)": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338334505
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338422961
+      }
+    ],
+    "15.4 Write property test for image count constraint (Property 3)": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338334613
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338423178
+      }
+    ],
+    "15.5 Write property test for video duration constraint (Property 4)": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338334864
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338423444
+      }
+    ],
+    "15.6 Write property test for image file size constraint (Property 5)": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338335924
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338423771
+      }
+    ],
+    "15.9 Write property test for context answer payload inclusion (Property 9)": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338425082
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338537007
+      }
+    ],
+    "15.10 Write property test for character limit enforcement (Property 10)": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338425356
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338537242
+      }
+    ],
+    "15.12 Write unit test for `DataRetentionNotice` using Vitest": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338425826
+      },
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338537541
+      }
+    ],
+    "15. Upload UI components": [
+      {
+        "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794338537361
       }
     ]
   }

@@ -192,7 +192,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Call `getUploadPresignedUrl` with `expiresIn: 900`; return `{ url, key }`
     - Return 400 on Zod validation failure; never expose AWS credentials
     - _Requirements: 4.1–4.5_
-  - [ ]* 11.2 Write integration tests for `GET /api/upload-url` using Vitest with mocked AWS clients
+  - [x] 11.2 Write integration tests for `GET /api/upload-url` using Vitest with mocked AWS clients
     - Happy path: valid params → returns `{ url, key }`
     - Invalid `contentType` → 400
     - S3 pre-sign failure → 500
@@ -264,8 +264,8 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 - [x] 14. Checkpoint — Server pipeline verified
   - Ensure all Route Handler, Rate Limiter, and Safety Layer tests pass. Ask the user if any questions arise.
 
-- [ ] 15. Upload UI components
-  - [ ] 15.1 Create `src/components/upload/DropZone.tsx`
+- [x] 15. Upload UI components
+  - [x] 15.1 Create `src/components/upload/DropZone.tsx`
     - Accept drag-and-drop and file-picker interactions
     - Enforce validation order: unsupported type → mixed media → multiple videos → image count > 5 → image file size > 10 MB (10 485 760 bytes) → video duration > 30 s
     - No file-size cap on video files
@@ -274,55 +274,55 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Display selected file names and count summary
     - Component supports Normal and Haunted Tailwind themes via the active theme class on the root element
     - _Requirements: 1.1–1.8, 3.4, 3.5_
-  - [ ] 15.2 Write property test for file type validation (Property 1)
+  - [x] 15.2 Write property test for file type validation (Property 1)
     - **Property 1: File type validation rejects exactly the non-allowed MIME types**
     - **Validates: Requirements 1.1**
     - Use `fc.string()` for arbitrary MIME type; `fc.constantFrom('image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm')` for allowed types; verify acceptance/rejection
     - Tag: `// Feature: intake-and-triage, Property 1: File type validation rejects exactly the non-allowed MIME types`
-  - [ ] 15.3 Write property test for mixed-media rejection (Property 2)
+  - [x] 15.3 Write property test for mixed-media rejection (Property 2)
     - **Property 2: Mixed-media submissions are always rejected**
     - **Validates: Requirements 1.3**
     - Combine `fc.array(imageFile)` min 1 with `fc.array(videoFile)` min 1; verify always rejected
     - Tag: `// Feature: intake-and-triage, Property 2: Mixed-media submissions are always rejected`
-  - [ ] 15.4 Write property test for image count constraint (Property 3)
+  - [x] 15.4 Write property test for image count constraint (Property 3)
     - **Property 3: Image count constraint**
     - **Validates: Requirements 1.2**
     - Use `fc.array(imageFile, { minLength: 1, maxLength: 20 })`; verify accepted iff count ≤ 5
     - Tag: `// Feature: intake-and-triage, Property 3: Image count constraint`
-  - [ ] 15.5 Write property test for video duration constraint (Property 4)
+  - [x] 15.5 Write property test for video duration constraint (Property 4)
     - **Property 4: Video duration constraint**
     - **Validates: Requirements 1.4**
     - Use `fc.float({ min: 0, max: 60 })`; verify accepted iff duration ≤ 30
     - Tag: `// Feature: intake-and-triage, Property 4: Video duration constraint`
-  - [ ] 15.6 Write property test for image file size constraint (Property 5)
+  - [x] 15.6 Write property test for image file size constraint (Property 5)
     - **Property 5: Image file size constraint**
     - **Validates: Requirements 1.8**
     - Use `fc.integer({ min: 0, max: 20_000_000 })` for size; verify image rejected when size > 10 485 760 bytes (10 MB)
     - Tag: `// Feature: intake-and-triage, Property 5: Image file size constraint`
-  - [ ] 15.7 Create `src/components/upload/UploadProgress.tsx`
+  - [x] 15.7 Create `src/components/upload/UploadProgress.tsx`
     - Display per-file name, progress percentage, and status (`pending` | `uploading` | `done` | `error`)
     - _Requirements: 10.1_
-  - [ ] 15.8 Create `src/components/upload/ContextForm.tsx`
+  - [x] 15.8 Create `src/components/upload/ContextForm.tsx`
     - Three text fields: location (required), duration (optional), recentChanges (optional)
     - Question (c) text: "Anything else we should know? For example smells, sounds, sparks or recent changes." (field name stays `recentChanges`)
     - Real-time character counter (`{n}/500`) for each field; block input beyond 500 chars
     - Inline error on location if submitted empty or whitespace-only
     - _Requirements: 5.1–5.5_
-  - [ ] 15.9 Write property test for context answer payload inclusion (Property 9)
+  - [x] 15.9 Write property test for context answer payload inclusion (Property 9)
     - **Property 9: All three context answers are always included in the submission payload**
     - **Validates: Requirements 5.4**
     - Use `fc.record({ location: fc.string(), duration: fc.string(), recentChanges: fc.string() })`; verify all three fields present in submitted payload with original values
     - Tag: `// Feature: intake-and-triage, Property 9: All three context answers are always included in the submission payload`
-  - [ ] 15.10 Write property test for character limit enforcement (Property 10)
+  - [x] 15.10 Write property test for character limit enforcement (Property 10)
     - **Property 10: Character count limit enforcement**
     - **Validates: Requirements 5.5**
     - Use `fc.string({ minLength: 501, maxLength: 2000 })`; verify only first 500 chars accepted and counter shows `500/500`
     - Tag: `// Feature: intake-and-triage, Property 10: Character count limit enforcement`
-  - [ ] 15.11 Create `src/components/upload/DataRetentionNotice.tsx`
+  - [x] 15.11 Create `src/components/upload/DataRetentionNotice.tsx`
     - Plain-language notice stating media stored privately and deleted after 30 days; 8th-grade reading level, no jargon
     - Use `IntersectionObserver` with `threshold: 0.9`; fire `onVisible` callback once when 90% visible
     - _Requirements: 2.1–2.5, 12.1, 12.2_
-  - [ ]* 15.12 Write unit test for `DataRetentionNotice` using Vitest
+  - [x]* 15.12 Write unit test for `DataRetentionNotice` using Vitest
     - Mock `IntersectionObserver`; verify `onVisible` fires exactly once on first intersection
     - Verify `onVisible` does not fire again on subsequent intersections
     - _Requirements: 2.3, 2.4_
