@@ -67,6 +67,10 @@
     "15.10 Write property test for character limit enforcement (Property 10)": {
       "status": "passed",
       "lastRunTimestamp": 1794338503112
+    },
+    "20.3 Write property test for every-job-persisted (Property 17)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794436919207
     }
   },
   "executionHistory": {
@@ -1077,6 +1081,16 @@
         "executionId": "ffd37fa3-c5af-43eb-98dd-6c4456d33b23",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794424315904
+      },
+      {
+        "executionId": "eee98757-d014-46c8-8a7c-ba757415a032",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794436238002
+      },
+      {
+        "executionId": "ad1171f9-03c6-49aa-9574-7bba6b4ff874",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794436771847
       }
     ],
     "18.2 Write unit test for `UrgencyBadge` rendering using Vitest": [
@@ -1137,6 +1151,16 @@
         "executionId": "ffd37fa3-c5af-43eb-98dd-6c4456d33b23",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794424446855
+      },
+      {
+        "executionId": "eee98757-d014-46c8-8a7c-ba757415a032",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794436238301
+      },
+      {
+        "executionId": "ad1171f9-03c6-49aa-9574-7bba6b4ff874",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794436772607
       }
     ],
     "18. Results UI components": [
@@ -1190,6 +1214,16 @@
         "executionId": "7e880bdc-7491-4dfe-9a98-fc00a17775aa",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794426599984
+      },
+      {
+        "executionId": "eee98757-d014-46c8-8a7c-ba757415a032",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794436238441
+      },
+      {
+        "executionId": "ad1171f9-03c6-49aa-9574-7bba6b4ff874",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794436773303
       }
     ],
     "19. Pages": [
@@ -1233,6 +1267,37 @@
         "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794429503901
+      }
+    ],
+    "20.3 Write property test for every-job-persisted (Property 17)": [
+      {
+        "executionId": "ad1171f9-03c6-49aa-9574-7bba6b4ff874",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794436778042
+      },
+      {
+        "executionId": "ad1171f9-03c6-49aa-9574-7bba6b4ff874",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794436929085
+      }
+    ],
+    "20. InspectionResult serialisation round-trip": [
+      {
+        "executionId": "ad1171f9-03c6-49aa-9574-7bba6b4ff874",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794436929174
+      }
+    ],
+    "21. Final checkpoint — All tests pass": [
+      {
+        "executionId": "ad1171f9-03c6-49aa-9574-7bba6b4ff874",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794436933279
+      },
+      {
+        "executionId": "ad1171f9-03c6-49aa-9574-7bba6b4ff874",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794437049849
       }
     ]
   }

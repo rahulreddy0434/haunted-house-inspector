@@ -20,7 +20,8 @@ export function IssueSummary({
   diySteps,
   urgency,
 }: IssueSummaryProps) {
-  const showDiy = urgency !== "emergency" && diySteps.length > 0;
+  const isEmergency = urgency === "emergency";
+  const showDiy = !isEmergency && diySteps.length > 0;
 
   return (
     <section
@@ -32,19 +33,23 @@ export function IssueSummary({
         <p className={BODY}>{likelyIssue}</p>
       </div>
 
-      <div>
-        <h2 className={HEADING}>Who to call</h2>
-        <p className={BODY}>{trade}</p>
-      </div>
+      {!isEmergency && (
+        <div>
+          <h2 className={HEADING}>Who to call</h2>
+          <p className={BODY}>{trade}</p>
+        </div>
+      )}
 
-      <div>
-        <h2 className={HEADING}>Questions that could help</h2>
-        <ul className={LIST}>
-          {followUpQuestions.map((q, i) => (
-            <li key={i}>{q}</li>
-          ))}
-        </ul>
-      </div>
+      {!isEmergency && (
+        <div>
+          <h2 className={HEADING}>Questions that could help</h2>
+          <ul className={LIST}>
+            {followUpQuestions.map((q, i) => (
+              <li key={i}>{q}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {showDiy && (
         <div>

@@ -413,14 +413,14 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Test hidden when `urgency === 'emergency'`
     - _Requirements: 9.6, 9.7, 6.5_
   - [x] 18.9 Create `src/components/results/IssueSummary.tsx`
-    - Display `likelyIssue`, `trade`, two `followUpQuestions`
+    - Display `likelyIssue`, `trade`, two `followUpQuestions`; when `urgency === 'emergency'` render ONLY the `likelyIssue` title (no trade, no follow-up questions, no DIY steps)
     - Plain text; no urgency colour; no DIY steps shown when `diySteps` array is empty
-    - _Requirements: 9.1_
+    - _Requirements: 9.1, 6.5_
   - [x] 18.10 Write property test for emergency field suppression (Property 13)
-    - **Property 13: Emergency results never contain cost range, job brief, or DIY steps**
+    - **Property 13: Emergency results never contain cost range, job brief, DIY steps, follow-up questions or trade**
     - **Validates: Requirements 6.5**
-    - Generate `InspectionResult` with `urgency === 'emergency'` using `fast-check`; render the Results Page components; verify cost range, job brief, and DIY steps are absent from the rendered output
-    - Tag: `// Feature: intake-and-triage, Property 13: Emergency results never contain cost range, job brief, or DIY steps`
+    - Generate `InspectionResult` with `urgency === 'emergency'` and arbitrary non-empty follow-up questions, trade and DIY steps using `fast-check`; render the real `ResultsView` (with `useInspection` mocked) and the individual components; verify the emergency message, the "Emergency" badge and the issue title are present, and cost range, job brief, Copy button, DIY steps, follow-up questions, trade ('Who to call') and confidence are absent
+    - Tag: `// Feature: intake-and-triage, Property 13: Emergency results never contain cost range, job brief, DIY steps, follow-up questions or trade`
 
 - [x] 19. Pages
   - [x] 19.1 Create root layout `src/app/layout.tsx`
@@ -438,14 +438,14 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - _Requirements: 2.3–2.5, 5.1–5.5, 10.1–10.4_
   - [x] 19.3 Create results page `src/app/inspect/[id]/page.tsx`
     - Use `useInspection(id)` hook: it shows a valid session-cached result immediately and also fetches a fresh copy from `GET /api/inspections/[id]`; if the fetch of a fresh copy fails, keep showing the cached result (including the emergency banner)
-    - Compose `EmergencyBanner`, `UrgencyBadge`, `IssueSummary`, `CostRange`, `JobBrief`
+    - Compose `EmergencyBanner`, `UrgencyBadge`, `IssueSummary`, `CostRange`, `JobBrief`; when urgency is `emergency` the page shows only the emergency banner, the urgency badge and the issue title (no trade, follow-up questions, DIY steps, confidence, cost range or job brief)
     - Display confidence as `formatConfidence(result.confidence)` labelled "AI confidence in this diagnosis"
     - On result not found (404): render message "Result could not be found" with option to start a new inspection, ONLY when there is neither a cached nor a fetched result
     - On deserialisation failure with no valid cached result: render error message only (no partial display)
     - All components respond to Normal and Haunted Tailwind themes via the root theme class
     - _Requirements: 9.1–9.7, 13.4, 14.3, 14.4, 14.7, 14.8_
 
-- [ ] 20. InspectionResult serialisation round-trip
+- [x] 20. InspectionResult serialisation round-trip
   - [x] 20.1 Add and export `inspectionResultSchema` to `src/lib/validation/inspectionSchema.ts` (full Zod schema for `InspectionResult`)
     - Used for deserialisation validation in the `useInspection` hook, the session cache helper (`readCachedResult`), and `GET /api/inspections/[id]`
     - MUST accept emergency results: `costRangeLow` 0, `costRangeHigh` 0, `jobBrief` `''` (empty string), `diySteps` `[]`, `urgency` `'emergency'`, `isEmergency` `true`
@@ -456,7 +456,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - **Validates: Requirements 13.3**
     - Generate valid `InspectionResult` objects with `fast-check` (`ValidInspectionResultArb` MUST include the emergency shape: costs 0/0, empty `jobBrief`, empty `diySteps`, `urgency: 'emergency'`, `isEmergency: true`); `JSON.parse(JSON.stringify(x))` then `inspectionResultSchema.parse`; verify every field value and type is identical to original
     - Tag: `// Feature: intake-and-triage, Property 18: InspectionResult serialisation round-trip`
-  - [ ] 20.3 Write property test for every-job-persisted (Property 17)
+  - [x] 20.3 Write property test for every-job-persisted (Property 17)
     - **Property 17: Every job is always persisted**
     - **Validates: Requirements 14.1**
     - Spy on `persistInspection`; generate `InspectionSubmission` using `fast-check`; verify `persistInspection` is called exactly once for every submission regardless of visitor identity or session state
@@ -466,7 +466,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Assert the emergency shape: `costRangeLow` 0, `costRangeHigh` 0, `jobBrief` `''`, `diySteps` `[]`, `urgency` `'emergency'`, `isEmergency` `true`
     - _Requirements: 6.7, 13.3_
 
-- [ ] 21. Final checkpoint — All tests pass
+- [x] 21. Final checkpoint — All tests pass
   - Ensure all property-based tests, unit tests, and integration tests pass. Run `next lint` and `tsc --noEmit`. Ask the user if any questions arise.
 
 ## Notes
@@ -477,6 +477,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 - In `POST /api/inspect`, the Safety Layer context-answer check runs BEFORE the rate limit: emergency requests bypass the rate limiter entirely, so they are never blocked by and never counted against the daily limit of 15 (a life-safety message must never be blocked by a usage limit); the emergency result is still persisted and the job link works as usual (task 12.10)
 - The `server-only` package must be imported at the top of every file in `src/lib/aws/`, `src/lib/safety/`, and `src/lib/rateLimiter.ts` to prevent accidental client-side imports
 - All tests use **Vitest**; property-based tests use **fast-check**; integration tests use **Vitest with mocked AWS clients** (the AWS client modules are mocked at module level; MSW is not used for these tests)
+- For `emergency` urgency the Results_Page shows ONLY the emergency banner, the urgency badge and the issue title; follow-up questions, trade ('Who to call'), DIY steps, confidence, cost range and job brief are all hidden (Requirement 6.5, Property 13)
 - Tag format for each property test: `// Feature: intake-and-triage, Property {N}: {property title}`
 - DynamoDB write failures in `POST /api/inspect` are non-fatal — return the result to the client and log the error
 - All AWS singleton clients use `APP_AWS_REGION` as the sole region parameter; there are no separate per-service region variables

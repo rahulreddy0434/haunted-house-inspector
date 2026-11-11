@@ -327,7 +327,9 @@ export function readCachedResult(id: string): InspectionResult | null;
 All results components support both the Normal and Haunted Tailwind themes via the active theme class applied at the layout level.
 
 #### `IssueSummary` (`src/components/results/IssueSummary.tsx`)
-Displays `likelyIssue`, `trade`, two follow-up questions. Plain text, no urgency colour.
+Displays `likelyIssue`, `trade` ('Who to call'), two follow-up questions. Plain text, no urgency colour. When `urgency === 'emergency'` it renders only the likely issue (the issue title): no trade, no follow-up questions, no DIY steps.
+
+**Results Page in an emergency:** `ResultsView` shows only the `EmergencyBanner`, the `UrgencyBadge` and the `IssueSummary` title. The trade, follow-up questions, DIY steps, confidence, cost range and job brief are all hidden (Requirement 6.5).
 
 #### `UrgencyBadge` (`src/components/results/UrgencyBadge.tsx`)
 
@@ -839,9 +841,9 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ---
 
-### Property 13: Emergency results never contain cost range, job brief, or DIY steps
+### Property 13: Emergency results never contain cost range, job brief, DIY steps, follow-up questions or trade
 
-*For any* `InspectionResult` with `urgency === 'emergency'`, the rendered Results Page SHALL contain no cost range, job brief, or DIY step content.
+*For any* `InspectionResult` with `urgency === 'emergency'`, the rendered Results Page SHALL contain no cost range, job brief, DIY step, follow-up question, trade or confidence content, and SHALL show only the emergency message, the "Emergency" urgency badge and the likely-issue title.
 
 **Validates: Requirements 6.5**
 
@@ -996,7 +998,7 @@ Use **fast-check** for property-based testing. Each test runs a minimum of 100 i
 | P10 — Char limit | `fc.string({ minLength: 501, maxLength: 2000 })` |
 | P11 — Emergency detection | `fc.string()` + inject a trigger pair (or single phrase) with a gap of 0–200 chars between the end of one term and the start of the other at a random position; `fc.string()` without trigger |
 | P12 — Emergency override | `fc.record(BedrockResponseArb)` with emergency context; verify urgency |
-| P13 — Emergency field suppression | `InspectionResultArb` with urgency=emergency; render; verify absent fields |
+| P13 — Emergency field suppression | `InspectionResultArb` with urgency=emergency and arbitrary non-empty `followUpQuestions`, `trade`, `diySteps`; render the real `ResultsView` (hook mocked) and the individual components; verify banner, badge and issue title present and cost, brief, DIY steps, follow-up questions, trade and confidence absent |
 | P14 — DIY suppression | trade built from a keyword (`'electric'`, `'gas'`, `'hvac'`, `'furnace'`) with random case and random prefix/suffix; arbitrary diySteps array |
 | P15 — Urgency label | `fc.constantFrom('emergency', 'urgent', 'soon', 'monitor')` |
 | P16 — Confidence formatting | `fc.float({ min: 0, max: 1 })` |

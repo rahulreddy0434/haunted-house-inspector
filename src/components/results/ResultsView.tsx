@@ -74,11 +74,12 @@ export function ResultsView({ id }: ResultsViewProps) {
         </div>
         <IssueSummary
           likelyIssue={result.likelyIssue}
-          trade={result.trade}
-          followUpQuestions={result.followUpQuestions}
+          trade=""
+          followUpQuestions={["", ""]}
           diySteps={[]}
           urgency="emergency"
         />
+        <NewInspectionLink />
       </main>
     );
   }

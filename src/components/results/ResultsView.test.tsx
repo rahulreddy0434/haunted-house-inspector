@@ -42,18 +42,42 @@ describe("ResultsView", () => {
       "with costs, brief and steps",
       { ...emergencyResult, costRangeLow: 100, costRangeHigh: 900, jobBrief: "Brief text", diySteps: ["Do a thing"] },
     ],
-  ])("emergency (%s): banner first, nothing else competing", (_n, result) => {
+  ])("emergency (%s): only banner, h1, badge and likely issue", (_n, base) => {
+    const result = {
+      ...base,
+      likelyIssue: "MARKER_ISSUE gas smell near boiler",
+      trade: "MARKER_TRADE_gasfitter",
+      followUpQuestions: ["MARKER_Q1 first?", "MARKER_Q2 second?"] as [string, string],
+      jobBrief: "MARKER_BRIEF",
+      diySteps: ["MARKER_DIY"],
+    };
     setHook({ result });
     const { container } = render(<ResultsView id="x" />);
     const banner = screen.getByText(EMERGENCY_MESSAGE);
+    expect(banner.textContent).toBe(EMERGENCY_MESSAGE);
     const h1 = screen.getByRole("heading", { level: 1 });
     expect(banner.compareDocumentPosition(h1) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const main = container.querySelector("main")!;
     expect(main.firstElementChild?.contains(banner)).toBe(true);
-    expect(container.textContent).not.toContain("CA$");
+    expect(screen.getByText("Emergency")).toBeTruthy();
+    expect(screen.getByText("MARKER_ISSUE gas smell near boiler")).toBeTruthy();
+    const text = container.textContent ?? "";
+    for (const absent of [
+      "MARKER_TRADE",
+      "MARKER_Q1",
+      "MARKER_Q2",
+      "MARKER_BRIEF",
+      "MARKER_DIY",
+      "Questions that could help",
+      "Who to call",
+      "AI confidence",
+      "CA$",
+      "Things you can safely try",
+    ]) {
+      expect(text).not.toContain(absent);
+    }
     expect(screen.queryByRole("button", { name: /copy/i })).toBeNull();
-    expect(screen.queryByText("Things you can safely try")).toBeNull();
-    expect(screen.queryByText("AI confidence in this diagnosis")).toBeNull();
+    expect(screen.getByRole("link", { name: "Start a new inspection" })).toBeTruthy();
   });
 
   it("shows not found with a new-inspection link", () => {
