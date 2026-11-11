@@ -1,12 +1,18 @@
+import { UploadFlow } from '@/components/upload/UploadFlow';
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-4xl font-bold text-brand-700 haunted:text-haunted-accent">
-        Haunted House Inspector
-      </h1>
-      <p className="mt-4 text-lg text-gray-600 haunted:text-haunted-muted">
-        Upload a photo or video of your problem.
-      </p>
-    </main>
+    <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+      <header>
+        <h1 className="text-3xl font-bold text-brand-700 haunted:text-haunted-accent">
+          Upload a photo or video of your problem
+        </h1>
+        <p className="mt-3 text-lg text-gray-700 haunted:text-haunted-muted">
+          Add up to 5 photos or one short video (up to 30 seconds) and we will give you a likely
+          cause, who to call and a rough cost range.
+        </p>
+      </header>
+      <UploadFlow />
+    </div>
   );
 }

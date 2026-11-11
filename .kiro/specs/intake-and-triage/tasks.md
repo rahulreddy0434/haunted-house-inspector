@@ -403,12 +403,12 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Generate `InspectionResult` with `urgency === 'emergency'` using `fast-check`; render the Results Page components; verify cost range, job brief, and DIY steps are absent from the rendered output
     - Tag: `// Feature: intake-and-triage, Property 13: Emergency results never contain cost range, job brief, or DIY steps`
 
-- [ ] 19. Pages
-  - [ ] 19.1 Create root layout `src/app/layout.tsx`
+- [x] 19. Pages
+  - [x] 19.1 Create root layout `src/app/layout.tsx`
     - Import global Tailwind styles; set up font and global providers
     - Apply root theme class to support Normal and Haunted theme variants across all components
     - _Requirements: all (foundational)_
-  - [ ] 19.2 Create home page `src/app/page.tsx`
+  - [x] 19.2 Create home page `src/app/page.tsx`
     - Prominent upload CTA: "Upload a photo or video of your problem"
     - Compose `DropZone`, `ContextForm`, `DataRetentionNotice`, `UploadProgress` using `useUpload` hook
     - Submit button disabled until `DataRetentionNotice` has been visible AND location answer is non-empty
@@ -417,7 +417,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Error state: display error message with "Try again" action restoring previously selected files
     - All components respond to Normal and Haunted Tailwind themes via the root theme class
     - _Requirements: 2.3–2.5, 5.1–5.5, 10.1–10.4_
-  - [ ] 19.3 Create results page `src/app/inspect/[id]/page.tsx`
+  - [x] 19.3 Create results page `src/app/inspect/[id]/page.tsx`
     - Use `useInspection(id)` hook: it shows a valid session-cached result immediately and also fetches a fresh copy from `GET /api/inspections/[id]`; if the fetch of a fresh copy fails, keep showing the cached result (including the emergency banner)
     - Compose `EmergencyBanner`, `UrgencyBadge`, `IssueSummary`, `CostRange`, `JobBrief`
     - Display confidence as `formatConfidence(result.confidence)` labelled "AI confidence in this diagnosis"
