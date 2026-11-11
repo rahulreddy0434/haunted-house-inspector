@@ -13,15 +13,14 @@ haunted-house-inspector/
 │   │   ├── inspect/
 │   │   │   └── [id]/
 │   │   │       └── page.tsx      # Results page for a given inspection
-│   │   ├── history/
-│   │   │   └── page.tsx          # Past inspections (auth-gated)
 │   │   └── api/
 │   │       ├── inspect/
 │   │       │   └── route.ts      # POST — trigger Bedrock analysis
 │   │       ├── upload-url/
 │   │       │   └── route.ts      # GET — return pre-signed S3 PUT URL
 │   │       └── inspections/
-│   │           └── route.ts      # GET — list user's past inspections
+│   │           └── [id]/
+│   │               └── route.ts  # GET — fetch one inspection by id
 │   ├── components/
 │   │   ├── ui/                   # Generic, reusable UI primitives
 │   │   │   ├── Button.tsx

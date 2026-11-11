@@ -200,3 +200,35 @@ Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, m
 - Wed Nov 11: Kiro's two follow-ups (the cached result id must match the URL; upload-url logs only the error name), fix the garbled characters in BUILD_LOG.md and tech.md, check the audit warnings, then tasks 18 to 21
 - Thu Nov 12: first live test on Amplify with real Bedrock, S3 and DynamoDB, on laptop and phone; weekly checkpoint
 - Start saving screenshots to docs/screenshots/ (none committed yet)
+
+---
+
+## Nov 11, 2026 (Build week 1, day 5: results, pages and the end of spec 1)
+
+**Done**
+- Task 16 follow-ups: a cached result is ignored unless its id matches the URL; `upload-url` now logs only the error name
+- `POST /api/inspect` rejects bodies over 16 KB with HTTP 413 before any parsing (Content-Length check, then a byte-counted stream read)
+- Task 18: results components (urgency badge, emergency banner, cost range in CAD, job brief with copy button, issue summary) and their tests, including the emergency suppression property (Property 13)
+- Task 19: root layout with a Normal/Haunted theme toggle, the home page and the results page
+- Photos now add up across several picks (up to 5, no duplicates, thumbnail and Remove button on each, "Add more photos" label, "Clear selection" keeps the answers); video stays one per inspection; Requirement 1.9 to 1.14, new Property 23 and `clearFiles` in `useUpload`
+- An emergency result now shows only the emergency banner, the urgency badge and the issue title; trade, questions, confidence, cost, brief and DIY steps are all hidden (Requirement 6.5, Property 13)
+- Tasks 20 and 21: round-trip and every-job-persisted properties (Properties 18 and 17) and the final checkpoint; 95 of 97 tasks done, only two optional tests left (7.2, 10.4)
+- Deleted two unused placeholders (`/history` page and the `/api/inspections` list stub); `structure.md` now matches the app. Spec 2 will design any list route the Pro dashboard needs
+- Final checks: lint, type-check and build clean; 410 tests pass in 55 files
+
+**Kiro features used**
+- Spec task execution: sub-agents built and tested tasks 15 to 21; up to five ran in parallel when files did not overlap
+- Spec editing: one request updated requirements, design and tasks together for each change (additive photos, emergency-only view)
+- Steering: safety.md drove the emergency-first rules; structure.md was brought back in line with the code
+
+**Problems and fixes**
+- Kiro closed unexpectedly (laptop issue); nothing was lost because every finished task was on disk, and the three tasks left open were closed after re-running all checks
+- A stale `.next` folder made type-check fail on the deleted history page; clearing `.next` fixed it
+- A PowerShell edit of `structure.md` garbled the box-drawing characters; I restored the file from git and redid it with a UTF-8 safe edit
+- A test agent noticed that a too-large photo added while a video was selected gave the wrong message; fixed so "photos or one video, not both" wins
+- Still never run in a real browser or against real AWS
+
+**Next**
+- Thu Nov 12: first live test on the Amplify deploy with real Bedrock, S3 and DynamoDB, on laptop and phone, including an emergency answer and a multi-photo pick
+- Commit this work, then start spec 2 (Pro dashboard and its list route)
+- Optional: tests 7.2 (prompt snapshot) and 10.4 (frame extractor); review the 16 npm audit warnings
