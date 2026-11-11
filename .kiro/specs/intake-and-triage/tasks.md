@@ -322,7 +322,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Plain-language notice stating media stored privately and deleted after 30 days; 8th-grade reading level, no jargon
     - Use `IntersectionObserver` with `threshold: 0.9`; fire `onVisible` callback once when 90% visible
     - _Requirements: 2.1–2.5, 12.1, 12.2_
-  - [x]* 15.12 Write unit test for `DataRetentionNotice` using Vitest
+  - [x] 15.12 Write unit test for `DataRetentionNotice` using Vitest
     - Mock `IntersectionObserver`; verify `onVisible` fires exactly once on first intersection
     - Verify `onVisible` does not fire again on subsequent intersections
     - _Requirements: 2.3, 2.4_
@@ -354,50 +354,50 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 - [x] 17. Checkpoint — Upload pipeline and hooks verified
   - Ensure all upload component tests and hook logic compile correctly. Ask the user if any questions arise.
 
-- [ ] 18. Results UI components
+- [x] 18. Results UI components
   - [x] 18.1 Create `src/components/results/UrgencyBadge.tsx`
     - Render exact labels: `emergency` → "Emergency" (red), `urgent` → "Urgent — act today" (orange), `soon` → "Soon — within a week" (yellow), `monitor` → "Monitor — keep an eye on it" (green)
     - Use `urgencyLabel` utility internally
     - Supports Normal and Haunted Tailwind themes via active theme class at layout level
     - _Requirements: 9.2_
-  - [ ]* 18.2 Write unit test for `UrgencyBadge` rendering using Vitest
+  - [x] 18.2 Write unit test for `UrgencyBadge` rendering using Vitest
     - Verify all four urgency levels render the exact expected strings with correct Tailwind colour classes
     - _Requirements: 9.2_
-  - [ ] 18.3 Create `src/components/results/EmergencyBanner.tsx`
+  - [x] 18.3 Create `src/components/results/EmergencyBanner.tsx`
     - Rendered only when `urgency === 'emergency'`
     - Display exactly: "This may be dangerous. Get everyone to safety and call 911. For a gas smell, leave the home first, then call 911 or your gas utility from outside."
     - _Requirements: 6.4_
-  - [ ] 18.4 Write unit test for `EmergencyBanner` using Vitest
+  - [x] 18.4 Write unit test for `EmergencyBanner` using Vitest
     - Verify banner renders with the exact required message when `urgency === 'emergency'`
     - Verify banner does not render for other urgency levels
     - _Requirements: 6.4_
-  - [ ] 18.5 Create `src/components/results/CostRange.tsx`
+  - [x] 18.5 Create `src/components/results/CostRange.tsx`
     - Display `costRangeLow`–`costRangeHigh` in Canadian dollars (CAD) via `formatCurrency`, e.g. `CA$1,200`; no currency selector
     - Mandatory label "rough range, not a quote" beneath
     - Hidden entirely when `urgency === 'emergency'`
     - Supports Normal and Haunted Tailwind themes via active theme class at layout level
     - _Requirements: 9.4, 9.8, 6.5_
-  - [ ]* 18.6 Write unit test for `CostRange` with emergency props using Vitest
+  - [x] 18.6 Write unit test for `CostRange` with emergency props using Vitest
     - Verify CostRange renders normally for non-emergency urgency
     - Verify CostRange is not rendered when `urgency === 'emergency'`
     - Verify costs render in CAD with no decimals (e.g. `CA$1,200`) and the "rough range, not a quote" label is always present
     - _Requirements: 6.5, 9.4, 9.8_
-  - [ ] 18.7 Create `src/components/results/JobBrief.tsx`
+  - [x] 18.7 Create `src/components/results/JobBrief.tsx`
     - Render `jobBrief` text with one-click "Copy" button
     - On clipboard success: show "Copied!" for at least 2 seconds
     - On clipboard failure: switch to selectable `<textarea>` with manual copy instruction
     - Hidden entirely when `urgency === 'emergency'`
     - _Requirements: 9.6, 9.7, 6.5_
-  - [ ]* 18.8 Write unit test for `JobBrief` using Vitest
+  - [x] 18.8 Write unit test for `JobBrief` using Vitest
     - Test clipboard success path: "Copied!" indicator appears and persists for ≥ 2 s
     - Test clipboard failure path: `<textarea>` fallback renders with copy instruction
     - Test hidden when `urgency === 'emergency'`
     - _Requirements: 9.6, 9.7, 6.5_
-  - [ ] 18.9 Create `src/components/results/IssueSummary.tsx`
+  - [x] 18.9 Create `src/components/results/IssueSummary.tsx`
     - Display `likelyIssue`, `trade`, two `followUpQuestions`
     - Plain text; no urgency colour; no DIY steps shown when `diySteps` array is empty
     - _Requirements: 9.1_
-  - [ ] 18.10 Write property test for emergency field suppression (Property 13)
+  - [x] 18.10 Write property test for emergency field suppression (Property 13)
     - **Property 13: Emergency results never contain cost range, job brief, or DIY steps**
     - **Validates: Requirements 6.5**
     - Generate `InspectionResult` with `urgency === 'emergency'` using `fast-check`; render the Results Page components; verify cost range, job brief, and DIY steps are absent from the rendered output
