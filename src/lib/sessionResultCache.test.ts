@@ -95,11 +95,10 @@ describe('sessionResultCache', () => {
     expect(readCachedResult(OTHER_ID)).toBeNull();
   });
 
-  it('DOCUMENTS CURRENT BEHAVIOUR: does not verify parsed result.id matches the requested id', () => {
-    // An entry for id A planted under id B's key is returned for B. The helper only
-    // validates the schema; it never compares result.id with the requested id.
+  it('ignores an entry whose id does not match the requested id', () => {
+    // An entry for id A planted under id B's key must not be returned for B.
     sessionStorage.setItem(resultCacheKey(OTHER_ID), JSON.stringify(normalResult));
-    expect(readCachedResult(OTHER_ID)).toEqual(normalResult);
+    expect(readCachedResult(OTHER_ID)).toBeNull();
   });
 
   describe('when window is undefined (SSR)', () => {

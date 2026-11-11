@@ -1,11 +1,11 @@
-﻿# Haunted House Inspector â€“ Build Log
+﻿# Haunted House Inspector - Build Log
 
 A daily record of what I built, which Kiro features I used, and what went wrong.
 This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the social post.
 
 ---
 
-## Nov 2, 2026 (Step 0, days 1â€“2)
+## Nov 2, 2026 (Step 0, days 1 - 2)
 
 **Done**
 - Requested Kiro hackathon credits; joined the Kiro Discord (#kiroween-hackathon)
@@ -113,7 +113,7 @@ This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the 
 - Steering: each sub-agent loaded the steering docs automatically
 
 **Problems and fixes**
-- Ran out of the 50 free Kiro credits partway through tasks 3.3 and 3.4; the Kiroween credits (requested Nov 1â€“2) haven't arrived. Deleted the half-finished test files and committed only tasks 2, 3.1 and 3.2
+- Ran out of the 50 free Kiro credits partway through tasks 3.3 and 3.4; the Kiroween credits (requested Nov 1-2) haven't arrived. Deleted the half-finished test files and committed only tasks 2, 3.1 and 3.2
 - While writing the Property 8 test, Kiro found that contextAnswersSchema accepts a location of only spaces (.min(1) without .trim()), which breaks Requirement 5.2. It started writing the test to match the bug; the right fix is to change the schema so the test requires rejection. To do when credits arrive
 - The "Update build log" hook uses credits, so this entry was written outside Kiro
 
@@ -150,9 +150,53 @@ This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the 
 - An agent overwrote design.md by mistake; it was restored from git and only the requested edits were reapplied
 - A type-check showed missing @aws-sdk packages while npm install was still running; it passed once the install finished
 - bedrock.ts and dynamodb.ts have no direct tests yet; only the image-format helper does
+- Testing the spec's emergency rules against everyday phrasing showed only 1 of 10 real emergencies was caught ("I smell gas in the kitchen" was missed); rewrote the triggers as keyword rules
+- The first keyword version matched "gas" inside "gasket", so "the toilet gasket is leaking" would have shown the 911 banner; fixed with whole-word matching for "gas" and "co"
 
 **Next**
 - Task 9: rate limiter (5 inspections per day) and its property test
 - Task 10: browser video frame extractor
 - Tasks 11 to 13: upload-url, inspect and inspections route handlers
 - Tasks 15 to 19: upload and results UI after the server checkpoint
+
+---
+
+## Nov 10, 2026 (Build week 1, catch-up: tasks 9 to 17)
+
+Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, map and booking cut), then restored the same day after tasks 9 to 17 were finished.
+
+**Done**
+- Task 9: rate limiter, 15 inspections per visitor per day (raised from 5 so testers and judges don't hit it), with a signed `hhi_session` cookie (HMAC-SHA256 using `SESSION_SECRET`). The visitor id is a SHA-256 hash of the IP, so raw IPs are never stored. With no secret it limits by IP only; if DynamoDB is down it allows the request, so the safety flow is never blocked. Property 20 and unit tests
+- Task 10: browser frame extractor (3–5 JPEG frames, 15-second limit); clips under 1 second give one frame at 0 seconds; Properties 6 and 7
+- Task 11: `GET /api/upload-url` with a file-name sanitiser and 15 integration tests (optional task 11.2 done)
+- Task 12: `POST /api/inspect` pipeline. The emergency check on the homeowner's answers runs before the rate limit and before Bedrock, so an emergency is never blocked or counted, and a Bedrock failure with a trigger still returns the emergency, never a 502. Raw model output is never logged. 9 integration tests plus Property 21
+- Task 13: `GET /api/inspections/[id]` with a strongly consistent read; emergency results return 200 unchanged; non-UUID ids return 404 without a database call; errors never include the result text
+- Task 14 checkpoint passed
+- Tasks 20.1 and 20.2 (done early): `inspectionResultSchema` accepts emergency results (costs 0, empty brief, empty DIY steps); Property 18
+- Task 15: DropZone, ContextForm, UploadProgress and DataRetentionNotice, plus a pure media validator; Properties 1 to 5, 9 and 10. Not visible in the browser until task 19 builds the home page
+- Task 16: `useUpload` (uploads, then analysis, with a 60-second limit) and `useInspection`; the result is copied to sessionStorage so an emergency still shows if the DynamoDB save fails; cache tests
+- Task 17 checkpoint passed: type-check, lint, 244 tests and build all green
+- Config: `SESSION_SECRET` added to the Amplify environment variables, the `amplify.yml` env line, `.env.example` and my local `.env.local` (not committed)
+- Spec updates: "Vitest with mocked AWS clients" wording; new Requirements 6.10, 11.6 to 11.8 and 14.6 to 14.9
+
+**Kiro features used**
+- Spec task execution: sub-agents built tasks 9 to 16; independent tests ran in parallel, up to five at a time
+- Spec editing: one request updated requirements, design and tasks together for each change (rate-limit order, session cache, short videos, cookie signing, the daily limit)
+- Property-based testing (fast-check): Properties 1 to 7, 9, 10, 18, 20 and 21 added; they run on every push
+- Steering: safety.md drove the rule that emergencies are never blocked by usage limits; tech.md was updated with `SESSION_SECRET` and the new limit so later agents follow them
+- Agent hook: "Update build log" drafted this entry; I checked and corrected it before committing
+
+**Problems and fixes**
+- Design bug: the rate limiter ran before the safety check, so an emergency could get a 429; moved safety first and added a test (12.10)
+- Design bug: an emergency result could vanish if the DynamoDB save failed or the read came too soon after the write; added the sessionStorage copy and a consistent read
+- Spec gap: the design called the visitor cookie "signed", but no signing secret existed; added `SESSION_SECRET` with an IP-only fallback
+- Spec contradiction: task 10.1 said a clip under 1 second gives one frame, but Property 7 expected floor(d) = 0 frames; fixed to max(1, floor(d)) before any code was written
+- Two test files briefly failed type-check while other agents were still writing them; fixed on re-run
+- Kiro kept listing "add SESSION_SECRET in the Amplify console" after it was done; Kiro sees only the repo, not AWS, so console steps are checked by hand
+- Installing four test-only libraries reported 16 npm audit warnings; to check with `npm audit --omit=dev`
+- Nothing has run in a real browser or against real AWS yet; only mocked tests so far
+
+**Next**
+- Wed Nov 11: Kiro's two follow-ups (the cached result id must match the URL; upload-url logs only the error name), fix the garbled characters in BUILD_LOG.md and tech.md, check the audit warnings, then tasks 18 to 21
+- Thu Nov 12: first live test on Amplify with real Bedrock, S3 and DynamoDB, on laptop and phone; weekly checkpoint
+- Start saving screenshots to docs/screenshots/ (none committed yet)

@@ -1,4 +1,4 @@
-﻿# Tech Stack â€” Haunted House Inspector
+﻿# Tech Stack - Haunted House Inspector
 
 ## Core framework
 - **Next.js** (App Router) with **TypeScript**, strict mode. All new files are `.ts` or `.tsx`.
@@ -19,7 +19,7 @@
   - Model: [Amazon Nova Lite]. The model ID comes from `BEDROCK_MODEL_ID` so it can be swapped without code changes. In us-east-2, use the cross-region inference profile ID (starts with `us.`) if on-demand calls fail.
   - Prompts live in `/lib/prompts/` as typed template functions, unit-tested separately from the API call.
   - Always request structured JSON and validate it with Zod before returning it.
-- **Video handling:** extract 3â€“5 still frames from the video in the browser (HTML video + canvas). Send only the frames to the server; never upload full videos.
+- **Video handling:** extract 3 - 5 still frames from the video in the browser (HTML video + canvas). Send only the frames to the server; never upload full videos.
 
 ## Safety (see safety.md)
 - Safety rules live in `/lib/safety/` as pure functions with no AWS calls.
@@ -46,7 +46,7 @@
 - Two themes: Normal and Haunted, switched with a toggle.
 
 ## API layer
-- All AWS calls happen in Next.js **Route Handlers** (`app/api/â€¦`). No AWS SDK calls from React components.
+- All AWS calls happen in Next.js **Route Handlers** (`app/api/...). No AWS SDK calls from React components.
 - Validate all request bodies with **Zod**.
 
 ## Testing

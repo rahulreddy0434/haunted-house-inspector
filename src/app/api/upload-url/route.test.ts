@@ -127,4 +127,71 @@ describe('GET /api/upload-url', () => {
     expect((await res.json()).error).toBe('UPLOAD_URL_FAILED');
     expect(getSignedUrlMock).not.toHaveBeenCalled();
   });
+
+  describe('error logging hygiene', () => {
+    const FILE = 'my-private-kitchen-photo.jpg';
+    const FRIENDLY = "We couldn't prepare your upload. Please try again.";
+    let spies: ReturnType<typeof vi.spyOn>[];
+
+    beforeEach(() => {
+      spies = [
+        errorSpy,
+        vi.spyOn(console, 'log').mockImplementation(() => {}),
+        vi.spyOn(console, 'warn').mockImplementation(() => {}),
+        vi.spyOn(console, 'info').mockImplementation(() => {}),
+      ];
+    });
+
+    afterEach(() => {
+      for (const s of spies.slice(1)) s.mockRestore();
+    });
+
+    const logged = () => JSON.stringify(spies.map((s) => s.mock.calls));
+
+    it('logs only the error name when presigning rejects with an Error', async () => {
+      const err = new Error('SECRET-MSG-123 arn:aws:iam::123456789012:role/x');
+      err.name = 'CredentialsProviderError';
+      getSignedUrlMock.mockRejectedValue(err);
+      const res = await call({ filename: FILE, contentType: 'image/jpeg', inspectionId: ID });
+      expect(res.status).toBe(500);
+      const body = (await res.json()) as { error: string; message: string };
+      expect(body.error).toBe('UPLOAD_URL_FAILED');
+      expect(body.message).toBe(FRIENDLY);
+      const out = logged();
+      expect(out).toContain('CredentialsProviderError');
+      expect(out).not.toContain('SECRET-MSG-123');
+      expect(out).not.toContain('arn:aws');
+      expect(out).not.toContain('my-private-kitchen-photo');
+      expect(out).not.toContain(ID);
+    });
+
+    it('logs UnknownError for a non-Error rejection', async () => {
+      getSignedUrlMock.mockRejectedValue('SECRET-MSG-123 string rejection');
+      const res = await call({ filename: FILE, contentType: 'image/jpeg', inspectionId: ID });
+      expect(res.status).toBe(500);
+      const body = (await res.json()) as { error: string; message: string };
+      expect(body.error).toBe('UPLOAD_URL_FAILED');
+      expect(body.message).toBe(FRIENDLY);
+      const out = logged();
+      expect(out).toContain('UnknownError');
+      expect(out).not.toContain('SECRET-MSG-123');
+      expect(out).not.toContain('my-private-kitchen-photo');
+      expect(out).not.toContain(ID);
+    });
+
+    it('does not log the missing-bucket message, only the error name', async () => {
+      delete process.env.S3_BUCKET_NAME;
+      const res = await call({ filename: FILE, contentType: 'image/jpeg', inspectionId: ID });
+      expect(res.status).toBe(500);
+      const body = (await res.json()) as { error: string; message: string };
+      expect(body.error).toBe('UPLOAD_URL_FAILED');
+      expect(body.message).toBe(FRIENDLY);
+      const out = logged();
+      expect(out).toContain('"Error"');
+      expect(out).not.toContain('Missing required environment variable');
+      expect(out).not.toContain('S3_BUCKET_NAME');
+      expect(out).not.toContain('my-private-kitchen-photo');
+      expect(out).not.toContain(ID);
+    });
+  });
 });

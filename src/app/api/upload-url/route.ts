@@ -35,7 +35,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   } catch (err) {
     console.error(
       "upload-url: failed to create pre-signed URL:",
-      err instanceof Error ? err.message : "unknown error",
+      err instanceof Error ? err.name : "UnknownError",
     );
     return NextResponse.json(
       {

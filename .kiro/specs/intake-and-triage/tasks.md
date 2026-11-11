@@ -355,7 +355,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
   - Ensure all upload component tests and hook logic compile correctly. Ask the user if any questions arise.
 
 - [ ] 18. Results UI components
-  - [ ] 18.1 Create `src/components/results/UrgencyBadge.tsx`
+  - [x] 18.1 Create `src/components/results/UrgencyBadge.tsx`
     - Render exact labels: `emergency` → "Emergency" (red), `urgent` → "Urgent — act today" (orange), `soon` → "Soon — within a week" (yellow), `monitor` → "Monitor — keep an eye on it" (green)
     - Use `urgencyLabel` utility internally
     - Supports Normal and Haunted Tailwind themes via active theme class at layout level

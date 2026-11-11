@@ -23,7 +23,10 @@ export function readCachedResult(id: string): InspectionResult | null {
     const raw = window.sessionStorage.getItem(resultCacheKey(id));
     if (raw === null) return null;
     const parsed = inspectionResultSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? (parsed.data as InspectionResult) : null;
+    if (!parsed.success) return null;
+    // An entry stored under this key but belonging to another id is never trusted.
+    if (parsed.data.id !== id) return null;
+    return parsed.data as InspectionResult;
   } catch {
     return null;
   }

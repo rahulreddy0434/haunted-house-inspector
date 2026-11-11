@@ -122,6 +122,46 @@ describe('useInspection', () => {
     await waitFor(() => expect(result.current.result?.id).toBe('new'));
   });
 
+  describe('cached entry whose id differs from the URL id', () => {
+    const urlId = 'url-id-123';
+    const plant = (entry: unknown) =>
+      window.sessionStorage.setItem(`hhi_result_${urlId}`, JSON.stringify(entry));
+
+    it('is not exposed while loading, then the fetched result is shown', async () => {
+      plant(normalResult);
+      const fetched = { ...normalResult, id: urlId, likelyIssue: 'Fetched' };
+      let resolve!: (r: Response) => void;
+      stubFetch(() => new Promise<Response>((r) => (resolve = r)));
+      const { result } = renderHook(() => useInspection(urlId));
+      expect(result.current.result).toBeNull();
+      expect(result.current.loading).toBe(true);
+      await act(async () => {
+        resolve(new Response(JSON.stringify(fetched), { status: 200 }));
+      });
+      await waitFor(() => expect(result.current.result).toEqual(fetched));
+    });
+
+    it.each([
+      ['normal', normalResult],
+      ['emergency', emergencyResult],
+    ])('never shows a mismatched %s entry on 404', async (_n, entry) => {
+      plant(entry);
+      stubFetch(() => reply(404, { error: 'Inspection not found' }));
+      const { result } = renderHook(() => useInspection(urlId));
+      expect(result.current.result).toBeNull();
+      await waitFor(() => expect(result.current.notFound).toBe(true));
+      expect(result.current.result).toBeNull();
+    });
+
+    it('positive control: a matching id is shown immediately', () => {
+      plant({ ...normalResult, id: urlId });
+      stubFetch(() => new Promise<Response>(() => {}));
+      const { result } = renderHook(() => useInspection(urlId));
+      expect(result.current.loading).toBe(false);
+      expect(result.current.result?.id).toBe(urlId);
+    });
+  });
+
   it('aborts on unmount', () => {
     let sig: AbortSignal | undefined;
     stubFetch((_u, init) => {
