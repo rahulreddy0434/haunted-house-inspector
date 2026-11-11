@@ -7,25 +7,27 @@ import type { FrameExtractionError, FrameExtractionResult } from '@/lib/frameExt
 import {
   ACCEPTED_IMAGE_TYPES,
   ACCEPTED_VIDEO_TYPES,
-  validateSelection,
+  MAX_IMAGES,
+  mergeSelection,
   validateVideoDuration,
 } from '@/lib/validation/mediaValidation';
-import type { AcceptedFiles, UploadValidationError } from '@/lib/validation/mediaValidation';
+import type {
+  AcceptedFiles,
+  CurrentSelection,
+  UploadValidationError,
+} from '@/lib/validation/mediaValidation';
 
 export interface DropZoneProps {
+  /** The current selection, owned by the parent. */
+  value: AcceptedFiles | null;
   onFilesAccepted: (files: AcceptedFiles) => void;
   onValidationError: (errors: UploadValidationError[]) => void;
-  /** Optional: called when the user removes a previously accepted selection. */
+  /** Called when the user removes the whole selection (or the last photo). */
   onSelectionCleared?: () => void;
 }
 
 const ACCEPT_ATTR = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES].join(',');
 const METADATA_TIMEOUT_MS = 15_000;
-
-interface Selection {
-  names: string[];
-  label: string;
-}
 
 interface ExtractionFailure {
   file: File;
@@ -67,30 +69,75 @@ function readVideoDuration(file: File): Promise<number | null> {
   });
 }
 
-export function DropZone({ onFilesAccepted, onValidationError, onSelectionCleared }: DropZoneProps) {
+function toCurrent(value: AcceptedFiles | null): CurrentSelection<File> | null {
+  if (!value) return null;
+  return { kind: value.kind === 'images' ? 'images' : 'video', files: value.files };
+}
+
+const secondaryButton =
+  'min-h-11 rounded-lg border border-brand-700 px-4 py-2 text-sm font-medium text-brand-800 hover:bg-brand-50 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand-900 haunted:border-haunted-accent haunted:text-haunted-text haunted:hover:bg-haunted-bg haunted:focus-visible:outline-haunted-accent';
+
+export function DropZone({
+  value,
+  onFilesAccepted,
+  onValidationError,
+  onSelectionCleared,
+}: DropZoneProps) {
   const inputId = useId();
   const errorsId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const runRef = useRef(0); // incremented to ignore results of superseded runs
   const mountedRef = useRef(true);
+  const urlsRef = useRef<Map<File, string>>(new Map());
+  const cleanedUpRef = useRef(false);
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
+  const [, setRemountTick] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [errors, setErrors] = useState<UploadValidationError[]>([]);
-  const [selection, setSelection] = useState<Selection | null>(null);
   const [failure, setFailure] = useState<ExtractionFailure | null>(null);
 
+  // Revoke every preview URL on unmount.
   useEffect(() => {
     mountedRef.current = true;
+    const urls = urlsRef.current;
+    if (cleanedUpRef.current) {
+      cleanedUpRef.current = false;
+      setRemountTick((t) => t + 1); // re-create URLs revoked by a simulated unmount
+    }
     return () => {
       mountedRef.current = false;
+      cleanedUpRef.current = true;
+      urls.forEach((url) => URL.revokeObjectURL(url));
+      urls.clear();
     };
   }, []);
+
+  // Revoke the URL of any File that is no longer in `value`.
+  useEffect(() => {
+    const current = new Set<File>(value && value.kind === 'images' ? value.files : []);
+    urlsRef.current.forEach((url, file) => {
+      if (!current.has(file)) {
+        URL.revokeObjectURL(url);
+        urlsRef.current.delete(file);
+      }
+    });
+  }, [value]);
+
+  const previewUrl = (file: File): string => {
+    let url = urlsRef.current.get(file);
+    if (!url) {
+      url = URL.createObjectURL(file);
+      urlsRef.current.set(file, url);
+    }
+    return url;
+  };
 
   const reportErrors = useCallback(
     (list: UploadValidationError[]) => {
       setErrors(list);
-      setSelection(null);
       onValidationError(list);
     },
     [onValidationError],
@@ -104,7 +151,6 @@ export function DropZone({ onFilesAccepted, onValidationError, onSelectionCleare
       setErrors([]);
       setFailure(null);
       setPreparing(true);
-      setSelection({ names: [file.name], label: '1 video' });
 
       const duration = await readVideoDuration(file);
       if (stale()) return;
@@ -149,26 +195,32 @@ export function DropZone({ onFilesAccepted, onValidationError, onSelectionCleare
       setPreparing(false);
       setFailure(null);
 
-      const problems = validateSelection(files);
-      if (problems.length > 0) {
-        reportErrors(problems);
+      const current = valueRef.current;
+      const merge = mergeSelection<File>(toCurrent(current), files);
+
+      if (!merge.accepted) {
+        reportErrors(merge.errors); // the selection stays as it was
         return;
       }
 
-      const video = files.find((f) => ACCEPTED_VIDEO_TYPES.includes(f.type));
-      if (video) {
-        void runVideo(video);
+      const hasVideo = files.some((f) => ACCEPTED_VIDEO_TYPES.includes(f.type));
+      if (hasVideo) {
+        void runVideo(files[0]);
         return;
       }
 
-      setErrors([]);
-      setSelection({
-        names: files.map((f) => f.name),
-        label: files.length === 1 ? '1 photo' : `${files.length} photos`,
-      });
-      onFilesAccepted({ kind: 'images', files });
+      const before = current && current.kind === 'images' ? current.files.length : 0;
+      if (merge.errors.length > 0) {
+        setErrors(merge.errors);
+        onValidationError(merge.errors);
+      } else {
+        setErrors([]);
+      }
+      if (merge.files.length !== before || merge.errors.length > 0) {
+        onFilesAccepted({ kind: 'images', files: merge.files });
+      }
     },
-    [onFilesAccepted, reportErrors, runVideo],
+    [onFilesAccepted, onValidationError, reportErrors, runVideo],
   );
 
   const clearSelection = useCallback(() => {
@@ -176,10 +228,22 @@ export function DropZone({ onFilesAccepted, onValidationError, onSelectionCleare
     setPreparing(false);
     setFailure(null);
     setErrors([]);
-    setSelection(null);
     if (inputRef.current) inputRef.current.value = '';
     onSelectionCleared?.();
   }, [onSelectionCleared]);
+
+  const removePhoto = (file: File) => {
+    if (!value || value.kind !== 'images') return;
+    const url = urlsRef.current.get(file);
+    if (url) {
+      URL.revokeObjectURL(url);
+      urlsRef.current.delete(file);
+    }
+    const remaining = value.files.filter((f) => f !== file);
+    setErrors([]);
+    if (remaining.length === 0) onSelectionCleared?.();
+    else onFilesAccepted({ kind: 'images', files: remaining });
+  };
 
   const onInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) handleFiles(event.target.files);
@@ -200,7 +264,13 @@ export function DropZone({ onFilesAccepted, onValidationError, onSelectionCleare
     handleFiles(event.dataTransfer.files);
   };
 
-  const buttonText = selection ? 'Choose different files' : 'Choose photos or a video';
+  const photoCount = value && value.kind === 'images' ? value.files.length : 0;
+  const atMax = photoCount >= MAX_IMAGES;
+  const buttonText = !value
+    ? 'Choose photos or a video'
+    : value.kind === 'frames'
+      ? 'Choose a different video'
+      : 'Add more photos';
 
   return (
     <section aria-label="Upload photos or a video" className="w-full">
@@ -224,30 +294,36 @@ export function DropZone({ onFilesAccepted, onValidationError, onSelectionCleare
           less).
         </p>
 
-        <input
-          ref={inputRef}
-          id={inputId}
-          type="file"
-          multiple
-          accept={ACCEPT_ATTR}
-          onChange={onInputChange}
-          disabled={preparing}
-          aria-describedby={errors.length > 0 ? errorsId : undefined}
-          className="peer sr-only"
-        />
-        <label
-          htmlFor={inputId}
-          className={[
-            'inline-flex min-h-11 cursor-pointer items-center rounded-lg px-5 py-2 font-medium',
-            'bg-brand-700 text-white hover:bg-brand-800',
-            'haunted:bg-haunted-glow haunted:text-white haunted:hover:bg-haunted-accent',
-            'peer-focus-visible:outline peer-focus-visible:outline-4 peer-focus-visible:outline-offset-2',
-            'peer-focus-visible:outline-brand-900 haunted:peer-focus-visible:outline-haunted-accent',
-            'peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
-          ].join(' ')}
-        >
-          {buttonText}
-        </label>
+        {atMax ? (
+          <p className="text-sm font-medium">You have added the maximum of 5 photos.</p>
+        ) : (
+          <>
+            <input
+              ref={inputRef}
+              id={inputId}
+              type="file"
+              multiple
+              accept={ACCEPT_ATTR}
+              onChange={onInputChange}
+              disabled={preparing}
+              aria-describedby={errors.length > 0 ? errorsId : undefined}
+              className="peer sr-only"
+            />
+            <label
+              htmlFor={inputId}
+              className={[
+                'inline-flex min-h-11 cursor-pointer items-center rounded-lg px-5 py-2 font-medium',
+                'bg-brand-700 text-white hover:bg-brand-800',
+                'haunted:bg-haunted-glow haunted:text-white haunted:hover:bg-haunted-accent',
+                'peer-focus-visible:outline peer-focus-visible:outline-4 peer-focus-visible:outline-offset-2',
+                'peer-focus-visible:outline-brand-900 haunted:peer-focus-visible:outline-haunted-accent',
+                'peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+              ].join(' ')}
+            >
+              {buttonText}
+            </label>
+          </>
+        )}
       </div>
 
       <div role="status" aria-live="polite" className="mt-3 text-sm">
@@ -258,30 +334,62 @@ export function DropZone({ onFilesAccepted, onValidationError, onSelectionCleare
         )}
       </div>
 
-      {selection && (
+      {value && (
         <div className="mt-3 rounded-lg border border-brand-200 bg-white p-4 text-slate-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text">
-          <p className="font-medium">Selected: {selection.label}</p>
-          <ul className="mt-1 list-disc pl-5 text-sm">
-            {selection.names.map((name, i) => (
-              <li key={`${name}-${i}`} className="break-all">
-                {name}
-              </li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            onClick={clearSelection}
-            className="mt-3 min-h-11 rounded-lg border border-brand-700 px-4 py-2 text-sm font-medium text-brand-800 hover:bg-brand-50 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand-900 haunted:border-haunted-accent haunted:text-haunted-text haunted:hover:bg-haunted-bg haunted:focus-visible:outline-haunted-accent"
-          >
-            Remove selection
+          {value.kind === 'images' ? (
+            <>
+              <p className="font-medium">
+                Selected: {photoCount === 1 ? '1 photo' : `${photoCount} photos`}
+              </p>
+              <ul className="mt-2 flex flex-col gap-2">
+                {value.files.map((file, i) => (
+                  <li key={`${file.name}-${file.size}-${file.lastModified}-${i}`} className="flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={previewUrl(file)}
+                      alt={file.name}
+                      width={64}
+                      height={64}
+                      className="h-16 w-16 shrink-0 rounded-md object-cover"
+                    />
+                    <span className="min-w-0 flex-1 break-all text-sm">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(file)}
+                      aria-label={`Remove ${file.name}`}
+                      className={secondaryButton}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-medium">Video selected</p>
+                <p className="text-sm">
+                  {value.files.length === 1
+                    ? '1 frame prepared'
+                    : `${value.files.length} frames prepared`}
+                </p>
+              </div>
+              <button type="button" onClick={clearSelection} className={secondaryButton}>
+                Remove video
+              </button>
+            </div>
+          )}
+          <button type="button" onClick={clearSelection} className={`mt-3 ${secondaryButton}`}>
+            Clear selection
           </button>
         </div>
       )}
 
       <div id={errorsId} aria-live="assertive" role="alert" className="mt-3">
-        {errors.map((error) => (
+        {errors.map((error, i) => (
           <p
-            key={error.code}
+            key={`${error.code}-${i}`}
             className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 haunted:border-red-400 haunted:bg-haunted-surface haunted:text-red-300"
           >
             {error.message}
@@ -302,7 +410,7 @@ export function DropZone({ onFilesAccepted, onValidationError, onSelectionCleare
                 clearSelection();
                 inputRef.current?.focus();
               }}
-              className="min-h-11 rounded-lg border border-brand-700 px-4 py-2 text-sm font-medium text-brand-800 hover:bg-brand-50 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand-900 haunted:border-haunted-accent haunted:text-haunted-text haunted:hover:bg-haunted-bg haunted:focus-visible:outline-haunted-accent"
+              className={secondaryButton}
             >
               Use photos instead
             </button>

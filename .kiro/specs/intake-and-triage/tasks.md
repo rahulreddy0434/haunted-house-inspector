@@ -265,40 +265,58 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
   - Ensure all Route Handler, Rate Limiter, and Safety Layer tests pass. Ask the user if any questions arise.
 
 - [x] 15. Upload UI components
-  - [x] 15.1 Create `src/components/upload/DropZone.tsx`
-    - Accept drag-and-drop and file-picker interactions
-    - Enforce validation order: unsupported type → mixed media → multiple videos → image count > 5 → image file size > 10 MB (10 485 760 bytes) → video duration > 30 s
+  - [x] 15.1 Create `src/components/upload/DropZone.tsx` (controlled component with additive photo selection)
+    - Controlled component: props `value: AcceptedFiles | null`, `onFilesAccepted`, `onValidationError`, `onSelectionCleared`
+    - Accept drag-and-drop and file-picker interactions; each pick or drop is ADDITIVE: merge the incoming pick into `value` via the pure function `mergeSelection(current, incoming)` in `src/lib/validation/mediaValidation.ts` (add optional `lastModified: number` to `SelectedFileInfo`; `mergeSelection` returns `{ files, errors, accepted }`)
+    - Validation order: incoming pick first (unsupported type → mixed media within the pick → multiple videos within the pick), then the merge rules against the current selection (media-kind conflict → `MIXED_MEDIA` keeping the current selection; photos: dedupe by name+size+lastModified, append, truncate to 5 and report `TOO_MANY_IMAGES` while still accepting the first 5; image file size > 10 MB (10 485 760 bytes) → `FILE_TOO_LARGE`; video duration > 30 s → `VIDEO_TOO_LONG`); any error other than `TOO_MANY_IMAGES` rejects the WHOLE incoming pick and keeps the current selection unchanged
+    - A video added while a video is selected replaces it (only if its duration is ≤ 30 s)
     - No file-size cap on video files
     - When video selected: invoke `extractFrames`; on timeout/error display appropriate error with Retry or Switch-to-photos action
     - Call `onFilesAccepted` with `AcceptedFiles` or `onValidationError` with `UploadValidationError[]`
-    - Display selected file names and count summary
+    - Show for each selected photo its file name, a small thumbnail (object URL created once per file via `URL.createObjectURL`, revoked with `URL.revokeObjectURL` on Remove, clear, replace and unmount) and a Remove button; show a count summary
+    - Label the add control "Add more photos" while fewer than 5 photos are selected; provide a "Clear selection" action that calls `onSelectionCleared`
     - Component supports Normal and Haunted Tailwind themes via the active theme class on the root element
-    - _Requirements: 1.1–1.8, 3.4, 3.5_
+    - _Requirements: 1.1–1.14, 3.4, 3.5_
   - [x] 15.2 Write property test for file type validation (Property 1)
     - **Property 1: File type validation rejects exactly the non-allowed MIME types**
     - **Validates: Requirements 1.1**
-    - Use `fc.string()` for arbitrary MIME type; `fc.constantFrom('image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm')` for allowed types; verify acceptance/rejection
+    - Use `fc.string()` for arbitrary MIME type in an incoming pick, with an arbitrary current selection (null or valid photos); `fc.constantFrom('image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm')` for allowed types; verify unsupported types are rejected on any addition (`UNSUPPORTED_TYPE`) and the current selection is unchanged
+    - Tests call `mergeSelection` / `validateSelection` directly (pure functions, no DOM)
     - Tag: `// Feature: intake-and-triage, Property 1: File type validation rejects exactly the non-allowed MIME types`
   - [x] 15.3 Write property test for mixed-media rejection (Property 2)
     - **Property 2: Mixed-media submissions are always rejected**
     - **Validates: Requirements 1.3**
-    - Combine `fc.array(imageFile)` min 1 with `fc.array(videoFile)` min 1; verify always rejected
+    - Cover photos + video in one pick (`fc.array(imageFile)` min 1 with `fc.array(videoFile)` min 1) AND across picks (current photos + incoming video, current video + incoming photos); verify always rejected with `MIXED_MEDIA` and the current selection unchanged
+    - Tests call `mergeSelection` / `validateSelection` directly (pure functions, no DOM)
     - Tag: `// Feature: intake-and-triage, Property 2: Mixed-media submissions are always rejected`
   - [x] 15.4 Write property test for image count constraint (Property 3)
     - **Property 3: Image count constraint**
     - **Validates: Requirements 1.2**
-    - Use `fc.array(imageFile, { minLength: 1, maxLength: 20 })`; verify accepted iff count ≤ 5
+    - Use a sequence of photo picks (`fc.array(fc.array(imageFile, { minLength: 1, maxLength: 8 }), { minLength: 1, maxLength: 6 })`, with repeated files) merged in turn; verify the resulting selection has `min(5, d)` files (d = distinct photos by name+size+lastModified) in order of first appearance, and that `TOO_MANY_IMAGES` is reported when d > 5
+    - Tests call `mergeSelection` / `validateSelection` directly (pure functions, no DOM)
     - Tag: `// Feature: intake-and-triage, Property 3: Image count constraint`
   - [x] 15.5 Write property test for video duration constraint (Property 4)
     - **Property 4: Video duration constraint**
     - **Validates: Requirements 1.4**
-    - Use `fc.float({ min: 0, max: 60 })`; verify accepted iff duration ≤ 30
+    - Use `fc.float({ min: 0, max: 60 })`; verify accepted iff duration ≤ 30; a video longer than 30 s is rejected with the current selection unchanged, and a replacement video is only accepted if ≤ 30 s
+    - Tests call `validateVideoDuration` / `mergeSelection` directly (pure functions, no DOM)
     - Tag: `// Feature: intake-and-triage, Property 4: Video duration constraint`
   - [x] 15.6 Write property test for image file size constraint (Property 5)
     - **Property 5: Image file size constraint**
     - **Validates: Requirements 1.8**
-    - Use `fc.integer({ min: 0, max: 20_000_000 })` for size; verify image rejected when size > 10 485 760 bytes (10 MB)
+    - Use `fc.integer({ min: 0, max: 20_000_000 })` for size at the first or a later pick, with an arbitrary current selection; verify an image is rejected (`FILE_TOO_LARGE`, whole pick rejected, current selection unchanged) when size > 10 485 760 bytes (10 MB)
+    - Tests call `mergeSelection` / `validateSelection` directly (pure functions, no DOM)
     - Tag: `// Feature: intake-and-triage, Property 5: Image file size constraint`
+  - [x] 15.13 Write property test for additive selection (Property 23)
+    - **Property 23: Additive selection is order-preserving and duplicate-free**
+    - **Validates: Requirements 1.9, 1.10, 1.11**
+    - Use a distinct current selection `fc.array(imageFile, { maxLength: 5 })` and an incoming pick `fc.array(imageFile, { maxLength: 8 })` whose name, size and lastModified come from small ranges so duplicates occur; verify existing items keep their order at the front, the result has no (name, size, lastModified) duplicates, and adding the same pick a second time leaves the selection unchanged (idempotent)
+    - Tests call `mergeSelection` directly (pure function, no DOM)
+    - Tag: `// Feature: intake-and-triage, Property 23: Additive selection is order-preserving and duplicate-free`
+  - [x] 15.14 Write component test for DropZone additive selection (thumbnails, Remove, object URL cleanup, Add more photos label)
+    - Render the controlled `DropZone` with Vitest and Testing Library, mocking `URL.createObjectURL` / `URL.revokeObjectURL`
+    - Verify a second pick adds to `value` instead of replacing it, each photo shows its file name, a thumbnail and a Remove button, Remove calls `onFilesAccepted` with the remaining photos and revokes that photo's object URL, unmount revokes the remaining object URLs, the add control reads "Add more photos" while fewer than 5 photos are selected (and not at 5), "Clear selection" calls `onSelectionCleared`, and a video added while photos are selected is rejected with the current selection unchanged
+    - _Requirements: 1.9–1.14_
   - [x] 15.7 Create `src/components/upload/UploadProgress.tsx`
     - Display per-file name, progress percentage, and status (`pending` | `uploading` | `done` | `error`)
     - _Requirements: 10.1_
@@ -334,6 +352,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - 60-second client-side timeout: abort fetch, set error state with "try again" option
     - On success: store the full `POST /api/inspect` response (the `InspectionResult` JSON) in `sessionStorage` under `hhi_result_{id}` (use the result's `id`) by calling `cacheResult(result)` from `src/lib/sessionResultCache.ts` BEFORE navigating to `/inspect/[id]`; a storage failure must not block navigation
     - Expose `reset()` to restore previously selected files on retry
+    - Expose `clearFiles(): void`: removes the selected files (`files` becomes `null`), keeps the context answers, aborts any in-flight upload and resets the upload error/progress state; `clearAll()` is unchanged (clears files, answers and status)
     - Create the small helper module `src/lib/sessionResultCache.ts` in this task (used by `useUpload` and `useInspection`): export `cacheResult(result: InspectionResult): void` (writes `JSON.stringify(result)` under key `hhi_result_{result.id}`, swallowing storage errors) and `readCachedResult(id: string): InspectionResult | null` (reads the key, parses JSON, validates with `inspectionResultSchema`; returns `null` when missing, invalid JSON, schema-invalid, or when `sessionStorage` throws)
     - _Requirements: 4.1–4.5, 10.1–10.4, 14.6_
   - [x] 16.2 Create `src/hooks/useInspection.ts`
@@ -410,7 +429,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - _Requirements: all (foundational)_
   - [x] 19.2 Create home page `src/app/page.tsx`
     - Prominent upload CTA: "Upload a photo or video of your problem"
-    - Compose `DropZone`, `ContextForm`, `DataRetentionNotice`, `UploadProgress` using `useUpload` hook
+    - Compose `DropZone`, `ContextForm`, `DataRetentionNotice`, `UploadProgress` using `useUpload` hook (via `UploadFlow`): `UploadFlow` passes `value={files}` to the controlled `DropZone`, and "Clear selection" uses `clearFiles` (not an empty selection), so the context answers are kept
     - Submit button disabled until `DataRetentionNotice` has been visible AND location answer is non-empty
     - If user attempts submit before notice is visible: scroll notice into view and show inline prompt
     - Loading state: display "Inspecting your home…" while `uploadStatus === 'analysing'`
@@ -471,6 +490,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
 - Every job is persisted to DynamoDB unconditionally — no authentication check, no guest/authenticated branching
 - `getInspection` uses `ConsistentRead: true` because the results page reads a job immediately after it is saved (task 8.3 is already complete; the bullet was added to its text and the change will be reopened separately)
 - `inspectionResultSchema` (task 20.1) must accept emergency results (costs 0/0, empty `jobBrief`, empty `diySteps`); tests 13.2, 20.2 and 20.4 cover this
+- Photo selection is additive across picks (requirements 1.9–1.14): `DropZone` is a controlled component (`value: AcceptedFiles | null`) that merges each pick via the pure `mergeSelection` in `src/lib/validation/mediaValidation.ts`; duplicates are matched on name+size+lastModified, the first 5 photos are kept, any error other than `TOO_MANY_IMAGES` rejects the whole pick and keeps the current selection, a photo/video mix is rejected, and a new video replaces the current one. `useUpload` gains `clearFiles()` (keeps the answers); `UploadFlow` passes `value` and uses `clearFiles` for "Clear selection". Properties 1–5 and 23 test the pure functions (`mergeSelection`, `validateSelection`, `validateVideoDuration`); tasks 15.13 and 15.14 are new and 15.1–15.6, 16.1 and 19.2 were reworded, so reopen them as needed
 - Session cache: `useUpload` stores the `POST /api/inspect` result in `sessionStorage` under `hhi_result_{id}` before navigating; `useInspection` shows a valid cached result immediately and still fetches `GET /api/inspections/[id]`; a GET failure or 404 does not hide a valid cached result. The read/write logic lives in `src/lib/sessionResultCache.ts` (`cacheResult`, `readCachedResult`), created in 16.1 and tested in 16.3. `sessionStorage` is per-tab and holds only the current visitor's own result; shared links use GET only
 
 ## Task Dependency Graph
@@ -485,7 +505,7 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     { "id": 4, "tasks": ["9.2", "9.3", "10.2", "10.3", "10.4", "11.1"] },
     { "id": 5, "tasks": ["11.2", "12.1", "20.1"] },
     { "id": 6, "tasks": ["12.2", "12.3", "12.4", "12.5", "12.6", "12.7", "12.8", "12.9", "12.10", "13.1", "15.1", "16.1", "20.2", "20.4"] },
-    { "id": 7, "tasks": ["13.2", "15.2", "15.3", "15.4", "15.5", "15.6", "15.7", "15.8", "15.9", "15.10", "15.11", "15.12", "16.2", "16.3", "18.1", "18.3", "18.5", "18.7", "18.9"] },
+    { "id": 7, "tasks": ["13.2", "15.2", "15.3", "15.4", "15.5", "15.6", "15.7", "15.8", "15.9", "15.10", "15.11", "15.12", "15.13", "15.14", "16.2", "16.3", "18.1", "18.3", "18.5", "18.7", "18.9"] },
     { "id": 8, "tasks": ["18.2", "18.4", "18.6", "18.8", "18.10", "19.1"] },
     { "id": 9, "tasks": ["19.2", "19.3", "20.3"] }
   ]

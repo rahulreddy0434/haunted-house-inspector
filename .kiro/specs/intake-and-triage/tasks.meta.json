@@ -801,6 +801,16 @@
         "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794338422731
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794428866350
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429499313
       }
     ],
     "15.3 Write property test for mixed-media rejection (Property 2)": [
@@ -813,6 +823,16 @@
         "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794338422961
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794428866670
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429499631
       }
     ],
     "15.4 Write property test for image count constraint (Property 3)": [
@@ -825,6 +845,16 @@
         "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794338423178
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794428866876
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429501304
       }
     ],
     "15.5 Write property test for video duration constraint (Property 4)": [
@@ -837,6 +867,16 @@
         "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794338423444
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794428867097
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429501477
       }
     ],
     "15.6 Write property test for image file size constraint (Property 5)": [
@@ -849,6 +889,16 @@
         "executionId": "5b64eb8d-2765-4310-91e5-4a3ba89bc606",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794338423771
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794428868520
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429502024
       }
     ],
     "15.9 Write property test for context answer payload inclusion (Property 9)": [
@@ -904,6 +954,16 @@
         "executionId": "c51e76b4-a4e1-40d9-ab3b-036636ece2d6",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794350867897
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794428613180
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794428869881
       }
     ],
     "16.2 Create `src/hooks/useInspection.ts`": [
@@ -1108,6 +1168,16 @@
         "executionId": "7e880bdc-7491-4dfe-9a98-fc00a17775aa",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794426598059
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429167146
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429504462
       }
     ],
     "19.3 Create results page `src/app/inspect/[id]/page.tsx`": [
@@ -1127,6 +1197,42 @@
         "executionId": "7e880bdc-7491-4dfe-9a98-fc00a17775aa",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794426600256
+      }
+    ],
+    "15.1 Create `src/components/upload/DropZone.tsx` (controlled component with additive photo selection)": [
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794428769885
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429498017
+      }
+    ],
+    "15.13 Write property test for additive selection (Property 23)": [
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794428869993
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429503569
+      }
+    ],
+    "15.14 Write component test for DropZone additive selection (thumbnails, Remove, object URL cleanup, Add more photos label)": [
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429167343
+      },
+      {
+        "executionId": "2875a0d8-a0e2-40c1-89cf-e0aebf78d2ad",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794429503901
       }
     ]
   }

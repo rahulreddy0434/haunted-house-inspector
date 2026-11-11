@@ -37,13 +37,19 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 #### Acceptance Criteria
 
 1. THE App SHALL reject any file whose type is not JPEG, PNG, WebP (images) or MP4, WebM (video) and SHALL display a message listing the accepted formats.
-2. WHEN a User selects more than 5 image files in a single Submission, THE App SHALL reject the excess files and display a message stating the maximum is 5 photos per submission.
+2. WHEN the total number of selected image files in a Submission would exceed 5, THE App SHALL reject the excess files and display a message stating the maximum is 5 photos per submission (selection across several picks is additive, see criteria 1.9 and 1.10).
 3. WHEN a User selects both image files and a video file in the same Submission, THE App SHALL reject the combination and display a message stating the User must submit either photos or one video, not both.
 4. WHEN a User selects a video file whose duration exceeds 30 seconds, THE App SHALL reject the file and display a message stating the maximum video length is 30 seconds.
 5. WHEN a User selects a valid Submission, THE App SHALL display a summary of the selected files (file names and count), and SHALL require at least 1 file to be selected before the submit action is available.
 6. THE App SHALL support drag-and-drop and file-picker upload interactions on the upload page.
-7. WHEN a User selects more than 1 video file in a single Submission, THE App SHALL reject the excess video files and display a message stating only one video may be submitted.
+7. WHEN a User selects more than 1 video file in a single pick, THE App SHALL reject the excess video files and display a message stating only one video may be submitted (a Submission holds one video; see criterion 1.14 for replacing a selected video).
 8. THE App SHALL reject any single image file exceeding 10 MB and SHALL display a message identifying the file and the applicable size limit.
+9. WHEN photos are already selected AND the User picks or drops more photos, THE App SHALL add them to the selection instead of replacing it, up to 5 photos in total.
+10. IF adding photos would make the total exceed 5, THEN THE App SHALL keep the first 5 photos (existing selection first, then the new photos in the order given) and SHALL display the message stating the maximum is 5 photos per submission (same message as criterion 1.2).
+11. THE App SHALL NOT add a photo twice: a photo with the same name, size and last-modified time as an already selected photo SHALL be ignored.
+12. THE App SHALL show, for each selected photo, its file name, a small thumbnail and a Remove button; WHEN a photo is removed, THE App SHALL release the thumbnail's object URL; WHILE fewer than 5 photos are selected, THE App SHALL label the add control "Add more photos"; a "Clear selection" action SHALL remove all selected files and keep the context answers.
+13. WHILE photos are selected, WHEN the User adds a video, OR WHILE a video is selected, WHEN the User adds photos, THE App SHALL reject the addition, display the message stating the User must submit either photos or one video, not both (same message as criterion 1.3), and keep the current selection unchanged.
+14. WHILE a video is selected, WHEN the User adds another video, THE App SHALL replace the current video with the new one (only one video per Submission, per criterion 1.7).
 
 ---
 

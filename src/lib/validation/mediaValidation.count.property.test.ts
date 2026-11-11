@@ -4,12 +4,13 @@ import {
   ACCEPTED_IMAGE_TYPES,
   MAX_IMAGE_BYTES,
   MAX_IMAGES,
+  mergeSelection,
   validateSelection,
   type SelectedFileInfo,
 } from './mediaValidation';
 
 // Feature: intake-and-triage, Property 3: Image count constraint
-// **Validates: Requirements 1.2**
+// **Validates: Requirements 1.2, 1.9, 1.10**
 
 const imageFiles = (min: number, max: number) =>
   fc
@@ -59,5 +60,73 @@ describe('Property 3: Image count constraint', () => {
       }),
       { numRuns: 100 },
     );
+  });
+});
+
+// Additive photo picks folded through mergeSelection.
+const key = (f: SelectedFileInfo) => [f.name, f.size, f.lastModified].join('|');
+
+const photo = fc.record({
+  name: fc.constantFrom('a.jpg', 'b.jpg', 'c.png', 'd.png', 'e.webp', 'f.webp', 'g.jpg', 'h.jpg'),
+  type: fc.constantFrom(...ACCEPTED_IMAGE_TYPES),
+  size: fc.integer({ min: 1, max: 2 }),
+  lastModified: fc.integer({ min: 0, max: 1 }),
+});
+const picks = fc.array(fc.array(photo, { minLength: 1, maxLength: 5 }), { minLength: 1, maxLength: 8 });
+
+describe('Property 3: additive photo picks via mergeSelection', () => {
+  it('keeps min(5, d) distinct photos in first-appearance order and reports TOO_MANY_IMAGES on overflow', () => {
+    fc.assert(
+      fc.property(picks, (sequence) => {
+        let files: SelectedFileInfo[] = [];
+        const firstSeen: SelectedFileInfo[] = [];
+        const seenKeys = new Set<string>();
+        for (const pick of sequence) {
+          const before = new Set(files.map(key));
+          const distinctAfter = new Set([...before, ...pick.map(key)]).size;
+          for (const f of pick) {
+            if (!seenKeys.has(key(f))) {
+              seenKeys.add(key(f));
+              firstSeen.push(f);
+            }
+          }
+          const res = mergeSelection(files.length ? { kind: 'images', files } : null, pick);
+          expect(res.accepted).toBe(true);
+          expect(res.files.length).toBeLessThanOrEqual(MAX_IMAGES);
+          if (distinctAfter > MAX_IMAGES) {
+            expect(res.errors).toHaveLength(1);
+            expect(res.errors[0].code).toBe('TOO_MANY_IMAGES');
+            expect(res.errors[0].message).toContain('maximum is 5 photos');
+            expect(res.files).toHaveLength(MAX_IMAGES);
+          } else {
+            expect(res.errors.some((e) => e.code === 'TOO_MANY_IMAGES')).toBe(false);
+            expect(res.files).toHaveLength(distinctAfter);
+          }
+          files = res.files;
+        }
+        expect(files.map(key)).toEqual(firstSeen.slice(0, MAX_IMAGES).map(key));
+        expect(files).toHaveLength(Math.min(MAX_IMAGES, seenKeys.size));
+      }),
+      { numRuns: 200 },
+    );
+  });
+
+  it('examples: 4 + 1 ok, 5 + 1 stays 5 with error, 3 + 4 keeps existing 3 then first 2 new', () => {
+    const mk = (names: string[]): SelectedFileInfo[] =>
+      names.map((name) => ({ name, type: 'image/jpeg', size: 1, lastModified: 0 }));
+    const names = (fs: SelectedFileInfo[]) => fs.map((f) => f.name);
+
+    const ok = mergeSelection({ kind: 'images', files: mk(['1', '2', '3', '4']) }, mk(['5']));
+    expect(ok.errors).toEqual([]);
+    expect(names(ok.files)).toEqual(['1', '2', '3', '4', '5']);
+
+    const over = mergeSelection({ kind: 'images', files: mk(['1', '2', '3', '4', '5']) }, mk(['6']));
+    expect(over.accepted).toBe(true);
+    expect(over.errors[0].code).toBe('TOO_MANY_IMAGES');
+    expect(names(over.files)).toEqual(['1', '2', '3', '4', '5']);
+
+    const mixed = mergeSelection({ kind: 'images', files: mk(['1', '2', '3']) }, mk(['4', '5', '6', '7']));
+    expect(mixed.errors[0].code).toBe('TOO_MANY_IMAGES');
+    expect(names(mixed.files)).toEqual(['1', '2', '3', '4', '5']);
   });
 });

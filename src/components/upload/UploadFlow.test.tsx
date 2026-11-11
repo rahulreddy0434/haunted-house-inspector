@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { UseUploadReturn } from '@/hooks/useUpload';
+import type { DropZoneProps } from '@/components/upload/DropZone';
 import { UploadFlow } from './UploadFlow';
 
 let hookState: UseUploadReturn;
@@ -10,6 +11,14 @@ const scrollIntoView = vi.fn();
 
 vi.mock('@/hooks/useUpload', () => ({
   useUpload: () => hookState,
+}));
+
+let dropZoneProps: DropZoneProps;
+vi.mock('@/components/upload/DropZone', () => ({
+  DropZone: (props: DropZoneProps) => {
+    dropZoneProps = props;
+    return <div data-testid="dropzone" />;
+  },
 }));
 
 function makeState(overrides: Partial<UseUploadReturn> = {}): UseUploadReturn {
@@ -25,6 +34,7 @@ function makeState(overrides: Partial<UseUploadReturn> = {}): UseUploadReturn {
     errorKind: null,
     resetAt: null,
     setFiles: vi.fn(),
+    clearFiles: vi.fn(),
     setAnswers: vi.fn(),
     markNoticeVisible: vi.fn(),
     submit,
@@ -81,6 +91,52 @@ describe('UploadFlow', () => {
     fireEvent.click(submitButton());
     expect(screen.getByText('Please add a photo or a short video first.')).toBeTruthy();
     expect(submit).not.toHaveBeenCalled();
+  });
+
+  it('asks for a file when the selection is empty', () => {
+    hookState = makeState({ files: { kind: 'images', files: [] }, canSubmit: true });
+    render(<UploadFlow />);
+    fireEvent.click(submitButton());
+    expect(screen.getByText('Please add a photo or a short video first.')).toBeTruthy();
+    expect(submit).not.toHaveBeenCalled();
+  });
+
+  it('passes the current files to DropZone as value', () => {
+    render(<UploadFlow />);
+    expect(dropZoneProps.value).toBe(hookState.files);
+    cleanup();
+    hookState = makeState({ files: null, canSubmit: false });
+    render(<UploadFlow />);
+    expect(dropZoneProps.value).toBeNull();
+  });
+
+  it('calls setFiles when files are accepted', () => {
+    render(<UploadFlow />);
+    const accepted = {
+      kind: 'images' as const,
+      files: [new File(['y'], 'b.jpg', { type: 'image/jpeg' })],
+    };
+    act(() => dropZoneProps.onFilesAccepted(accepted));
+    expect(hookState.setFiles).toHaveBeenCalledWith(accepted);
+  });
+
+  it('clears via clearFiles only, keeping the answers', () => {
+    render(<UploadFlow />);
+    act(() => dropZoneProps.onSelectionCleared?.());
+    expect(hookState.clearFiles).toHaveBeenCalledTimes(1);
+    expect(hookState.setFiles).not.toHaveBeenCalled();
+    expect(hookState.setAnswers).not.toHaveBeenCalled();
+    expect(hookState.clearAll).not.toHaveBeenCalled();
+  });
+
+  it('never calls setFiles with an empty selection', () => {
+    render(<UploadFlow />);
+    act(() => dropZoneProps.onSelectionCleared?.());
+    fireEvent.click(submitButton());
+    const calls = (hookState.setFiles as ReturnType<typeof vi.fn>).mock.calls as [
+      { files: File[] },
+    ][];
+    expect(calls.every(([f]) => f.files.length > 0)).toBe(true);
   });
 
   it('calls submit when everything is ready', () => {

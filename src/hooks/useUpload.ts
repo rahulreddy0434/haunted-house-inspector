@@ -32,6 +32,8 @@ export interface UseUploadReturn {
 
   // Actions
   setFiles: (files: AcceptedFiles) => void;
+  /** Removes all selected files; keeps the answers; resets upload error/progress state. */
+  clearFiles: () => void;
   setAnswers: (answers: ContextAnswers) => void;
   markNoticeVisible: () => void;
   submit: () => Promise<void>;
@@ -82,6 +84,12 @@ export function useUpload(): UseUploadReturn {
   const reset = useCallback(() => {
     abortRef.current?.abort();
     clearStatus();
+  }, [clearStatus]);
+
+  const clearFiles = useCallback(() => {
+    abortRef.current?.abort();
+    clearStatus();
+    setFilesState(null);
   }, [clearStatus]);
 
   const clearAll = useCallback(() => {
@@ -165,6 +173,7 @@ export function useUpload(): UseUploadReturn {
     errorKind,
     resetAt,
     setFiles,
+    clearFiles,
     setAnswers,
     markNoticeVisible,
     submit,

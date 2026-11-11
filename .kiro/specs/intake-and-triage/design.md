@@ -78,10 +78,16 @@ Browser (Client Components)
 
 Accepts drag-and-drop events and file-picker input. Enforces all upload constraints synchronously before the user can proceed. The component supports both the Normal and Haunted Tailwind themes via the active theme class on the root element.
 
+Photo selection is **additive across picks** (on a phone users often pick one photo at a time). `DropZone` is a **controlled component**: the current selection is owned by the parent (`useUpload`) and passed in through the `value` prop. Each pick or drop is merged into `value` with the pure function `mergeSelection` (see below) and the merged result is reported through `onFilesAccepted`.
+
 ```typescript
 interface DropZoneProps {
+  /** Current selection owned by the parent; null when nothing is selected. */
+  value: AcceptedFiles | null;
   onFilesAccepted: (files: AcceptedFiles) => void;
   onValidationError: (errors: UploadValidationError[]) => void;
+  /** Called when the User presses "Clear selection". */
+  onSelectionCleared: () => void;
 }
 
 type AcceptedFiles =
@@ -105,15 +111,51 @@ type UploadErrorCode =
   | 'EXTRACTION_TIMEOUT';
 ```
 
-Validation order (all checked before extraction begins):
+**Display (per selected photo).** For each photo in `value` the component shows the file name, a small thumbnail and a Remove button. Thumbnails use object URLs: one `URL.createObjectURL(file)` is created per file (memoised per `File`, not per render), and `URL.revokeObjectURL` is called when that photo is removed, when the selection is cleared or replaced, and when the component unmounts. Removing a photo calls `onFilesAccepted` with the remaining photos (or `onSelectionCleared` when none remain). The add control is labelled **"Add more photos"** while fewer than 5 photos are selected. A **"Clear selection"** action calls `onSelectionCleared`; it removes all selected files and leaves the context answers untouched. When a video is selected, the component shows its file name and the extracted-frame summary, with the usual Retry / Switch-to-photos actions on extraction failure.
+
+**Validation order.** The incoming pick (the files from one drop or one file-picker action) is validated first, on its own:
 1. Unsupported MIME type → reject with `UNSUPPORTED_TYPE`
-2. Mixed images + video → reject with `MIXED_MEDIA`
-3. Multiple videos → reject with `TOO_MANY_VIDEOS`
-4. Image count > 5 → reject with `TOO_MANY_IMAGES`
-5. Image file size > 10 MB → reject with `FILE_TOO_LARGE`
-6. Video duration > 30 s → reject with `VIDEO_TOO_LONG` (checked after loading metadata)
+2. Mixed images + video within the pick → reject with `MIXED_MEDIA`
+3. Multiple videos within the pick → reject with `TOO_MANY_VIDEOS`
+
+Then the merge rules are applied against the current selection (`mergeSelection`):
+4. Media-kind conflict (current photos + incoming video, or current video + incoming photos) → reject with `MIXED_MEDIA`; the current selection is kept unchanged.
+5. Photos: drop any incoming photo whose (name, size, lastModified) matches an already selected photo or an earlier photo in the same pick; append the rest after the existing selection in the order given; truncate to 5 and, when the distinct total exceeds 5, report `TOO_MANY_IMAGES` while still accepting the first 5.
+6. Image file size > 10 MB → reject with `FILE_TOO_LARGE`.
+7. Video duration > 30 s → reject with `VIDEO_TOO_LONG` (checked after loading metadata); a replacement video is accepted only if its duration is ≤ 30 s, otherwise the current selection is kept.
+8. Incoming video while a video is selected (and the pick is otherwise valid) → the new video replaces the current one (one video per Submission).
+
+**Decision on errors.** Any validation error other than `TOO_MANY_IMAGES` rejects the WHOLE incoming pick and keeps the current selection unchanged (no partial acceptance of the valid files in a rejected pick). `TOO_MANY_IMAGES` is the only error that still accepts files: the first 5 are kept (existing selection first, then new photos in the order given) and the error message is shown.
 
 File-size threshold: images ≤ 10 MB (10 485 760 bytes). No file-size cap on video files.
+
+#### `mergeSelection` (`src/lib/validation/mediaValidation.ts`)
+
+A pure function (no DOM, no I/O) that applies the incoming-pick validation and the merge rules above. `SelectedFileInfo` (the structural stand-in for `File` used by the pure validators) gains an optional `lastModified: number` field used for duplicate detection (an absent value is treated as equal only to another absent value).
+
+```typescript
+interface SelectedFileInfo {
+  name: string;
+  type: string;
+  size: number;
+  lastModified?: number;
+}
+
+/**
+ * current: the current selection (null when nothing is selected); its kind is derived from the
+ * MIME types of its files (images vs. one video).
+ * incoming: the files of one pick, in the order given.
+ * Returns the resulting selection, the validation errors, and whether the pick was accepted.
+ * accepted is false when the pick was rejected (files === current ?? []); it is true when
+ * files were merged, including the TOO_MANY_IMAGES case (first 5 kept, error reported).
+ */
+export function mergeSelection(
+  current: SelectedFileInfo[] | null,
+  incoming: SelectedFileInfo[]
+): { files: SelectedFileInfo[]; errors: UploadValidationError[]; accepted: boolean };
+```
+
+`mergeSelection` is generic over the file type in the implementation so `DropZone` can pass real `File` objects and get `File` objects back. Video duration is not known to this function (it is checked asynchronously via `validateVideoDuration` after metadata loads); `DropZone` applies the replacement only after the duration check passes.
 
 ---
 
@@ -218,12 +260,22 @@ interface UseUploadReturn {
 
   // Actions
   setFiles: (files: AcceptedFiles) => void;
+  /** Removes all selected files; keeps the context answers; resets upload error/progress state. */
+  clearFiles: () => void;
   setAnswers: (answers: ContextAnswers) => void;
   markNoticeVisible: () => void;
   submit: () => Promise<void>;
   reset: () => void;
+  /** Clears everything (files, answers and status); unchanged by the additive selection. */
+  clearAll: () => void;
 }
 ```
+
+`clearFiles()` sets `files` to `null`, aborts any in-flight upload, and resets `uploadStatus`, `uploadError`, `errorKind`, `resetAt`, `inspectionId` and per-file progress, but keeps `answers` and `noticeVisible`. `clearAll()` is unchanged (it also clears the answers).
+
+#### `UploadFlow` (`src/components/upload/UploadFlow.tsx`)
+
+Composes `DropZone`, `ContextForm`, `DataRetentionNotice` and `UploadProgress` using `useUpload`. It passes `value={files}` to `DropZone` (the controlled selection), `setFiles` as `onFilesAccepted`, and `clearFiles` as `onSelectionCleared`. "Clear selection" therefore calls `clearFiles`, not an empty selection through `setFiles`, so the answers typed in `ContextForm` survive.
 
 `submit()` flow:
 1. Validate answers (location non-empty).
@@ -693,7 +745,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 1: File type validation rejects exactly the non-allowed MIME types
 
-*For any* file with a MIME type that is not one of `image/jpeg`, `image/png`, `image/webp`, `video/mp4`, or `video/webm`, the upload validator SHALL return an invalid result; and for any file with one of those five MIME types, the validator SHALL return valid.
+*For any* current selection (empty or not) and any incoming pick containing a file with a MIME type that is not one of `image/jpeg`, `image/png`, `image/webp`, `video/mp4`, or `video/webm`, the validator SHALL reject the addition with `UNSUPPORTED_TYPE` and the current selection SHALL be unchanged; and for any pick whose files all have one of those five MIME types (and violate no other rule), the validator SHALL report no `UNSUPPORTED_TYPE` error.
 
 **Validates: Requirements 1.1**
 
@@ -701,7 +753,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 2: Mixed-media submissions are always rejected
 
-*For any* file list containing at least one image file and at least one video file simultaneously, the upload validator SHALL return an invalid result regardless of individual file validity.
+*For any* combination of photos and a video, whether in one pick (a pick containing at least one image and at least one video) or across picks (current photos plus an incoming video, or a current video plus incoming photos), the validator SHALL reject the addition with `MIXED_MEDIA` regardless of individual file validity, and the current selection SHALL be unchanged.
 
 **Validates: Requirements 1.3**
 
@@ -709,7 +761,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 3: Image count constraint
 
-*For any* list of valid image files with length n, the upload validator SHALL accept the submission only when n is between 1 and 5 inclusive, and SHALL reject when n > 5.
+*For any* sequence of valid photo picks, the resulting selection SHALL contain min(5, d) files, where d is the number of distinct photos (by name, size and last-modified time) across all picks, in order of first appearance; and when d > 5, a `TOO_MANY_IMAGES` error SHALL be reported (while the first 5 photos are still accepted).
 
 **Validates: Requirements 1.2**
 
@@ -717,7 +769,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 4: Video duration constraint
 
-*For any* numeric duration value d, the video duration validator SHALL accept d when d ≤ 30 and reject d when d > 30.
+*For any* numeric duration value d, the video duration validator SHALL accept d when d ≤ 30 and reject d when d > 30; a rejected video leaves the current selection unchanged, and a replacement video (added while a video is selected) is accepted only when its duration is ≤ 30 s.
 
 **Validates: Requirements 1.4**
 
@@ -725,7 +777,7 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ### Property 5: Image file size constraint
 
-*For any* image file with size s, the file size validator SHALL reject it when s > 10 485 760 bytes (10 MB).
+*For any* image file with size s added at any pick (first pick or a later one), the file size validator SHALL reject it with `FILE_TOO_LARGE` when s > 10 485 760 bytes (10 MB), the whole incoming pick SHALL be rejected, and the current selection SHALL be unchanged.
 
 **Validates: Requirements 1.8**
 
@@ -859,6 +911,14 @@ The app uses **Tailwind CSS** (utility-first, no CSS-in-JS) with design tokens i
 
 ---
 
+### Property 23: Additive selection is order-preserving and duplicate-free
+
+*For any* current photo selection and any incoming photo pick, `mergeSelection` SHALL keep every existing item in its original order at the front of the result, SHALL contain no two items with the same (name, size, lastModified), and SHALL be idempotent for repeated input: adding the same pick a second time SHALL leave the resulting selection unchanged.
+
+**Validates: Requirements 1.9, 1.10, 1.11**
+
+---
+
 ## Error Handling
 
 ### Client-Side Errors
@@ -901,7 +961,8 @@ DynamoDB write failures are non-fatal: the client receives the analysis result e
 Focus on pure functions and component rendering. Use **Vitest**.
 
 Key unit test targets:
-- `validateFiles()` — all rejection conditions (type, count, size, duration, mixed media).
+- `validateSelection()`, `validateVideoDuration()` and `mergeSelection()` — all rejection conditions (type, count, size, duration, mixed media within a pick and across picks), additive merge, duplicate ignoring, and video replacement.
+- `DropZone` component (controlled `value`) — additive selection across picks, per-photo thumbnail, file name and Remove button, object URL revoked on remove/clear/unmount, "Add more photos" label shown while fewer than 5 photos are selected, "Clear selection" calling `onSelectionCleared`.
 - `extractFrames()` — mock `HTMLVideoElement`; test frame count for standard/short/sub-second/boundary durations.
 - `checkEmergency()` — all four trigger conditions, case variations, proximity rules, non-trigger inputs.
 - `applyOverrides()` — emergency override, DIY suppression by trade, normal passthrough.
@@ -922,11 +983,12 @@ Use **fast-check** for property-based testing. Each test runs a minimum of 100 i
 
 | Property | Generator strategy |
 |---|---|
-| P1 — File type validation | `fc.string()` for MIME type; `fc.constantFrom(allowed types)` for valid paths |
-| P2 — Mixed-media rejection | `fc.array(imageFile)` min 1, `fc.array(videoFile)` min 1, concatenated |
-| P3 — Image count | `fc.array(imageFile, { minLength: 1, maxLength: 20 })` |
-| P4 — Video duration | `fc.float({ min: 0, max: 60 })` |
-| P5 — Image file size | `fc.integer({ min: 0, max: 20_000_000 })` |
+| P1 — File type validation | `fc.string()` for MIME type in an incoming pick; arbitrary current selection (null or valid photos); `fc.constantFrom(allowed types)` for valid paths |
+| P2 — Mixed-media rejection | one pick: `fc.array(imageFile)` min 1 + `fc.array(videoFile)` min 1, concatenated; across picks: current photos + incoming video, and current video + incoming photos |
+| P3 — Image count | `fc.array(fc.array(imageFile, { minLength: 1, maxLength: 8 }), { minLength: 1, maxLength: 6 })` (a sequence of photo picks, with some repeated files) merged in turn |
+| P4 — Video duration | `fc.float({ min: 0, max: 60 })`; optional current video for the replacement case |
+| P5 — Image file size | `fc.integer({ min: 0, max: 20_000_000 })` for an image in a first or later pick, with an arbitrary current selection |
+| P23 — Additive selection | `fc.array(imageFile, { maxLength: 5 })` (distinct current selection) + `fc.array(imageFile, { maxLength: 8 })` (incoming pick, may repeat current items); name, size and lastModified drawn from small ranges so duplicates occur |
 | P6 — Frame count standard | `fc.float({ min: 3, max: 30 })` for duration |
 | P7 — Frame count short | `fc.float({ min: 0.001, max: 2.999, noNaN: true })` for duration (covers d < 1; expect `max(1, floor(d))` frames) |
 | P8 — Whitespace location | `fc.stringOf(fc.constantFrom(' ', '\t', '\n'))` |
@@ -942,6 +1004,8 @@ Use **fast-check** for property-based testing. Each test runs a minimum of 100 i
 | P18 — Round-trip serialisation | `ValidInspectionResultArb` (includes the emergency shape: costs 0/0, empty `jobBrief`, empty `diySteps`, `urgency: 'emergency'`, `isEmergency: true`); `JSON.parse(JSON.stringify(x))` then schema parse |
 | P19 — Zod schema classification | `fc.object()` (arbitrary JSON); compare schema.safeParse with expected validity |
 | P20 — Rate limiter threshold | `fc.integer({ min: 0, max: 30 })` for count; verify allowed iff count < 15 |
+
+Properties 1-5 and 23 call the pure functions `mergeSelection`, `validateSelection` and `validateVideoDuration` directly (no DOM, no `DropZone` rendering). Property 23 covers the additive selection semantics (order-preserving, duplicate-free, idempotent re-add).
 
 Tag format for each property test: `// Feature: intake-and-triage, Property {N}: {property title}`
 

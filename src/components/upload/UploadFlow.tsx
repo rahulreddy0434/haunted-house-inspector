@@ -40,6 +40,7 @@ export function UploadFlow() {
     files,
     canSubmit,
     setFiles,
+    clearFiles,
     setAnswers,
     markNoticeVisible,
     submit,
@@ -68,10 +69,10 @@ export function UploadFlow() {
 
   const handleNoop = useCallback(() => {}, []);
   const handleCleared = useCallback(() => {
-    // The hook has no files-only clear, so store an empty selection (treated as no files here).
-    setFiles({ kind: 'images', files: [] });
+    // Removes the files only; the answers are kept.
+    clearFiles();
     setPrompt(null);
-  }, [setFiles]);
+  }, [clearFiles]);
 
   const handleSubmit = () => {
     if (busy) return;
@@ -101,6 +102,7 @@ export function UploadFlow() {
   return (
     <div className="space-y-8">
       <DropZone
+        value={files}
         onFilesAccepted={(accepted) => {
           setFiles(accepted);
           setPrompt(null);
