@@ -232,3 +232,37 @@ Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, m
 - Thu Nov 12: first live test on the Amplify deploy with real Bedrock, S3 and DynamoDB, on laptop and phone, including an emergency answer and a multi-photo pick
 - Commit this work, then start spec 2 (Pro dashboard and its list route)
 - Optional: tests 7.2 (prompt snapshot) and 10.4 (frame extractor); review the 16 npm audit warnings
+---
+
+## Nov 12, 2026 (Build week 1, final day: first live test on real AWS, zod upgrade)
+
+**Done**
+- First live test on the Amplify deploy (us-east-2) with real Bedrock, S3 and DynamoDB, on laptop and phone:
+  - Photos: a full result with the issue, trade, urgency, "~" confidence, two follow-up questions and a CA$ range labelled "rough range, not a quote"
+  - A PNG screenshot analysed correctly (the image-format fix works on real Bedrock)
+  - A video from an iPhone camera roll was accepted and analysed
+  - "I smell gas in the kitchen", "the outlet is sparking" and "CO detector is beeping" each showed only the emergency banner, with no cost, job brief or DIY steps
+  - A result link opened in a private window loaded the same result (DynamoDB read works)
+  - Uploaded files are in S3 under the job ID, and the job item is in DynamoDB
+  - The `hhi_session` cookie is set after a normal inspection, which confirms `SESSION_SECRET` is on Amplify and the DynamoDB counter write works; the `RATELIMIT#` item is in the table
+  - No errors in the Amplify compute logs
+- The first live run needed no code fixes
+- zod upgraded from 3.25.76 to 4.6.7, pinned exactly; fixes GHSA-mrhx-c7xc-m3w5 (memory exhaustion on oversized collections). One code change (`z.iso.datetime()`); lint, type-check, all 410 tests and the build pass
+- Week 1 complete: spec 1 is built, tested and live, one day later than the original plan
+
+**Kiro features used**
+- Vibe chat: upgraded zod across the codebase and checked that behaviour stayed the same (datetime rules, UUIDs, custom messages, the cost-range check) with the full test suite
+- Spec: Kiro reopened and closed task 3.2 to record the schema change
+
+**Problems and fixes**
+- Thought the rate limiter was broken on the live site (no cookie found). The inspection I checked was an emergency, and emergencies skip the daily limit and the cookie by design (safety first). A normal inspection set the cookie. Lesson: test the limiter with a normal inspection
+- zod 4 changed its built-in error wording; it only reaches users in 400 responses to malformed requests, which the web client never sends, so it was left as is
+- zod 4 rejects UUID-shaped strings that aren't valid RFC UUIDs; the app only generates valid ones
+- Remaining npm audit findings: postcss inside Next.js (high) and next (moderate), not exploitable here; they wait for the Next.js 16 upgrade after Dec 3
+
+**Next**
+- Fri Nov 13: write spec 2 (Pro dashboard and booking), then create spec 3 (haunted-mode), spec only
+- Check which DynamoDB actions spec 2 needs (listing jobs probably needs Query or Scan) and add them to the compute role before testing live
+- Keep booking calls with tradespeople and homeowners (target: 5 by Nov 18)
+- Save live-test screenshots (emergency banner, a normal result) to docs/screenshots/
+- Commit the Zod change (package.json, lockfile, one schema line)

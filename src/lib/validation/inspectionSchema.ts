@@ -29,7 +29,7 @@ export const bedrockResponseSchema = z
 export const inspectionResultSchema = z
   .object({
     id: z.string().min(1),
-    createdAt: z.string().datetime(),
+    createdAt: z.iso.datetime(),
     s3Keys: z.array(z.string()),
     likelyIssue: z.string().max(500),
     trade: z.string().max(100),
