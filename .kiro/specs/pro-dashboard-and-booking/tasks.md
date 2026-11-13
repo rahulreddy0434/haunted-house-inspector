@@ -16,8 +16,8 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - _Requirements: 16.22, 18.12_
     - _Design: Trusted Client IP Design (diagnostic procedure)_
 
-- [ ] 2. Diagnostic route live check (manual, user)
-  - [ ] 2.1 USER: deploy the diagnostic route from a branch and read suggestedHops
+- [x] 2. Diagnostic route live check (manual, user)
+  - [x] 2.1 USER: deploy the diagnostic route from a branch and read suggestedHops
     - (manual, user) An agent cannot do this. It is the first user action and feeds the task "Set TRUSTED_PROXY_HOPS and delete the diagnostic route"
     - Create a branch (for example `diag/trusted-ip`) that contains ONLY the existing diagnostic route and its test on top of the current `main`. Do not include any other task of this feature
     - Do NOT merge to `main`: `main` auto-deploys to the public domain. Deploy the branch with an Amplify branch deployment (or any equivalent branch preview) that is served through the same CloudFront path as the real public domain; a custom domain can add or remove a CloudFront layer compared with `*.amplifyapp.com`, so read the value on the real public domain if you can
@@ -117,19 +117,19 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - At least 100 runs; instants from `fc.integer({ min: nowMs - 2 * DAY, max: nowMs + 40 * DAY })` mapped to `toISOString()` plus arbitrary strings and offset-suffixed mutations; explicit boundaries `nowMs`, `nowMs + 1`, `nowMs + HORIZON`, `nowMs + HORIZON + 1`; canonicalising the output again changes nothing
     - Tag: `// Feature: pro-dashboard-and-booking, Property 9: Time_Slot validation`
 
-- [ ] 7. Trusted client IP (pure, early)
-  - [ ] 7.1 Create `src/lib/net/getTrustedClientIp.ts`
+- [x] 7. Trusted client IP (pure, early)
+  - [x] 7.1 Create `src/lib/net/getTrustedClientIp.ts`
     - Create: `src/lib/net/getTrustedClientIp.ts`
     - Export `TRUSTED_PROXY_HOPS = 1` (documented code constant, NOT an environment variable; conservative default until the diagnostic result is known), `UNKNOWN_CLIENT_IP = 'unknown'`, `getTrustedClientIp(headers, hops = TRUSTED_PROXY_HOPS)`
     - Reads ONLY `x-forwarded-for`; takes the entry at `length - hops`; returns it lowercased only if `isIP` (from `node:net`) accepts it, otherwise `unknown`; `unknown` for an absent or empty header, fewer entries than hops, or `hops` below 1
     - Pure: no I/O, no AWS, no `server-only`. This is the only file that knows a header position
     - _Requirements: 18.3, 18.4, 18.5, 18.6, 18.7, 18.8_
     - _Design: Trusted Client IP Design (Chosen rule, Algorithm)_
-  - [ ] 7.2 Write unit tests for `getTrustedClientIp`
+  - [x] 7.2 Write unit tests for `getTrustedClientIp`
     - Create: `src/lib/net/getTrustedClientIp.test.ts`
     - Single entry; three entries with `hops` 1 and 2 passed explicitly; port suffix gives `unknown`; IPv6; empty and absent header; fewer entries than hops; invalid trusted entry; other headers (`cloudfront-viewer-address`, `x-real-ip`) never matter; the default is read from `TRUSTED_PROXY_HOPS` (this test is updated by the task "Set TRUSTED_PROXY_HOPS and delete the diagnostic route")
     - _Requirements: 18.3, 18.5, 18.6, 18.7, 18.8_
-  - [ ] 7.3 Write property test for the trusted client IP (Property 6, getTrustedClientIp part)
+  - [x] 7.3 Write property test for the trusted client IP (Property 6, getTrustedClientIp part)
     - Create: `src/lib/net/getTrustedClientIp.property.test.ts`
     - **Property 6: Trusted client IP ignores client-supplied entries**
     - **Validates: Requirements 18.3, 18.4, 18.5, 18.6, 16.18**
@@ -740,7 +740,7 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
   - The DEPLOY-GATED tasks that follow (rate limiter change, Pro login and logout routes) must not be merged or deployed before the DEPLOY GATE task
 
 - [ ] 30. Trusted proxy hops (USER-GATED)
-  - [ ] 30.1 Set TRUSTED_PROXY_HOPS and delete the diagnostic route
+  - [x] 30.1 Set TRUSTED_PROXY_HOPS and delete the diagnostic route
     - USER-GATED (manual input required): an agent CANNOT complete this task alone. The agent makes the code change ONLY after the user supplies the live `suggestedHops` number read in "USER: deploy the diagnostic route from a branch and read suggestedHops". If the user has not supplied the number, stop and ask; never guess and never keep the diagnostic route
     - Steps: (1) the user deploys the branch with the diagnostic route (done in the user task above); (2) the user opens `/api/diag/ip` in a browser, optionally runs `curl.exe -s -H "x-forwarded-for: 6.6.6.6" https://<domain>/api/diag/ip` and checks `suggestedHops` is unchanged and the spoofed entry is labelled `other`; (3) the user reads `suggestedHops` and gives it to the agent; (4) the agent sets `export const TRUSTED_PROXY_HOPS = <suggestedHops>` in `src/lib/net/getTrustedClientIp.ts` (the shared `getTrustedClientIp` module) and updates its unit tests in `src/lib/net/getTrustedClientIp.test.ts`; (5) the agent deletes `src/app/api/diag/ip/route.ts` and `src/app/api/diag/ip/route.test.ts` (and the empty `diag` folders); (6) the agent runs the four checks `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`
     - If `suggestedHops` is `null` or differs between requests, the user reads `rawEntries` and reports it; no constant is set until the result is clear
