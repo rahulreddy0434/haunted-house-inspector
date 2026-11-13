@@ -1,5 +1,22 @@
 {
-  "pbtResults": {},
+  "pbtResults": {
+    "5.2 Write property test for the transition table (Property 1)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794592449068
+    },
+    "6.3 Write property test for Time_Slot validation (Property 9)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794592850877
+    },
+    "9.6 Write property test for the Pro cookie round trip (Property 7)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794593492377
+    },
+    "10.2 Write property test for the lockout counter (Property 4, model store)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794593807480
+    }
+  },
   "executionHistory": {
     "2.1 USER: deploy the diagnostic route from a branch and read suggestedHops": [
       {
@@ -68,6 +85,414 @@
         "executionId": "89e2bbe1-555c-43fc-9ba9-e4bbe4caf121",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794589807193
+      }
+    ],
+    "3.1 Create GSI1 on the table and confirm ACTIVE (manual, user)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794591800869
+      }
+    ],
+    "3.2 Add dynamodb:Query on the GSI1 index ARN to the IAM policy (manual, user)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794591801179
+      }
+    ],
+    "3.3 Confirm SESSION_SECRET and PRO_ACCESS_CODE are set in Amplify (manual, user)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794591801444
+      }
+    ],
+    "3. AWS setup (manual, user)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794591801576
+      }
+    ],
+    "30.2 Confirm GET /api/diag/ip returns 404 on the deployed branch (manual, user)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794591801753
+      }
+    ],
+    "30. Trusted proxy hops (USER-GATED)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794591801868
+      }
+    ],
+    "31.1 DEPLOY GATE: no merge or deploy of the rate limiter change or Pro login before hops are set (manual, user)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794591802043
+      }
+    ],
+    "31. DEPLOY GATE": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794591802166
+      }
+    ],
+    "4.1 Create `src/types/job.ts`": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794591953359
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592067105
+      }
+    ],
+    "4.2 Create the emergency texts and helpers and re-export from EmergencyBanner": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794591953598
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592067930
+      }
+    ],
+    "4.3 Write unit tests for the emergency texts and helpers": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592076984
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592157264
+      }
+    ],
+    "4.4 Create `src/lib/jobs/copy.ts`": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592077278
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592158395
+      }
+    ],
+    "4.5 Write unit tests for the exact copy strings": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592159153
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592358390
+      }
+    ],
+    "4. Shared types, emergency texts and copy": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592358630
+      }
+    ],
+    "5.1 Create `src/lib/jobs/transition.ts`": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592359187
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592370895
+      }
+    ],
+    "5.2 Write property test for the transition table (Property 1)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592370011
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592591576
+      }
+    ],
+    "5. Status transition function": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592591833
+      }
+    ],
+    "6.1 Create `src/lib/jobs/timeSlots.ts`": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592592249
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592605157
+      }
+    ],
+    "6.2 Write unit tests for Time_Slot validation": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592606077
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592879318
+      }
+    ],
+    "6.3 Write property test for Time_Slot validation (Property 9)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592606954
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592880766
+      }
+    ],
+    "6. Time slot validation": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794592881024
+      }
+    ],
+    "8.1 Create the shared HTTP helpers": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593007069
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593019170
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593167581
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593179200
+      }
+    ],
+    "8.3 Write unit tests for the shared HTTP helpers": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593020328
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593178482
+      }
+    ],
+    "8.2 Refactor `POST /api/inspect` to use the shared body reader": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593021185
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593167026
+      }
+    ],
+    "8. Request body reader": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593179418
+      }
+    ],
+    "9.1 Create `src/lib/pro/accessCode.ts`": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593349671
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593418751
+      }
+    ],
+    "9.4 Create `src/lib/pro/proCookie.ts`": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593350804
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593419880
+      }
+    ],
+    "9.7 Create `src/lib/pro/ipHash.ts`": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593351839
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593421062
+      }
+    ],
+    "9.2 Write unit tests for the access code comparison": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593422293
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593545913
+      }
+    ],
+    "9.3 Write property test for the access code comparison (Property 8)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593423476
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593552023
+      }
+    ],
+    "9.5 Write unit tests for the Pro cookie": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593424657
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593552367
+      }
+    ],
+    "9.6 Write property test for the Pro cookie round trip (Property 7)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593425876
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593544784
+      }
+    ],
+    "9.8 Write unit tests for `hashClientIp`": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593426863
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593552582
+      }
+    ],
+    "9. Access code, Pro cookie and IP hash": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593552780
+      }
+    ],
+    "10.1 Create `src/lib/pro/loginFlow.ts` and the in-memory lockout store": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593674202
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593687225
+      }
+    ],
+    "10.2 Write property test for the lockout counter (Property 4, model store)": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593688459
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593821677
+      }
+    ],
+    "10.3 Write unit tests for `attemptLogin`": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593689549
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593828410
+      }
+    ],
+    "10. Lockout flow": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593828547
+      }
+    ],
+    "11. Checkpoint - Pure core verified": [
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593955500
+      },
+      {
+        "executionId": "764f298d-16e2-4901-b050-360b59806c98",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794593966204
       }
     ]
   }

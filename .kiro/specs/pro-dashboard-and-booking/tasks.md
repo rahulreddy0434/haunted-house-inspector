@@ -29,8 +29,8 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - _Requirements: 18.2, 18.11, 18.13, 18.15_
     - _Design: Trusted Client IP Design (diagnostic procedure, steps 1 to 4)_
 
-- [ ] 3. AWS setup (manual, user)
-  - [ ] 3.1 Create GSI1 on the table and confirm ACTIVE (manual, user)
+- [x] 3. AWS setup (manual, user)
+  - [x] 3.1 Create GSI1 on the table and confirm ACTIVE (manual, user)
     - (manual, user) The App never creates or changes the table or the index. Do this before any deployment of code that queries `GSI1`
     - Check the capacity mode: `aws dynamodb describe-table --region us-east-2 --table-name <TABLE_NAME> --query "Table.BillingModeSummary.BillingMode"`. `PAY_PER_REQUEST` means on demand. `PROVISIONED`, or no value at all, means provisioned: then add `"ProvisionedThroughput": { "ReadCapacityUnits": <same as table>, "WriteCapacityUnits": <same as table> }` inside `Create`
     - Exact definition: index name `GSI1`; attribute definitions `GSI1PK` (S) and `GSI1SK` (S); key schema `GSI1PK` HASH and `GSI1SK` RANGE; projection `INCLUDE` with `id`, `createdAt`, `urgency`, `isEmergency`, `trade`, `status`, `answers`; same capacity mode as the table
@@ -40,7 +40,7 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - Jobs created before the index exists never appear in the Pro list and are not backfilled
     - _Requirements: 12.5, 12.6, 12.8, 12.9, 13.7_
     - _Design: IAM and Infrastructure (Create GSI1 on the existing table); Data Models (GSI1)_
-  - [ ] 3.2 Add dynamodb:Query on the GSI1 index ARN to the IAM policy (manual, user)
+  - [x] 3.2 Add dynamodb:Query on the GSI1 index ARN to the IAM policy (manual, user)
     - (manual, user) Add this statement to the Amplify compute role (and to the local AWS CLI profile): Sid `JobsIndexQuery`, Effect `Allow`, Action `dynamodb:Query`, Resource `arn:aws:dynamodb:us-east-2:<ACCOUNT_ID>:table/<TABLE_NAME>/index/GSI1`
     - Query is granted on the index ARN ONLY. Do not grant it on the table ARN, and do not grant `GetItem`, `PutItem` or `UpdateItem` on the index ARN
     - No other IAM change: `GetItem`, `PutItem`, `UpdateItem` on the table ARN, `s3:GetObject` and `s3:PutObject` on `arn:aws:s3:::<BUCKET>/*` and `bedrock:InvokeModel` already exist. No `Scan`, `DeleteItem`, `BatchWriteItem`, wildcard action, `s3:ListBucket` or `s3:DeleteObject` is needed
@@ -48,69 +48,69 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - This must be done BEFORE any live test of code from this feature (see the reminder task "Reminder: confirm IAM policy and GSI1 before any live test (manual, user)")
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.8_
     - _Design: IAM and Infrastructure (IAM policy for the Amplify compute role)_
-  - [ ] 3.3 Confirm SESSION_SECRET and PRO_ACCESS_CODE are set in Amplify (manual, user)
+  - [x] 3.3 Confirm SESSION_SECRET and PRO_ACCESS_CODE are set in Amplify (manual, user)
     - (manual, user) Per the user these are already set in the Amplify console. Confirm once, including the branch environment used for any branch deployment
     - `SESSION_SECRET`: random value of 32 or more characters. `PRO_ACCESS_CODE`: random value of 12 or more characters
     - No other environment variable is added by this feature; `amplify.yml` already copies both into `.env.production`
     - _Requirements: 3.4, 3.5, 13.10, 14.4_
     - _Design: IAM and Infrastructure (Environment variables)_
 
-- [ ] 4. Shared types, emergency texts and copy
-  - [ ] 4.1 Create `src/types/job.ts`
+- [x] 4. Shared types, emergency texts and copy
+  - [x] 4.1 Create `src/types/job.ts`
     - Create: `src/types/job.ts`
     - Export `JOB_STATUSES`, `JobStatus`, `JOB_ACTIONS`, `JobAction`, `TimeSlot`, `InfoRequest`, `ReplyEntry`, `JobRecord`, `ProJobListItem`, `ProJobDetailActive`, `ProJobDetailEmergency`, `ProJobDetail`, `HomeownerStatusView`, `ApiErrorCode`, `ApiErrorBody` exactly as in the design
     - Types and the two `as const` lists only; no runtime logic, no AWS imports
     - _Requirements: 6.1, 12.12_
     - _Design: Data Models (Shared types)_
-  - [ ] 4.2 Create the emergency texts and helpers and re-export from EmergencyBanner
+  - [x] 4.2 Create the emergency texts and helpers and re-export from EmergencyBanner
     - Create: `src/lib/emergency/messages.ts` (`EMERGENCY_MESSAGE`, `PRO_EMERGENCY_NOTE`), `src/lib/emergency/emergencyView.ts` (`isEmergencyResult`, `toEmergencyResult`, `emergencyResponseBody`)
     - Modify: `src/components/results/EmergencyBanner.tsx` to import `EMERGENCY_MESSAGE` from `@/lib/emergency/messages` and re-export it (`export { EMERGENCY_MESSAGE }`) so existing imports and tests keep working
     - `toEmergencyResult` keeps `id`, `createdAt`, `s3Keys`, `likelyIssue`, `trade`, `answers`; sets `urgency` `emergency`, `isEmergency` true, costs 0, `jobBrief` `''`, `diySteps` `[]`
     - No `server-only` import (client and server use these)
     - _Requirements: 11.6, 11.8, 11.11, 5.10_
     - _Design: Components and Interfaces (Emergency helpers)_
-  - [ ] 4.3 Write unit tests for the emergency texts and helpers
+  - [x] 4.3 Write unit tests for the emergency texts and helpers
     - Create: `src/lib/emergency/messages.test.ts`, `src/lib/emergency/emergencyView.test.ts`
     - `EMERGENCY_MESSAGE` and `PRO_EMERGENCY_NOTE` equal the exact literals in `requirements.md` (Glossary); `toEmergencyResult` output shape; `isEmergencyResult` for urgency and for `isEmergency`; `emergencyResponseBody` is exactly `{ status: 'emergency', message }`
     - Existing `EmergencyBanner.test.tsx` still passes
     - _Requirements: 11.6, 11.11_
-  - [ ] 4.4 Create `src/lib/jobs/copy.ts`
+  - [x] 4.4 Create `src/lib/jobs/copy.ts`
     - Create: `src/lib/jobs/copy.ts`
     - Export `PRO_STATUS_LABEL` (exact labels of 6.5), `HOMEOWNER_STATUS_TEXT` (exact texts of 8.3), `STATUS_SAFETY_LINE` (8.19), `REPLY_RETENTION_NOTE` ("Your replies are deleted after 30 days, like your photos."), `STATUS_REFRESH_FAILED` ("We couldn't update the status. We'll try again."), `ERROR_MESSAGES` (every code and message in the design table, including "Your reply is too long. Please shorten it to 500 characters or fewer." and "Please write a reply before sending.", and `JOB_IS_EMERGENCY` Pro versus Homeowner messages)
     - Pure module (no AWS, no `server-only`); plain language at or below an 8th-grade level
     - _Requirements: 6.5, 8.3, 8.19, 9.12, 14.14, 3.9, 17.6_
     - _Design: Components and Interfaces (copy.ts); Route Handlers (error message table)_
-  - [ ] 4.5 Write unit tests for the exact copy strings
+  - [x] 4.5 Write unit tests for the exact copy strings
     - Create: `src/lib/jobs/copy.test.ts`
     - Assert every string in `copy.ts` equals the literal in the requirements (status labels, homeowner texts, Status_Safety_Line, retention note, refresh failure, reply-too-long and empty-reply messages); assert no string claims photos are visible only to the Homeowner
     - _Requirements: 6.5, 8.3, 8.19, 9.12, 14.14, 17.6_
 
-- [ ] 5. Status transition function
-  - [ ] 5.1 Create `src/lib/jobs/transition.ts`
+- [x] 5. Status transition function
+  - [x] 5.1 Create `src/lib/jobs/transition.ts`
     - Create: `src/lib/jobs/transition.ts`
     - Export `TRANSITION_TABLE` (13 entries), `transition(current, action): TransitionResult`, `isTerminalStatus`, `TransitionResult`
     - Pure, total, never throws; `emergency` is returned only for `safety_override`; rejection reason is `JOB_IS_EMERGENCY` when current is `emergency`, otherwise `ILLEGAL_TRANSITION`; `changed: false` only for `emergency` + `safety_override`
     - _Requirements: 6.2, 6.3, 6.4, 6.16, 6.17_
     - _Design: Components and Interfaces (Transition function)_
-  - [ ] 5.2 Write property test for the transition table (Property 1)
+  - [x] 5.2 Write property test for the transition table (Property 1)
     - Create: `src/lib/jobs/transition.property.test.ts`
     - **Property 1: Transition table exactness**
     - **Validates: Requirements 6.2, 6.3, 6.4, 6.16, 6.17, 16.2**
     - At least 100 runs over all 36 (status, action) pairs; the test holds its OWN literal list of the 13 allowed pairs (does not import `TRANSITION_TABLE`); terminal statuses reject everything except `safety_override`; sequences of 0 to 20 actions starting at `emergency` end at `emergency`; no mock or I/O
     - Tag: `// Feature: pro-dashboard-and-booking, Property 1: Transition table exactness`
 
-- [ ] 6. Time slot validation
-  - [ ] 6.1 Create `src/lib/jobs/timeSlots.ts`
+- [x] 6. Time slot validation
+  - [x] 6.1 Create `src/lib/jobs/timeSlots.ts`
     - Create: `src/lib/jobs/timeSlots.ts`
     - Export `MAX_SLOTS`, `SLOT_HORIZON_MS`, `SlotRule`, `SLOT_RULE_MESSAGES`, `slotsSchema(nowMs)` (Zod 4: `z.iso.datetime`, 1 to 3, distinct, later than now, no later than now + 30 days, transform to sorted canonical `toISOString` form), `canonicalizeSlots`, `isSlotOffered`, `isSlotExpired`
     - `nowMs` is injected; pure, no AWS, no `server-only`
     - _Requirements: 7.2, 7.3, 7.4, 10.3, 10.4_
     - _Design: Components and Interfaces (Time slots)_
-  - [ ] 6.2 Write unit tests for Time_Slot validation
+  - [x] 6.2 Write unit tests for Time_Slot validation
     - Create: `src/lib/jobs/timeSlots.test.ts`
     - 0, 1, 3 and 4 slots; duplicates; past; exactly `now` (rejected); exactly `now + 30 days` (accepted) and `+ 1 ms` (rejected); invalid format; missing `Z`; offset suffix such as `+02:00`; each failure returns the matching rule message; output sorted and canonical; `isSlotOffered` exact string equality; `isSlotExpired` at `now` and `now - 1`
     - _Requirements: 7.2, 7.3, 7.4, 10.3, 10.4, 16.10_
-  - [ ] 6.3 Write property test for Time_Slot validation (Property 9)
+  - [x] 6.3 Write property test for Time_Slot validation (Property 9)
     - Create: `src/lib/jobs/timeSlots.property.test.ts`
     - **Property 9: Time_Slot validation**
     - **Validates: Requirements 7.2, 7.3, 7.4, 10.3, 10.4, 16.10**
@@ -120,7 +120,7 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
 - [x] 7. Trusted client IP (pure, early)
   - [x] 7.1 Create `src/lib/net/getTrustedClientIp.ts`
     - Create: `src/lib/net/getTrustedClientIp.ts`
-    - Export `TRUSTED_PROXY_HOPS = 1` (documented code constant, NOT an environment variable; conservative default until the diagnostic result is known), `UNKNOWN_CLIENT_IP = 'unknown'`, `getTrustedClientIp(headers, hops = TRUSTED_PROXY_HOPS)`
+    - Export `TRUSTED_PROXY_HOPS = 2` (documented code constant, NOT an environment variable; verified on the live deployment, `suggestedHops` 2), `UNKNOWN_CLIENT_IP = 'unknown'`, `getTrustedClientIp(headers, hops = TRUSTED_PROXY_HOPS)`
     - Reads ONLY `x-forwarded-for`; takes the entry at `length - hops`; returns it lowercased only if `isIP` (from `node:net`) accepts it, otherwise `unknown`; `unknown` for an absent or empty header, fewer entries than hops, or `hops` below 1
     - Pure: no I/O, no AWS, no `server-only`. This is the only file that knows a header position
     - _Requirements: 18.3, 18.4, 18.5, 18.6, 18.7, 18.8_
@@ -137,93 +137,93 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - The hashed-IP and visitor-id halves of Property 6 are added by the task "Extend Property 6 to the hashed IP and the visitor id"
     - Tag: `// Feature: pro-dashboard-and-booking, Property 6: Trusted client IP ignores client-supplied entries`
 
-- [ ] 8. Request body reader
-  - [ ] 8.1 Create the shared HTTP helpers
+- [x] 8. Request body reader
+  - [x] 8.1 Create the shared HTTP helpers
     - Create: `src/lib/http/readBodyWithLimit.ts` (`MAX_ACTION_BODY_BYTES = 4096`, `declaredLengthExceeds`, `readBodyWithLimit`, `readJsonBody` returning `{ ok: true, value } | { ok: false, kind: 'too_large' | 'invalid_json' }`), `src/lib/http/responses.ts` (`noStoreJson`, `errorBody`)
     - Extracted from the local reader in `POST /api/inspect`: `Content-Length` pre-check, streaming read with a running byte count, abort once over the limit; a read error counts as `invalid_json`
     - `noStoreJson` ALWAYS sets `Cache-Control: no-store`
     - No `server-only` in `readBodyWithLimit.ts` (pure over the Web Request API)
     - _Requirements: 7.13, 14.7, 3.9, 1.10_
     - _Design: Components and Interfaces (Shared HTTP helpers)_
-  - [ ] 8.2 Refactor `POST /api/inspect` to use the shared body reader
+  - [x] 8.2 Refactor `POST /api/inspect` to use the shared body reader
     - Modify: `src/app/api/inspect/route.ts`
     - The inspect route IS refactored: remove its local `readBodyWithLimit`, import `readBodyWithLimit` and `declaredLengthExceeds` from `@/lib/http/readBodyWithLimit` and keep `MAX_BODY_BYTES = 16 * 1024` in the route
     - Behaviour and step order stay identical (Safety_Layer before the rate limit, intake-and-triage principles 6.10 and 11.8). No other change to this route in this feature
     - ALL existing inspect tests stay green without edits, with `src/app/api/inspect/route.bodyLimit.test.ts` as the regression guard
     - _Requirements: 14.7, 16.14_
     - _Design: Components and Interfaces (existing files that change)_
-  - [ ] 8.3 Write unit tests for the shared HTTP helpers
+  - [x] 8.3 Write unit tests for the shared HTTP helpers
     - Create: `src/lib/http/readBodyWithLimit.test.ts`, `src/lib/http/responses.test.ts`
     - 4096 bytes accepted and 4097 rejected; `Content-Length` pre-check; streaming abort without reading the rest; invalid UTF-8; read error; `readJsonBody` kinds; `noStoreJson` sets `Cache-Control: no-store` on 200 and on error statuses
     - _Requirements: 7.13, 14.7, 3.9_
 
-- [ ] 9. Access code, Pro cookie and IP hash
-  - [ ] 9.1 Create `src/lib/pro/accessCode.ts`
+- [x] 9. Access code, Pro cookie and IP hash
+  - [x] 9.1 Create `src/lib/pro/accessCode.ts`
     - Create: `src/lib/pro/accessCode.ts`
     - Export `safeEqualBuffers` (false for different lengths, otherwise `timingSafeEqual`, never throws), `digestsEqual` (SHA-256 both, compare 32-byte digests), `isAccessCodeValid(submitted, expected)` (false when `expected` is empty)
     - Pure; no `server-only`
     - _Requirements: 1.3, 14.1, 3.7_
     - _Design: Pro Auth Design (Access code comparison)_
-  - [ ] 9.2 Write unit tests for the access code comparison
+  - [x] 9.2 Write unit tests for the access code comparison
     - Create: `src/lib/pro/accessCode.test.ts`
     - Equal input, unequal input, different-length input returning false without throwing, empty configured code never matches an empty submitted code, multibyte characters
     - _Requirements: 1.3, 14.1, 3.7, 16.10_
-  - [ ] 9.3 Write property test for the access code comparison (Property 8)
+  - [x] 9.3 Write property test for the access code comparison (Property 8)
     - Create: `src/lib/pro/accessCode.property.test.ts`
     - **Property 8: Access code comparison matches equality and never throws**
     - **Validates: Requirements 1.3, 3.7, 14.1**
     - At least 100 runs; `fc.string()` pairs plus `[s, s]` and `[s, s + 'x']`; `fc.uint8Array()` pairs for `safeEqualBuffers`
     - Tag: `// Feature: pro-dashboard-and-booking, Property 8: Access code comparison matches equality and never throws`
-  - [ ] 9.4 Create `src/lib/pro/proCookie.ts`
+  - [x] 9.4 Create `src/lib/pro/proCookie.ts`
     - Create: `src/lib/pro/proCookie.ts`
     - Export `PRO_COOKIE_NAME` (`hhi_pro`), `PRO_COOKIE_PATH` (`/api/pro`), `PRO_COOKIE_MAX_AGE_SECONDS` (43200), `ProCookiePayload`, `signProCookie`, `issueProCookie(secret, nowMs)`, `verifyProCookie(token, secret, nowMs)`
     - Format `base64url(payload).base64url(HMAC-SHA256(secret, "pro:" + base64url(payload)))`; verify order: present, canonical base64url signature (decode then re-encode must equal the input), constant-time MAC compare, payload `{ role: 'pro', exp }`, `exp > nowMs` strictly; an empty secret never verifies; never throws
     - Pure; no `server-only`
     - _Requirements: 1.5, 1.6, 3.1, 3.13, 3.14, 14.1, 14.2_
     - _Design: Pro Auth Design (Cookie format and verification)_
-  - [ ] 9.5 Write unit tests for the Pro cookie
+  - [x] 9.5 Write unit tests for the Pro cookie
     - Create: `src/lib/pro/proCookie.test.ts`
     - Expiry at `exp - 1`, `exp`, `exp + 1`; tampered payload; tampered signature; wrong secret; empty secret and a cookie signed with an empty key; malformed value; wrong number of parts; `pro:` purpose prefix; a valid `hhi_session` token (made with `signSessionToken`) is rejected by `verifyProCookie`, and a valid Pro cookie is rejected by `verifySessionToken` from `src/lib/rateLimiter.ts`
     - Canonical base64url safeguard (16.21 b): a signature with its last character changed, with extra characters appended, or with a non-canonical encoding of the same 32 bytes fails verification
     - _Requirements: 3.1, 3.13, 3.14, 14.2, 16.10, 16.21_
-  - [ ] 9.6 Write property test for the Pro cookie round trip (Property 7)
+  - [x] 9.6 Write property test for the Pro cookie round trip (Property 7)
     - Create: `src/lib/pro/proCookie.property.test.ts`
     - **Property 7: Pro cookie round trip and tamper resistance**
     - **Validates: Requirements 1.6, 3.1, 14.2, 16.11**
     - At least 100 runs; sign then verify returns an equivalent payload before `exp`; EVERY single-character change of the signed value fails; a different secret fails; `exp` at or before the verification time fails; tokens that are not two dot-separated parts fail without throwing
     - Tag: `// Feature: pro-dashboard-and-booking, Property 7: Pro cookie round trip and tamper resistance`
-  - [ ] 9.7 Create `src/lib/pro/ipHash.ts`
+  - [x] 9.7 Create `src/lib/pro/ipHash.ts`
     - Create: `src/lib/pro/ipHash.ts`
     - Export `hashClientIp(trustedIp, secret)`: `createHmac('sha256', secret).update('proauth-ip:' + trustedIp).digest('hex')` (64 hex characters)
     - The raw IP is never stored, logged or returned
     - _Requirements: 2.2, 14.6_
     - _Design: Pro Auth Design (Hashed_IP)_
-  - [ ] 9.8 Write unit tests for `hashClientIp`
+  - [x] 9.8 Write unit tests for `hashClientIp`
     - Create: `src/lib/pro/ipHash.test.ts`
     - 64 hex characters; deterministic; different IP gives a different hash; different secret gives a different hash; output never contains the raw IP
     - _Requirements: 2.2, 14.6_
 
-- [ ] 10. Lockout flow
-  - [ ] 10.1 Create `src/lib/pro/loginFlow.ts` and the in-memory lockout store
+- [x] 10. Lockout flow
+  - [x] 10.1 Create `src/lib/pro/loginFlow.ts` and the in-memory lockout store
     - Create: `src/lib/pro/loginFlow.ts` (`LockoutStore`, `ReserveResult`, `LoginDeps`, `LoginOutcome`, `attemptLogin(code, ipHash, deps)`), `src/test/inMemoryLockoutStore.ts` (a pure store that states the lockout policy for the model run of Property 4)
     - `attemptLogin`: reserve one attempt BEFORE comparing; refused gives `locked` with `retryAfterSeconds` (even for a correct code); store error gives `failed`; wrong code gives `invalid_code` (attempt stays counted); correct code releases the attempt (a release failure is logged by name and ignored) then `ok` with `issueProCookie`
     - `nowMs` is a parameter everywhere; no real timers; log only `error.name`
     - Pure given the injected store; no `server-only`, no AWS import
     - _Requirements: 2.3, 2.4, 2.5, 2.6, 2.7, 2.11, 2.12, 2.15_
     - _Design: Pro Auth Design (Login flow with an injected store and clock)_
-  - [ ] 10.2 Write property test for the lockout counter (Property 4, model store)
+  - [x] 10.2 Write property test for the lockout counter (Property 4, model store)
     - Create: `src/lib/pro/loginFlow.property.test.ts`
     - **Property 4: Lockout counter**
     - **Validates: Requirements 2.1, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.11, 2.12, 16.5**
     - At least 100 runs; sequences of 1 to 30 attempts (correct or wrong) from 1 to 3 Hashed_IPs inside one 15-minute window with an injected clock (never real timers); correct code before the 5th wrong attempt succeeds; after 5 wrong attempts every later attempt from that Hashed_IP (including a correct code) is `locked` with `retryAfterSeconds` from 1 to 900; one Hashed_IP never affects another; `count` never exceeds 5; a clock jump to `windowStart + 900000` or later resets the counter to 0; a store error gives `failed` and no cookie
     - This task runs the model store only. The real-store half is added by the task "Extend Property 4 to the real lockout store"
     - Tag: `// Feature: pro-dashboard-and-booking, Property 4: Lockout counter`
-  - [ ] 10.3 Write unit tests for `attemptLogin`
+  - [x] 10.3 Write unit tests for `attemptLogin`
     - Create: `src/lib/pro/loginFlow.test.ts`
     - Reserve happens before the code comparison; a correct code with 4 wrong attempts on record is accepted and the attempt is released; a correct code after 5 wrong attempts is `locked` and no cookie is issued; a store error on reserve returns `failed`; a release failure still returns `ok`; the logs contain only the error name (no code, cookie, IP or hash)
     - _Requirements: 2.3, 2.4, 2.5, 2.7, 2.12, 2.15, 14.5_
 
-- [ ] 11. Checkpoint - Pure core verified
+- [x] 11. Checkpoint - Pure core verified
   - Ensure all tests pass. Ask the user if any questions arise.
   - Run `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`; all four must exit with code 0
   - Pure core covered: types, emergency texts, copy, transition table, Time_Slot validation, trusted client IP, body reader, access code, Pro cookie, IP hash, lockout flow
@@ -739,7 +739,7 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
   - Covered: client emergency handling, session cache, polling hook, Status_Panel, Results page, Pro dashboard and detail pages, privacy notice, source scan
   - The DEPLOY-GATED tasks that follow (rate limiter change, Pro login and logout routes) must not be merged or deployed before the DEPLOY GATE task
 
-- [ ] 30. Trusted proxy hops (USER-GATED)
+- [x] 30. Trusted proxy hops (USER-GATED)
   - [x] 30.1 Set TRUSTED_PROXY_HOPS and delete the diagnostic route
     - USER-GATED (manual input required): an agent CANNOT complete this task alone. The agent makes the code change ONLY after the user supplies the live `suggestedHops` number read in "USER: deploy the diagnostic route from a branch and read suggestedHops". If the user has not supplied the number, stop and ask; never guess and never keep the diagnostic route
     - Steps: (1) the user deploys the branch with the diagnostic route (done in the user task above); (2) the user opens `/api/diag/ip` in a browser, optionally runs `curl.exe -s -H "x-forwarded-for: 6.6.6.6" https://<domain>/api/diag/ip` and checks `suggestedHops` is unchanged and the spoofed entry is labelled `other`; (3) the user reads `suggestedHops` and gives it to the agent; (4) the agent sets `export const TRUSTED_PROXY_HOPS = <suggestedHops>` in `src/lib/net/getTrustedClientIp.ts` (the shared `getTrustedClientIp` module) and updates its unit tests in `src/lib/net/getTrustedClientIp.test.ts`; (5) the agent deletes `src/app/api/diag/ip/route.ts` and `src/app/api/diag/ip/route.test.ts` (and the empty `diag` folders); (6) the agent runs the four checks `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`
@@ -748,17 +748,17 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - Modify: `src/lib/net/getTrustedClientIp.ts`, `src/lib/net/getTrustedClientIp.test.ts`, and any test whose header depends on the constant. Delete: `src/app/api/diag/ip/route.ts`, `src/app/api/diag/ip/route.test.ts`
     - _Requirements: 18.8, 18.11, 18.13, 18.14, 18.17, 16.22_
     - _Design: Trusted Client IP Design (Diagnostic procedure, steps 5 and 6)_
-  - [ ] 30.2 Confirm GET /api/diag/ip returns 404 on the deployed branch (manual, user)
+  - [x] 30.2 Confirm GET /api/diag/ip returns 404 on the deployed branch (manual, user)
     - (manual, user) Redeploy the branch after 30.1 and confirm `GET https://<domain>/api/diag/ip` returns HTTP 404
     - Before launch or any public use, repeat the check on the final deployment
     - _Requirements: 18.14_
 
-- [ ] 31. DEPLOY GATE
-  - [ ] 31.1 DEPLOY GATE: no merge or deploy of the rate limiter change or Pro login before hops are set (manual, user)
+- [x] 31. DEPLOY GATE
+  - [x] 31.1 DEPLOY GATE: no merge or deploy of the rate limiter change or Pro login before hops are set (manual, user)
     - (manual, user) A hard stop. The rate limiter change and the Pro login with its Lockout_Counter must NOT be merged to `main` or deployed to any public environment until "Set TRUSTED_PROXY_HOPS and delete the diagnostic route" and its 404 confirmation are done. A value that is too high lets a client choose its own address and bypass the limit; a value that is too low merges unrelated visitors into one bucket
     - `main` auto-deploys to the public domain: do NOT merge to `main`; the diagnostic run is done from a branch, and the route is deleted before merging
     - Checklist before proceeding: `TRUSTED_PROXY_HOPS` in code equals the value read from the diagnostic route; `src/app/api/diag/ip/` is gone; `/api/diag/ip` returns 404; the four checks pass; `GSI1` is `ACTIVE` and the IAM statement is in place
-    - The default 1 is only allowed in tests and local development, never as the unverified final value of a deployment that carries the tasks below
+    - TRUSTED_PROXY_HOPS is 2, measured on laptop and phone on Nov 13. Do not change it without re-running the diagnostic.
     - _Requirements: 18.11, 18.15, 18.16_
     - _Design: Trusted Client IP Design (Deployment gating)_
 
@@ -771,7 +771,7 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - _Design: Trusted Client IP Design (Rate limiter change)_
   - [ ] 32.2 Update the rate limiter tests to the trusted-entry rule
     - Modify: `src/lib/rateLimiter.test.ts` (and `src/lib/rateLimiter.property.test.ts` and `src/app/api/inspect/route.ratelimit.test.ts` if they depend on the address)
-    - Replace "uses the first x-forwarded-for entry" with "uses the trusted entry and ignores the entries before it" (`198.51.100.1, 10.0.0.1, 10.0.0.2` yields the id of `10.0.0.2` for hops 1); add: an invalid trusted entry gives `ip:` + hash of `unknown`; a spoofed prefix does not change the id; build headers with the helper from `TRUSTED_PROXY_HOPS` so the tests stay green after the constant changes
+    - Replace "uses the first x-forwarded-for entry" with "uses the trusted entry and ignores the entries before it" (`198.51.100.1, 10.0.0.1, 10.0.0.2` yields the id of `10.0.0.1`, the second-to-last entry, for hops 2); add: an invalid trusted entry gives `ip:` + hash of `unknown`; a spoofed prefix does not change the id; build headers with the helper from `TRUSTED_PROXY_HOPS` so the tests stay green after the constant changes
     - _Requirements: 18.9, 16.19_
   - [ ] 32.3 Extend Property 6 to the hashed IP and the visitor id
     - Modify: `src/lib/net/getTrustedClientIp.property.test.ts`

@@ -266,3 +266,29 @@ Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, m
 - Keep booking calls with tradespeople and homeowners (target: 5 by Nov 18)
 - Save live-test screenshots (emergency banner, a normal result) to docs/screenshots/
 - Commit the Zod change (package.json, lockfile, one schema line)
+
+
+---
+
+## Nov 13, 2026 (Spec 2, day 1: AWS setup and the pure core, tasks 3 to 11)
+
+**Done**
+- AWS setup by hand: GSI1 is ACTIVE with an INCLUDE projection, the JobsIndexQuery IAM statement is added, PRO_ACCESS_CODE and SESSION_SECRET are set in Amplify
+- Trusted client IP: the live check on laptop and phone gave 2 hops, so `TRUSTED_PROXY_HOPS` is 2; the temporary diagnostic route is deleted (404 on main); the design and requirements now say 2 hops
+- Task 4: shared job types, the emergency texts, and one copy file with every status label and error message
+- Task 5: the pure status transition function (13 allowed changes) and its property test
+- Task 6: time-slot validation (1 to 3 future slots within 30 days) with unit and property tests
+- Task 8: a shared request-body reader with a byte limit; the inspect route now uses it with no change in behaviour
+- Task 9: access-code check, signed Pro cookie and keyed IP hash, each with unit and property tests
+- Task 10: the login flow with the 5-attempt lockout, tested against a separate reference model with an injected clock
+- Task 11 checkpoint: lint, type-check and build clean; 615 tests pass in 72 files
+
+**Kiro features used**
+- Spec task execution: sub-agents built each module and wrote its tests in parallel; the four checks ran after every parent task
+
+**Problems and fixes**
+- The new tests found a bug: a lower-case `cache-control` header could override `no-store` in the shared response helper; fixed so `no-store` always wins
+- Time-slot validation reports one rule at a time, so a bad slot is only reported once the count is fixed; kept as is
+
+**Next**
+- Task 12 onward: the data layer (jobs and lockout on DynamoDB), then the routes, then the UI

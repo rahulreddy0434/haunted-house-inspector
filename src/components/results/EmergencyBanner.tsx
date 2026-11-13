@@ -1,7 +1,7 @@
 import type { UrgencyLevel } from "@/types/inspection";
+import { EMERGENCY_MESSAGE } from "@/lib/emergency/messages";
 
-export const EMERGENCY_MESSAGE =
-  "This may be dangerous. Get everyone to safety and call 911. For a gas smell, leave the home first, then call 911 or your gas utility from outside.";
+export { EMERGENCY_MESSAGE };
 
 export interface EmergencyBannerProps {
   urgency: UrgencyLevel;
