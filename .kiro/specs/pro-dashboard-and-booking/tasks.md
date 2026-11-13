@@ -1,0 +1,888 @@
+# Implementation Plan: Pro Dashboard and Booking
+
+## Overview
+
+Implement the tradesperson side and the booking loop on top of the existing `intake-and-triage` code: shared job types, the pure core (status transition table, Time_Slot validation, trusted client IP, Pro cookie, access code comparison, lockout flow), the DynamoDB data layer (`jobs.ts`, `lockout.ts`, the `persistInspection` change, the `GSI1` index), the Pro and Homeowner Route Handlers, the emergency override and its client-side non-downgrade rule, the Status_Panel and polling hook, the Pro dashboard pages, the privacy notice change, the single source-scan test, and the manual checks. All tests use Vitest and fast-check with mocked AWS clients (no MSW, no real AWS call).
+
+Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_PROXY_HOPS and delete the diagnostic route" is USER-GATED: an agent makes the code change only after the user supplies the live `suggestedHops` number. The rate limiter change and the Pro login are DEPLOY-GATED (Requirements 18.15, 18.16): they may be written on a branch, but they must not be merged or deployed before the DEPLOY GATE task is done.
+
+## Tasks
+
+- [x] 1. Temporary IP diagnostic route (done)
+  - [x] 1.1 Diagnostic route and its test already exist (done, verified by the user and the orchestrator)
+    - Files that exist: `src/app/api/diag/ip/route.ts`, `src/app/api/diag/ip/route.test.ts`
+    - Returns `entryCount`, `labels`, `cloudfrontViewerAddressPresent`, `suggestedHops` and (only when `cloudfront-viewer-address` is missing) `rawEntries`; `Cache-Control: no-store`; no logging; no AWS call
+    - Do not modify. It is deleted by the task "Set TRUSTED_PROXY_HOPS and delete the diagnostic route"
+    - _Requirements: 16.22, 18.12_
+    - _Design: Trusted Client IP Design (diagnostic procedure)_
+
+- [ ] 2. Diagnostic route live check (manual, user)
+  - [ ] 2.1 USER: deploy the diagnostic route from a branch and read suggestedHops
+    - (manual, user) An agent cannot do this. It is the first user action and feeds the task "Set TRUSTED_PROXY_HOPS and delete the diagnostic route"
+    - Create a branch (for example `diag/trusted-ip`) that contains ONLY the existing diagnostic route and its test on top of the current `main`. Do not include any other task of this feature
+    - Do NOT merge to `main`: `main` auto-deploys to the public domain. Deploy the branch with an Amplify branch deployment (or any equivalent branch preview) that is served through the same CloudFront path as the real public domain; a custom domain can add or remove a CloudFront layer compared with `*.amplifyapp.com`, so read the value on the real public domain if you can
+    - Open `https://<domain>/api/diag/ip` in a browser and write down `suggestedHops`
+    - Optional spoof check: `curl.exe -s -H "x-forwarded-for: 6.6.6.6" https://<domain>/api/diag/ip`. `suggestedHops` must not change and the spoofed entry must be labelled `other`. If it changes, stop and report: the header rule needs a redesign
+    - If `suggestedHops` is `null` or differs between requests, read `rawEntries`, do not guess, and report the result before any further step
+    - This step needs no IAM change and no `GSI1` (the route calls no AWS service)
+    - Hand the number to the agent for the task "Set TRUSTED_PROXY_HOPS and delete the diagnostic route"
+    - _Requirements: 18.2, 18.11, 18.13, 18.15_
+    - _Design: Trusted Client IP Design (diagnostic procedure, steps 1 to 4)_
+
+- [ ] 3. AWS setup (manual, user)
+  - [ ] 3.1 Create GSI1 on the table and confirm ACTIVE (manual, user)
+    - (manual, user) The App never creates or changes the table or the index. Do this before any deployment of code that queries `GSI1`
+    - Check the capacity mode: `aws dynamodb describe-table --region us-east-2 --table-name <TABLE_NAME> --query "Table.BillingModeSummary.BillingMode"`. `PAY_PER_REQUEST` means on demand. `PROVISIONED`, or no value at all, means provisioned: then add `"ProvisionedThroughput": { "ReadCapacityUnits": <same as table>, "WriteCapacityUnits": <same as table> }` inside `Create`
+    - Exact definition: index name `GSI1`; attribute definitions `GSI1PK` (S) and `GSI1SK` (S); key schema `GSI1PK` HASH and `GSI1SK` RANGE; projection `INCLUDE` with `id`, `createdAt`, `urgency`, `isEmergency`, `trade`, `status`, `answers`; same capacity mode as the table
+    - Save as `gsi1.json`: `[{ "Create": { "IndexName": "GSI1", "KeySchema": [{ "AttributeName": "GSI1PK", "KeyType": "HASH" }, { "AttributeName": "GSI1SK", "KeyType": "RANGE" }], "Projection": { "ProjectionType": "INCLUDE", "NonKeyAttributes": ["id", "createdAt", "urgency", "isEmergency", "trade", "status", "answers"] } } }]`
+    - Create: `aws dynamodb update-table --region us-east-2 --table-name <TABLE_NAME> --attribute-definitions AttributeName=GSI1PK,AttributeType=S AttributeName=GSI1SK,AttributeType=S --global-secondary-index-updates file://gsi1.json`
+    - Confirm: `aws dynamodb describe-table --region us-east-2 --table-name <TABLE_NAME> --query "Table.GlobalSecondaryIndexes[?IndexName=='GSI1'].[IndexStatus,Backfilling]"` shows `ACTIVE` and `Backfilling` is not `true`. (Console route: Indexes, Create index, same names and the seven projected attributes)
+    - Jobs created before the index exists never appear in the Pro list and are not backfilled
+    - _Requirements: 12.5, 12.6, 12.8, 12.9, 13.7_
+    - _Design: IAM and Infrastructure (Create GSI1 on the existing table); Data Models (GSI1)_
+  - [ ] 3.2 Add dynamodb:Query on the GSI1 index ARN to the IAM policy (manual, user)
+    - (manual, user) Add this statement to the Amplify compute role (and to the local AWS CLI profile): Sid `JobsIndexQuery`, Effect `Allow`, Action `dynamodb:Query`, Resource `arn:aws:dynamodb:us-east-2:<ACCOUNT_ID>:table/<TABLE_NAME>/index/GSI1`
+    - Query is granted on the index ARN ONLY. Do not grant it on the table ARN, and do not grant `GetItem`, `PutItem` or `UpdateItem` on the index ARN
+    - No other IAM change: `GetItem`, `PutItem`, `UpdateItem` on the table ARN, `s3:GetObject` and `s3:PutObject` on `arn:aws:s3:::<BUCKET>/*` and `bedrock:InvokeModel` already exist. No `Scan`, `DeleteItem`, `BatchWriteItem`, wildcard action, `s3:ListBucket` or `s3:DeleteObject` is needed
+    - Region is `us-east-2` in every ARN except the S3 bucket ARN
+    - This must be done BEFORE any live test of code from this feature (see the reminder task "Reminder: confirm IAM policy and GSI1 before any live test (manual, user)")
+    - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.8_
+    - _Design: IAM and Infrastructure (IAM policy for the Amplify compute role)_
+  - [ ] 3.3 Confirm SESSION_SECRET and PRO_ACCESS_CODE are set in Amplify (manual, user)
+    - (manual, user) Per the user these are already set in the Amplify console. Confirm once, including the branch environment used for any branch deployment
+    - `SESSION_SECRET`: random value of 32 or more characters. `PRO_ACCESS_CODE`: random value of 12 or more characters
+    - No other environment variable is added by this feature; `amplify.yml` already copies both into `.env.production`
+    - _Requirements: 3.4, 3.5, 13.10, 14.4_
+    - _Design: IAM and Infrastructure (Environment variables)_
+
+- [ ] 4. Shared types, emergency texts and copy
+  - [ ] 4.1 Create `src/types/job.ts`
+    - Create: `src/types/job.ts`
+    - Export `JOB_STATUSES`, `JobStatus`, `JOB_ACTIONS`, `JobAction`, `TimeSlot`, `InfoRequest`, `ReplyEntry`, `JobRecord`, `ProJobListItem`, `ProJobDetailActive`, `ProJobDetailEmergency`, `ProJobDetail`, `HomeownerStatusView`, `ApiErrorCode`, `ApiErrorBody` exactly as in the design
+    - Types and the two `as const` lists only; no runtime logic, no AWS imports
+    - _Requirements: 6.1, 12.12_
+    - _Design: Data Models (Shared types)_
+  - [ ] 4.2 Create the emergency texts and helpers and re-export from EmergencyBanner
+    - Create: `src/lib/emergency/messages.ts` (`EMERGENCY_MESSAGE`, `PRO_EMERGENCY_NOTE`), `src/lib/emergency/emergencyView.ts` (`isEmergencyResult`, `toEmergencyResult`, `emergencyResponseBody`)
+    - Modify: `src/components/results/EmergencyBanner.tsx` to import `EMERGENCY_MESSAGE` from `@/lib/emergency/messages` and re-export it (`export { EMERGENCY_MESSAGE }`) so existing imports and tests keep working
+    - `toEmergencyResult` keeps `id`, `createdAt`, `s3Keys`, `likelyIssue`, `trade`, `answers`; sets `urgency` `emergency`, `isEmergency` true, costs 0, `jobBrief` `''`, `diySteps` `[]`
+    - No `server-only` import (client and server use these)
+    - _Requirements: 11.6, 11.8, 11.11, 5.10_
+    - _Design: Components and Interfaces (Emergency helpers)_
+  - [ ] 4.3 Write unit tests for the emergency texts and helpers
+    - Create: `src/lib/emergency/messages.test.ts`, `src/lib/emergency/emergencyView.test.ts`
+    - `EMERGENCY_MESSAGE` and `PRO_EMERGENCY_NOTE` equal the exact literals in `requirements.md` (Glossary); `toEmergencyResult` output shape; `isEmergencyResult` for urgency and for `isEmergency`; `emergencyResponseBody` is exactly `{ status: 'emergency', message }`
+    - Existing `EmergencyBanner.test.tsx` still passes
+    - _Requirements: 11.6, 11.11_
+  - [ ] 4.4 Create `src/lib/jobs/copy.ts`
+    - Create: `src/lib/jobs/copy.ts`
+    - Export `PRO_STATUS_LABEL` (exact labels of 6.5), `HOMEOWNER_STATUS_TEXT` (exact texts of 8.3), `STATUS_SAFETY_LINE` (8.19), `REPLY_RETENTION_NOTE` ("Your replies are deleted after 30 days, like your photos."), `STATUS_REFRESH_FAILED` ("We couldn't update the status. We'll try again."), `ERROR_MESSAGES` (every code and message in the design table, including "Your reply is too long. Please shorten it to 500 characters or fewer." and "Please write a reply before sending.", and `JOB_IS_EMERGENCY` Pro versus Homeowner messages)
+    - Pure module (no AWS, no `server-only`); plain language at or below an 8th-grade level
+    - _Requirements: 6.5, 8.3, 8.19, 9.12, 14.14, 3.9, 17.6_
+    - _Design: Components and Interfaces (copy.ts); Route Handlers (error message table)_
+  - [ ] 4.5 Write unit tests for the exact copy strings
+    - Create: `src/lib/jobs/copy.test.ts`
+    - Assert every string in `copy.ts` equals the literal in the requirements (status labels, homeowner texts, Status_Safety_Line, retention note, refresh failure, reply-too-long and empty-reply messages); assert no string claims photos are visible only to the Homeowner
+    - _Requirements: 6.5, 8.3, 8.19, 9.12, 14.14, 17.6_
+
+- [ ] 5. Status transition function
+  - [ ] 5.1 Create `src/lib/jobs/transition.ts`
+    - Create: `src/lib/jobs/transition.ts`
+    - Export `TRANSITION_TABLE` (13 entries), `transition(current, action): TransitionResult`, `isTerminalStatus`, `TransitionResult`
+    - Pure, total, never throws; `emergency` is returned only for `safety_override`; rejection reason is `JOB_IS_EMERGENCY` when current is `emergency`, otherwise `ILLEGAL_TRANSITION`; `changed: false` only for `emergency` + `safety_override`
+    - _Requirements: 6.2, 6.3, 6.4, 6.16, 6.17_
+    - _Design: Components and Interfaces (Transition function)_
+  - [ ] 5.2 Write property test for the transition table (Property 1)
+    - Create: `src/lib/jobs/transition.property.test.ts`
+    - **Property 1: Transition table exactness**
+    - **Validates: Requirements 6.2, 6.3, 6.4, 6.16, 6.17, 16.2**
+    - At least 100 runs over all 36 (status, action) pairs; the test holds its OWN literal list of the 13 allowed pairs (does not import `TRANSITION_TABLE`); terminal statuses reject everything except `safety_override`; sequences of 0 to 20 actions starting at `emergency` end at `emergency`; no mock or I/O
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 1: Transition table exactness`
+
+- [ ] 6. Time slot validation
+  - [ ] 6.1 Create `src/lib/jobs/timeSlots.ts`
+    - Create: `src/lib/jobs/timeSlots.ts`
+    - Export `MAX_SLOTS`, `SLOT_HORIZON_MS`, `SlotRule`, `SLOT_RULE_MESSAGES`, `slotsSchema(nowMs)` (Zod 4: `z.iso.datetime`, 1 to 3, distinct, later than now, no later than now + 30 days, transform to sorted canonical `toISOString` form), `canonicalizeSlots`, `isSlotOffered`, `isSlotExpired`
+    - `nowMs` is injected; pure, no AWS, no `server-only`
+    - _Requirements: 7.2, 7.3, 7.4, 10.3, 10.4_
+    - _Design: Components and Interfaces (Time slots)_
+  - [ ] 6.2 Write unit tests for Time_Slot validation
+    - Create: `src/lib/jobs/timeSlots.test.ts`
+    - 0, 1, 3 and 4 slots; duplicates; past; exactly `now` (rejected); exactly `now + 30 days` (accepted) and `+ 1 ms` (rejected); invalid format; missing `Z`; offset suffix such as `+02:00`; each failure returns the matching rule message; output sorted and canonical; `isSlotOffered` exact string equality; `isSlotExpired` at `now` and `now - 1`
+    - _Requirements: 7.2, 7.3, 7.4, 10.3, 10.4, 16.10_
+  - [ ] 6.3 Write property test for Time_Slot validation (Property 9)
+    - Create: `src/lib/jobs/timeSlots.property.test.ts`
+    - **Property 9: Time_Slot validation**
+    - **Validates: Requirements 7.2, 7.3, 7.4, 10.3, 10.4, 16.10**
+    - At least 100 runs; instants from `fc.integer({ min: nowMs - 2 * DAY, max: nowMs + 40 * DAY })` mapped to `toISOString()` plus arbitrary strings and offset-suffixed mutations; explicit boundaries `nowMs`, `nowMs + 1`, `nowMs + HORIZON`, `nowMs + HORIZON + 1`; canonicalising the output again changes nothing
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 9: Time_Slot validation`
+
+- [ ] 7. Trusted client IP (pure, early)
+  - [ ] 7.1 Create `src/lib/net/getTrustedClientIp.ts`
+    - Create: `src/lib/net/getTrustedClientIp.ts`
+    - Export `TRUSTED_PROXY_HOPS = 1` (documented code constant, NOT an environment variable; conservative default until the diagnostic result is known), `UNKNOWN_CLIENT_IP = 'unknown'`, `getTrustedClientIp(headers, hops = TRUSTED_PROXY_HOPS)`
+    - Reads ONLY `x-forwarded-for`; takes the entry at `length - hops`; returns it lowercased only if `isIP` (from `node:net`) accepts it, otherwise `unknown`; `unknown` for an absent or empty header, fewer entries than hops, or `hops` below 1
+    - Pure: no I/O, no AWS, no `server-only`. This is the only file that knows a header position
+    - _Requirements: 18.3, 18.4, 18.5, 18.6, 18.7, 18.8_
+    - _Design: Trusted Client IP Design (Chosen rule, Algorithm)_
+  - [ ] 7.2 Write unit tests for `getTrustedClientIp`
+    - Create: `src/lib/net/getTrustedClientIp.test.ts`
+    - Single entry; three entries with `hops` 1 and 2 passed explicitly; port suffix gives `unknown`; IPv6; empty and absent header; fewer entries than hops; invalid trusted entry; other headers (`cloudfront-viewer-address`, `x-real-ip`) never matter; the default is read from `TRUSTED_PROXY_HOPS` (this test is updated by the task "Set TRUSTED_PROXY_HOPS and delete the diagnostic route")
+    - _Requirements: 18.3, 18.5, 18.6, 18.7, 18.8_
+  - [ ] 7.3 Write property test for the trusted client IP (Property 6, getTrustedClientIp part)
+    - Create: `src/lib/net/getTrustedClientIp.property.test.ts`
+    - **Property 6: Trusted client IP ignores client-supplied entries**
+    - **Validates: Requirements 18.3, 18.4, 18.5, 18.6, 16.18**
+    - At least 100 runs; prefix of 0 to 5 entries from `fc.oneof(fc.ipV4(), fc.ipV6(), fc.constant(''), fc.constant('  '), fc.string())` placed before the trusted entry; header built for `hops` 1 and 2 passed EXPLICITLY (so the test keeps passing when the constant is changed); absent, too-short and invalid-trusted headers give `unknown`; extra random headers do not matter
+    - The hashed-IP and visitor-id halves of Property 6 are added by the task "Extend Property 6 to the hashed IP and the visitor id"
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 6: Trusted client IP ignores client-supplied entries`
+
+- [ ] 8. Request body reader
+  - [ ] 8.1 Create the shared HTTP helpers
+    - Create: `src/lib/http/readBodyWithLimit.ts` (`MAX_ACTION_BODY_BYTES = 4096`, `declaredLengthExceeds`, `readBodyWithLimit`, `readJsonBody` returning `{ ok: true, value } | { ok: false, kind: 'too_large' | 'invalid_json' }`), `src/lib/http/responses.ts` (`noStoreJson`, `errorBody`)
+    - Extracted from the local reader in `POST /api/inspect`: `Content-Length` pre-check, streaming read with a running byte count, abort once over the limit; a read error counts as `invalid_json`
+    - `noStoreJson` ALWAYS sets `Cache-Control: no-store`
+    - No `server-only` in `readBodyWithLimit.ts` (pure over the Web Request API)
+    - _Requirements: 7.13, 14.7, 3.9, 1.10_
+    - _Design: Components and Interfaces (Shared HTTP helpers)_
+  - [ ] 8.2 Refactor `POST /api/inspect` to use the shared body reader
+    - Modify: `src/app/api/inspect/route.ts`
+    - The inspect route IS refactored: remove its local `readBodyWithLimit`, import `readBodyWithLimit` and `declaredLengthExceeds` from `@/lib/http/readBodyWithLimit` and keep `MAX_BODY_BYTES = 16 * 1024` in the route
+    - Behaviour and step order stay identical (Safety_Layer before the rate limit, intake-and-triage principles 6.10 and 11.8). No other change to this route in this feature
+    - ALL existing inspect tests stay green without edits, with `src/app/api/inspect/route.bodyLimit.test.ts` as the regression guard
+    - _Requirements: 14.7, 16.14_
+    - _Design: Components and Interfaces (existing files that change)_
+  - [ ] 8.3 Write unit tests for the shared HTTP helpers
+    - Create: `src/lib/http/readBodyWithLimit.test.ts`, `src/lib/http/responses.test.ts`
+    - 4096 bytes accepted and 4097 rejected; `Content-Length` pre-check; streaming abort without reading the rest; invalid UTF-8; read error; `readJsonBody` kinds; `noStoreJson` sets `Cache-Control: no-store` on 200 and on error statuses
+    - _Requirements: 7.13, 14.7, 3.9_
+
+- [ ] 9. Access code, Pro cookie and IP hash
+  - [ ] 9.1 Create `src/lib/pro/accessCode.ts`
+    - Create: `src/lib/pro/accessCode.ts`
+    - Export `safeEqualBuffers` (false for different lengths, otherwise `timingSafeEqual`, never throws), `digestsEqual` (SHA-256 both, compare 32-byte digests), `isAccessCodeValid(submitted, expected)` (false when `expected` is empty)
+    - Pure; no `server-only`
+    - _Requirements: 1.3, 14.1, 3.7_
+    - _Design: Pro Auth Design (Access code comparison)_
+  - [ ] 9.2 Write unit tests for the access code comparison
+    - Create: `src/lib/pro/accessCode.test.ts`
+    - Equal input, unequal input, different-length input returning false without throwing, empty configured code never matches an empty submitted code, multibyte characters
+    - _Requirements: 1.3, 14.1, 3.7, 16.10_
+  - [ ] 9.3 Write property test for the access code comparison (Property 8)
+    - Create: `src/lib/pro/accessCode.property.test.ts`
+    - **Property 8: Access code comparison matches equality and never throws**
+    - **Validates: Requirements 1.3, 3.7, 14.1**
+    - At least 100 runs; `fc.string()` pairs plus `[s, s]` and `[s, s + 'x']`; `fc.uint8Array()` pairs for `safeEqualBuffers`
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 8: Access code comparison matches equality and never throws`
+  - [ ] 9.4 Create `src/lib/pro/proCookie.ts`
+    - Create: `src/lib/pro/proCookie.ts`
+    - Export `PRO_COOKIE_NAME` (`hhi_pro`), `PRO_COOKIE_PATH` (`/api/pro`), `PRO_COOKIE_MAX_AGE_SECONDS` (43200), `ProCookiePayload`, `signProCookie`, `issueProCookie(secret, nowMs)`, `verifyProCookie(token, secret, nowMs)`
+    - Format `base64url(payload).base64url(HMAC-SHA256(secret, "pro:" + base64url(payload)))`; verify order: present, canonical base64url signature (decode then re-encode must equal the input), constant-time MAC compare, payload `{ role: 'pro', exp }`, `exp > nowMs` strictly; an empty secret never verifies; never throws
+    - Pure; no `server-only`
+    - _Requirements: 1.5, 1.6, 3.1, 3.13, 3.14, 14.1, 14.2_
+    - _Design: Pro Auth Design (Cookie format and verification)_
+  - [ ] 9.5 Write unit tests for the Pro cookie
+    - Create: `src/lib/pro/proCookie.test.ts`
+    - Expiry at `exp - 1`, `exp`, `exp + 1`; tampered payload; tampered signature; wrong secret; empty secret and a cookie signed with an empty key; malformed value; wrong number of parts; `pro:` purpose prefix; a valid `hhi_session` token (made with `signSessionToken`) is rejected by `verifyProCookie`, and a valid Pro cookie is rejected by `verifySessionToken` from `src/lib/rateLimiter.ts`
+    - Canonical base64url safeguard (16.21 b): a signature with its last character changed, with extra characters appended, or with a non-canonical encoding of the same 32 bytes fails verification
+    - _Requirements: 3.1, 3.13, 3.14, 14.2, 16.10, 16.21_
+  - [ ] 9.6 Write property test for the Pro cookie round trip (Property 7)
+    - Create: `src/lib/pro/proCookie.property.test.ts`
+    - **Property 7: Pro cookie round trip and tamper resistance**
+    - **Validates: Requirements 1.6, 3.1, 14.2, 16.11**
+    - At least 100 runs; sign then verify returns an equivalent payload before `exp`; EVERY single-character change of the signed value fails; a different secret fails; `exp` at or before the verification time fails; tokens that are not two dot-separated parts fail without throwing
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 7: Pro cookie round trip and tamper resistance`
+  - [ ] 9.7 Create `src/lib/pro/ipHash.ts`
+    - Create: `src/lib/pro/ipHash.ts`
+    - Export `hashClientIp(trustedIp, secret)`: `createHmac('sha256', secret).update('proauth-ip:' + trustedIp).digest('hex')` (64 hex characters)
+    - The raw IP is never stored, logged or returned
+    - _Requirements: 2.2, 14.6_
+    - _Design: Pro Auth Design (Hashed_IP)_
+  - [ ] 9.8 Write unit tests for `hashClientIp`
+    - Create: `src/lib/pro/ipHash.test.ts`
+    - 64 hex characters; deterministic; different IP gives a different hash; different secret gives a different hash; output never contains the raw IP
+    - _Requirements: 2.2, 14.6_
+
+- [ ] 10. Lockout flow
+  - [ ] 10.1 Create `src/lib/pro/loginFlow.ts` and the in-memory lockout store
+    - Create: `src/lib/pro/loginFlow.ts` (`LockoutStore`, `ReserveResult`, `LoginDeps`, `LoginOutcome`, `attemptLogin(code, ipHash, deps)`), `src/test/inMemoryLockoutStore.ts` (a pure store that states the lockout policy for the model run of Property 4)
+    - `attemptLogin`: reserve one attempt BEFORE comparing; refused gives `locked` with `retryAfterSeconds` (even for a correct code); store error gives `failed`; wrong code gives `invalid_code` (attempt stays counted); correct code releases the attempt (a release failure is logged by name and ignored) then `ok` with `issueProCookie`
+    - `nowMs` is a parameter everywhere; no real timers; log only `error.name`
+    - Pure given the injected store; no `server-only`, no AWS import
+    - _Requirements: 2.3, 2.4, 2.5, 2.6, 2.7, 2.11, 2.12, 2.15_
+    - _Design: Pro Auth Design (Login flow with an injected store and clock)_
+  - [ ] 10.2 Write property test for the lockout counter (Property 4, model store)
+    - Create: `src/lib/pro/loginFlow.property.test.ts`
+    - **Property 4: Lockout counter**
+    - **Validates: Requirements 2.1, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.11, 2.12, 16.5**
+    - At least 100 runs; sequences of 1 to 30 attempts (correct or wrong) from 1 to 3 Hashed_IPs inside one 15-minute window with an injected clock (never real timers); correct code before the 5th wrong attempt succeeds; after 5 wrong attempts every later attempt from that Hashed_IP (including a correct code) is `locked` with `retryAfterSeconds` from 1 to 900; one Hashed_IP never affects another; `count` never exceeds 5; a clock jump to `windowStart + 900000` or later resets the counter to 0; a store error gives `failed` and no cookie
+    - This task runs the model store only. The real-store half is added by the task "Extend Property 4 to the real lockout store"
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 4: Lockout counter`
+  - [ ] 10.3 Write unit tests for `attemptLogin`
+    - Create: `src/lib/pro/loginFlow.test.ts`
+    - Reserve happens before the code comparison; a correct code with 4 wrong attempts on record is accepted and the attempt is released; a correct code after 5 wrong attempts is `locked` and no cookie is issued; a store error on reserve returns `failed`; a release failure still returns `ok`; the logs contain only the error name (no code, cookie, IP or hash)
+    - _Requirements: 2.3, 2.4, 2.5, 2.7, 2.12, 2.15, 14.5_
+
+- [ ] 11. Checkpoint - Pure core verified
+  - Ensure all tests pass. Ask the user if any questions arise.
+  - Run `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`; all four must exit with code 0
+  - Pure core covered: types, emergency texts, copy, transition table, Time_Slot validation, trusted client IP, body reader, access code, Pro cookie, IP hash, lockout flow
+
+- [ ] 12. Test helpers, schemas and views
+  - [ ] 12.1 Create the fake DynamoDB table helper
+    - Create: `src/test/fakeDynamoTable.ts`
+    - In-memory model installed with the same `vi.mock('@aws-sdk/lib-dynamodb', ...)` pattern as `src/app/api/inspections/[id]/route.test.ts`; implements `GetCommand`, `PutCommand`, `UpdateCommand` and `QueryCommand` (`GSI1` only: sparse filter on `GSI1PK`, key condition `GSI1PK = :pk AND GSI1SK > :since`, `ScanIndexForward`, `Limit`, INCLUDE projection)
+    - Interprets the small expression grammar the code uses: `SET` with literals, `#alias`, `if_not_exists`, `list_append`, `+` and `-`; `ADD`; `REMOVE`; conditions with `attribute_exists`, `attribute_not_exists`, `= <> < <= > >=`, `AND`, `OR`, parentheses; throws on any unsupported token
+    - Throws a real `ConditionalCheckFailedException` when a condition is false; applies each command atomically; records every command in `fake.calls`; offers `fake.hold('UpdateCommand')` so two handlers can both finish their reads (race tests); rejects a DynamoDB reserved word (`status`, `count`, `ttl`) used without a `#` alias
+    - THE SHARED GUARD: fails the test on any other command class (`ScanCommand`, `DeleteCommand`, `BatchWriteCommand`, `BatchGetCommand`, `TransactWriteCommand`) and on any write to a `RATELIMIT#` item by this feature's routes
+    - _Requirements: 16.1, 16.7, 14.10, 12.2, 12.3_
+    - _Design: Testing Strategy (Test helpers)_
+  - [ ] 12.2 Write unit tests for the fake DynamoDB table
+    - Create: `src/test/fakeDynamoTable.test.ts`
+    - Expression grammar cases (SET, ADD, REMOVE, `list_append`, `if_not_exists`, conditions); `ConditionalCheckFailedException`; sparse `GSI1` query with ordering, `Limit` and projection; the guard fails on `ScanCommand`, `DeleteCommand` and `BatchWriteCommand`; the reserved-word check; `hold` gating
+    - _Requirements: 16.7, 14.10_
+  - [ ] 12.3 Create `src/test/jobFixtures.ts`
+    - Create: `src/test/jobFixtures.ts`
+    - `makeJobItem(status, overrides)` builds a stored item for each of the six statuses in a consistent shape (an `accepted` item has `offeredSlots`, a `booked` item has `bookedSlot` and `bookedAt`, an `info_requested` item has at least one `infoRequests` entry, `replyCount` equals `replies.length`); `arbitraryJobRecord` and `arbitraryInspectionResult` for fast-check (the emergency shape included)
+    - _Requirements: 12.1, 16.1_
+    - _Design: Testing Strategy (Test helpers)_
+  - [ ] 12.4 Create `src/test/proRouteHarness.ts`
+    - Create: `src/test/proRouteHarness.ts`
+    - `makeRequest(path, { method, body, cookie, headers })` building a `NextRequest`; `validProCookie(now)`; `withEnv({ PRO_ACCESS_CODE, SESSION_SECRET, DYNAMODB_TABLE_NAME, S3_BUCKET_NAME })`; `expectNoStore(response)`; console spies for `error` and `warn`; a helper that builds an `x-forwarded-for` header with enough trailing entries for the current `TRUSTED_PROXY_HOPS` so tests do not break when the constant changes
+    - _Requirements: 16.6, 16.1_
+  - [ ] 12.5 Create `src/lib/validation/jobSchema.ts`
+    - Create: `src/lib/validation/jobSchema.ts`
+    - Export `jobIdSchema` (`z.uuid()`), `loginBodySchema` (code 1 to 200, no trim), `declineBodySchema`, `askInfoBodySchema`, `replyBodySchema` (`{ text: z.string() }`, length rules run AFTER the Safety_Layer), `bookBodySchema`, `storedJobSchema` (with the `superRefine` that lets an `emergency` Job stay readable), `proListItemSchema`, `homeownerStatusViewSchema`, `proJobDetailSchema`, `proJobsResponseSchema`, `actionResponseSchema`, `apiErrorSchema`
+    - Zod 4; importable from browser and server; no `server-only`. The accept body uses `slotsSchema(nowMs)` from `timeSlots.ts` per request
+    - _Requirements: 12.10, 12.14, 6.15, 7.20, 14.8_
+    - _Design: Data Models (Zod schemas)_
+  - [ ] 12.6 Write unit tests for the job schemas
+    - Create: `src/lib/validation/jobSchema.test.ts`
+    - Unknown `status` fails; missing new attributes default (`infoRequests`, `replies`, `replyCount`); `replyCount` must equal `replies.length` except for `emergency`; `accepted` without `offeredSlots` fails and `booked` without `bookedSlot` fails; an emergency Job with other inconsistencies still parses; unknown request fields are ignored; `declineBodySchema` trims and enforces 200; `askInfoBodySchema` trims and enforces 1 to 300; `homeownerStatusViewSchema` accepts each view and rejects extras of the wrong shape
+    - _Requirements: 6.15, 7.5, 7.6, 7.8, 7.20, 12.10, 12.14_
+  - [ ] 12.7 Create `src/lib/jobs/views.ts`
+    - Create: `src/lib/jobs/views.ts`
+    - Export `effectiveStatus`, `toProListItem` (`trade: null` for an emergency), `toProDetail(job, photos)` (two exact shapes: Requirement 5.3 for non-emergency, Requirement 5.10 for emergency with `emergencyNote`), `toHomeownerStatusView` (field set per status; latest `infoRequests` entry as `question`; exactly `{ status, message }` for emergency)
+    - Never copy `diySteps`, `s3Keys`, `isEmergency`, `ttl`, `GSI1PK`, `GSI1SK`, `replyCount`, `statusUpdatedAt` or `bookedAt`
+    - Pure; no AWS, no `server-only`
+    - _Requirements: 4.5, 4.7, 5.3, 5.4, 5.10, 6.19, 8.4, 8.5, 11.13, 14.11_
+    - _Design: Components and Interfaces (Pure views)_
+  - [ ] 12.8 Write unit tests for the views and `effectiveStatus`
+    - Create: `src/lib/jobs/views.test.ts`
+    - One example per status for each view; `emergencyNote` equals `PRO_EMERGENCY_NOTE`; `offeredSlots`, `bookedSlot` and `declineReason` present only when stored; the latest question is used for `info_requested`
+    - `effectiveStatus` safeguard (16.21 a): a Job with `urgency` `emergency` OR `isEmergency` true and any other `status` becomes `emergency`; a consistent Job is unchanged
+    - _Requirements: 4.5, 4.7, 5.3, 5.10, 6.19, 8.4, 8.5, 16.21_
+  - [ ] 12.9 Write property test for the views (Property 10)
+    - Create: `src/lib/jobs/views.property.test.ts`
+    - **Property 10: Views expose exactly the allowed fields**
+    - **Validates: Requirements 4.5, 4.7, 5.3, 5.4, 5.10, 8.4, 8.5, 11.13, 11.14, 14.11, 16.15**
+    - At least 100 runs over `arbitraryJobRecord` with stray extra keys (`diySteps`, `s3Keys`, `GSI1PK`, `ttl`); exact key sets for the list item, the two detail shapes and the status view; `toHomeownerStatusView` output always passes `homeownerStatusViewSchema`
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 10: Views expose exactly the allowed fields`
+
+- [ ] 13. Data layer
+  - [ ] 13.1 Change `persistInspection` and export the shared client helpers
+    - Modify: `src/lib/aws/dynamodb.ts`
+    - Export `getDocClient`, `requireTableName`, `jobKey`
+    - `persistInspection` keeps its signature, its never-throws contract and the `ttl` formula (`createdAt` + 30 days); the same `PutItem` now also writes `status` (`emergency` when `isEmergency` or `urgency === 'emergency'`, otherwise `new`), `statusUpdatedAt` = `createdAt`, `GSI1PK` = `JOBS`, `GSI1SK` = `createdAt`, `replyCount` 0, `infoRequests` `[]`, `replies` `[]`; `offeredSlots`, `bookedSlot`, `bookedAt`, `declineReason` absent
+    - This is the "inspect route change": `POST /api/inspect` itself needs no further edit and still returns the plain `InspectionResult` (no `status` field in its response)
+    - `RATELIMIT#` items never get `GSI1PK`, `GSI1SK` or `status`
+    - _Requirements: 6.7, 6.8, 11.16, 12.2, 12.3, 12.4, 12.11_
+    - _Design: Data Models (Create a Job)_
+  - [ ] 13.2 Write unit tests for `persistInspection`
+    - Create: `src/lib/aws/dynamodb.persist.test.ts`
+    - Emergency and non-emergency items; `ttl` formula unchanged; failure returns false and does not throw; `getInspection` and the existing `RATELIMIT#` writes carry none of the new attributes; existing `dynamodb` tests stay green
+    - _Requirements: 6.7, 6.8, 12.2, 12.3, 12.4, 12.11_
+  - [ ] 13.3 Write property test for the created Job item (Property 13)
+    - Create: `src/lib/aws/dynamodb.persist.property.test.ts`
+    - **Property 13: A created Job carries the right status and index attributes**
+    - **Validates: Requirements 6.7, 6.8, 11.16, 12.4, 12.11**
+    - At least 100 runs over `arbitraryInspectionResult` (emergency shape included); DynamoDB document client mocked and the `PutCommand` input inspected: `status`, `statusUpdatedAt`, `GSI1PK`, `GSI1SK`, `replyCount`, empty lists, absent optional attributes, `ttl`, every result field preserved
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 13: A created Job carries the right status and index attributes`
+  - [ ] 13.4 Write integration test: inspect route persists the new job fields
+    - Create: `src/app/api/inspect/route.jobStatus.test.ts`
+    - Uses the fake DynamoDB table: a non-emergency inspection is stored with `status` `new` and the index attributes; an emergency inspection (the context-answer path, Bedrock never called) is stored with `status` `emergency`, cost 0, empty `jobBrief` and `diySteps`, no slots; the HTTP response body is still the plain `InspectionResult` without a `status` field; the existing inspect tests stay green
+    - _Requirements: 6.7, 6.8, 11.16, 12.4, 16.14_
+  - [ ] 13.5 Create `src/lib/aws/jobs.ts` reads
+    - Create: `src/lib/aws/jobs.ts` (first part)
+    - Start with `import 'server-only'`. Export `JobLookup`, `WriteResult`, `getJob(id)`, `queryRecentJobs(nowMs)`
+    - `getJob`: strongly consistent `GetCommand` (`ConsistentRead: true`); returns `missing`, `legacy` (no `status` attribute), `invalid` (fails `storedJobSchema`, including an unknown status) or `found`; applies `effectiveStatus` once; throws on a DynamoDB error
+    - `queryRecentJobs`: exactly one `QueryCommand` with `IndexName` `GSI1`, `KeyConditionExpression` `GSI1PK = :pk AND GSI1SK > :since` (`:pk` `JOBS`, `:since` = injected now minus 30 days as `toISOString()`), `ScanIndexForward: false`, `Limit: 50`, no `ExclusiveStartKey`; every item through `proListItemSchema`; invalid items omitted with one static log line; `LastEvaluatedKey` ignored
+    - Never sends `Scan`, `DeleteItem`, `BatchWriteItem`
+    - _Requirements: 4.1, 4.2, 4.3, 4.9, 4.10, 4.11, 4.17, 5.1, 6.14, 6.15, 6.19, 12.10, 12.14, 14.10_
+    - _Design: Data Models (Reads)_
+  - [ ] 13.6 Write unit tests for the Job reads
+    - Create: `src/lib/aws/jobs.read.test.ts`
+    - `getJob` sends `ConsistentRead: true` and returns `missing`, `legacy`, `invalid` and `found`; `effectiveStatus` applied; thrown errors propagate; `queryRecentJobs` sends exactly one `QueryCommand` with `IndexName` `GSI1`, key condition, `ScanIndexForward` false, `Limit` 50 and the lower bound computed from the injected time; fewer than 50 and none; invalid items omitted; no `ScanCommand`, `DeleteCommand` or `BatchWriteCommand` is ever sent (shared guard); a legacy item and a pre-index item never appear
+    - _Requirements: 4.2, 4.3, 4.10, 4.11, 4.17, 5.1, 6.14, 6.19, 12.14, 16.7, 16.21_
+  - [ ] 13.7 Add the conditional status writes to `src/lib/aws/jobs.ts`
+    - Modify: `src/lib/aws/jobs.ts`
+    - Add `applyTransition(id, expected, next, patch, nowIso)` (accept: `offeredSlots`; decline: `declineReason` only when the trimmed reason is non-empty; ask-info: `list_append(if_not_exists(infoRequests, :empty), :q)`), `applyReply(id, text, nowIso)` and `applyBooking(id, slot, nowIso)` as one `UpdateCommand` each
+    - Conditions: transitions `attribute_exists(PK) AND #status = :expected` (for `accept` and `decline` of an `info_requested` Job, `:expected` is `info_requested`); reply `attribute_exists(PK) AND #status = :infoRequested AND replyCount < :five` with `replies` and `replyCount` changed in the same write; booking `attribute_exists(PK) AND #status = :accepted` leaving `offeredSlots` untouched
+    - Every write sets `statusUpdatedAt`; NO write mentions `ttl`; `infoRequests`, `replies` and `replyCount` are not written by accept or decline; `ConditionalCheckFailedException` returns `{ ok: false, reason: 'CONDITION_FAILED' }`, every other error is rethrown
+    - _Requirements: 6.9, 6.12, 6.18, 7.1, 7.3, 7.5, 7.7, 9.8, 10.5, 12.1, 12.11, 12.13_
+    - _Design: Data Models (Writes)_
+  - [ ] 13.8 Add `applySafetyOverride` to `src/lib/aws/jobs.ts`
+    - Modify: `src/lib/aws/jobs.ts`
+    - Add `applySafetyOverride(id, replyText, nowIso)`: attempt A appends the reply (trimmed, cut to 500 characters) and `ADD replyCount 1` when `replyCount < 5`; attempt B (only when A fails its condition) performs the same override without the reply and without changing `replyCount`; B failing its condition returns `skipped` (Job missing or already an emergency)
+    - Both attempts set `status` `emergency`, `statusUpdatedAt`, `urgency` `emergency`, `isEmergency` true, costs 0, `jobBrief` `''`, `diySteps` `[]` and `REMOVE offeredSlots, bookedSlot, bookedAt`; the condition requires only that the Job exists and `status` is absent or not `emergency` (plus `replyCount` room for A); `declineReason`, `infoRequests` and `ttl` are left alone
+    - Returns `applied` or `skipped`; any other error propagates (the route swallows it)
+    - _Requirements: 6.13, 11.1, 11.2, 11.3, 11.4, 11.5, 12.1, 12.13_
+    - _Design: Data Models (Safety override)_
+  - [ ] 13.9 Write unit tests for the Job writes and the override
+    - Create: `src/lib/aws/jobs.write.test.ts`
+    - Each write sends the exact `ConditionExpression` (including the `info_requested` condition for accept and decline); `statusUpdatedAt` is set on every status change; no expression string contains `ttl`; accept and decline do not touch `infoRequests`, `replies` or `replyCount`; the `declineReason` is stored only when non-empty; reply keeps `replyCount` equal to `replies.length`
+    - Override: condition requires only existence and not-emergency; attempt B runs when `replyCount` is 5 (reply not stored, `replyCount` unchanged); both attempts remove `offeredSlots`, `bookedSlot` and `bookedAt`; stored reply trimmed and cut to 500 characters; an already-emergency Job returns `skipped` with no further write; a status change out of `declined` and `booked`
+    - Condition failure returns `CONDITION_FAILED`; other errors are rethrown; no `Scan`, `DeleteItem` or `BatchWriteItem` is ever sent
+    - _Requirements: 6.9, 6.12, 6.13, 6.18, 9.8, 10.5, 11.1, 11.2, 11.4, 12.11, 12.13, 16.9, 16.7_
+  - [ ] 13.10 Create `src/lib/aws/lockout.ts`
+    - Create: `src/lib/aws/lockout.ts`
+    - Start with `import 'server-only'`. Export `LOCKOUT_MAX` (5), `LOCKOUT_WINDOW_MS` (900000), `dynamoLockoutStore` implementing `LockoutStore`
+    - Step 1 reserve: `ADD #count :one SET windowStart = if_not_exists(windowStart, :now), #ttl = if_not_exists(#ttl, :ttl)` with condition `attribute_not_exists(windowStart) OR (windowStart > :cutoff AND #count < :max)`; step 2 new window: `SET #count = :one, windowStart = :now, #ttl = :ttl` with condition `windowStart <= :cutoff`; release: `SET #count = #count - :one` with condition `attribute_exists(PK) AND #count > :zero AND windowStart = :ws`
+    - `reserve` loops at most 3 times (step 1, consistent `GetItem`, step 2); refused returns `retryAfterSeconds` clamped to 1 to 900; contention throws `LockoutContention`; non-conditional errors propagate (caller fails closed)
+    - Item `PK = SK = PROAUTH#<ipHash>`; `ttl` = `floor((windowStart + 900000) / 1000)`; no `GSI1PK`, `GSI1SK` or `status`; never touches `RATELIMIT#` items; uses only `UpdateItem` and `GetItem`; `nowMs` is a parameter
+    - _Requirements: 2.1, 2.3, 2.4, 2.8, 2.10, 2.12, 2.13, 12.2, 14.10_
+    - _Design: Data Models (Lockout_Counter)_
+  - [ ] 13.11 Write unit tests for the lockout store
+    - Create: `src/lib/aws/lockout.test.ts`
+    - Exact step 1, step 2 and release expressions; first-ever attempt creates the item; the 6th reserve is refused with `retryAfterSeconds` in 1 to 900; an expired window starts a new one with `count` 1; the item vanished through `ttl` between steps; a lost race on step 2 loops back to step 1; contention after 3 loops throws; non-conditional errors are rethrown; release never goes below 0 and never into a newer window; no `RATELIMIT#` write; the decision uses `windowStart`, never `ttl`
+    - _Requirements: 2.1, 2.3, 2.4, 2.8, 2.10, 2.12, 2.13_
+  - [ ] 13.12 Extend Property 4 to the real lockout store
+    - Modify: `src/lib/pro/loginFlow.property.test.ts`
+    - Add a second `fc.assert` that runs the same sequences against the real `dynamoLockoutStore` over the fake DynamoDB table (proves the actual expressions implement the policy), including two concurrent `reserve` calls that must not push `count` above 5, and a tail that jumps the clock by 900000 or more
+    - Keep the tag and requirement list of Property 4
+    - **Property 4: Lockout counter**
+    - **Validates: Requirements 2.1, 2.3, 2.8, 2.9, 16.5**
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 4: Lockout counter`
+  - [ ] 13.13 Write regression test: `GET /api/inspections/[id]` stays unchanged
+    - Modify: `src/app/api/inspections/[id]/route.test.ts`
+    - Add: a stored item that carries EVERY new attribute (`status`, `statusUpdatedAt`, `GSI1PK`, `GSI1SK`, `offeredSlots`, `bookedSlot`, `bookedAt`, `declineReason`, `infoRequests`, `replies`, `replyCount`) returns HTTP 200 with exactly the `InspectionResult` keys and no new attribute
+    - No change to `src/app/api/inspections/[id]/route.ts`
+    - _Requirements: 14.11, 16.14_
+    - _Design: Data Models (Shared types)_
+
+- [ ] 14. Server helpers
+  - [ ] 14.1 Create `src/lib/pro/proAuth.ts`
+    - Create: `src/lib/pro/proAuth.ts`
+    - Start with `import 'server-only'`. Export `readProConfig` (reads both variables on every call; one warning per missing or empty variable naming ONLY the variable), `requirePro(request, nowMs)` (synchronous; reads only the `hhi_pro` cookie; empty `SESSION_SECRET` means 401; returns the 401 `noStoreJson` response on failure), `buildLoginCookie(value)`, `buildLogoutCookie()`
+    - Cookie attributes: HttpOnly, Secure, SameSite=Strict, Path `/api/pro`, Max-Age 43200 (login) or 0 (logout)
+    - The guard runs before any body read, id check, DynamoDB or S3 call
+    - _Requirements: 3.1, 3.2, 3.3, 3.5, 3.7, 3.8, 3.9, 3.13, 1.5, 1.11, 14.3_
+    - _Design: Pro Auth Design (Configuration, Route guard)_
+  - [ ] 14.2 Write unit tests for `proAuth`
+    - Create: `src/lib/pro/proAuth.test.ts`
+    - `readProConfig` warnings name only the variable and never log a value; cookie attributes of login and logout (including `Max-Age=0`); `requirePro` with an empty secret returns 401; absent, malformed, tampered, wrong-secret and expired cookies return 401 `UNAUTHORIZED` with `Cache-Control: no-store`; a valid `hhi_session` cookie without a Pro cookie is 401
+    - _Requirements: 3.1, 3.2, 3.5, 3.8, 3.13, 14.3_
+  - [ ] 14.3 Create `src/lib/safety/replyCheck.ts`
+    - Create: `src/lib/safety/replyCheck.ts`
+    - Start with `import 'server-only'`. Export `replyTriggersEmergency(text)`: `checkEmergency({ contextAnswers: { location: text, duration: '', recentChanges: '' } }).isEmergency`; no Bedrock output; the full untrimmed text
+    - _Requirements: 9.4, 9.3_
+    - _Design: Components and Interfaces (Emergency helpers)_
+  - [ ] 14.4 Create `src/lib/jobs/conflict.ts`
+    - Create: `src/lib/jobs/conflict.ts`
+    - Start with `import 'server-only'`. Export `conflictResponse(id, audience)`: one strongly consistent re-read after a failed condition; `emergency` gives 409 `JOB_IS_EMERGENCY` (Pro note for `pro`, `{ error, message: EMERGENCY_MESSAGE, status: 'emergency' }` for `homeowner`); any other status gives 409 `ILLEGAL_TRANSITION` with the current `status`; a Job that is now missing or invalid gives 404 or 500 `RESULT_INVALID`; a re-read error gives 500 `ACTION_FAILED`; never retries a write
+    - Bodies never include `offeredSlots`, `bookedSlot`, `bookedAt` or free text
+    - _Requirements: 6.10, 6.11, 7.11, 10.7, 11.13, 9.11_
+    - _Design: Route Handlers (runProAction and conflicts)_
+  - [ ] 14.5 Write unit tests for `replyCheck` and `conflictResponse`
+    - Create: `src/lib/safety/replyCheck.test.ts`, `src/lib/jobs/conflict.test.ts`
+    - Each of the four trigger codes is detected; clean text and a short text are not; behaviour matches `checkEmergency` for a single context answer
+    - Conflict: emergency (Pro and Homeowner bodies), non-emergency status, missing, invalid and re-read failure; exactly one re-read and no second write
+    - _Requirements: 6.10, 9.4, 11.13_
+  - [ ] 14.6 Create `src/lib/jobs/proAction.ts`
+    - Create: `src/lib/jobs/proAction.ts`
+    - Start with `import 'server-only'`. Export `runProAction({ request, params, action, parseBody, buildPatch, precheck })` running the fixed order: `requirePro` (cookie first), body size cap, JSON parse and object check, Zod, id UUID, `getJob`, `transition`, `precheck`, conditional `applyTransition`, conflict re-read
+    - Stops at the first failing check; 404 for a missing or status-less Job; 500 `RESULT_INVALID` for an invalid Job; 409 `ILLEGAL_TRANSITION` or `JOB_IS_EMERGENCY` with no write when the transition is rejected; 500 `ACTION_FAILED` on other errors (logs `error.name` only)
+    - Never imports the rate limiter, Bedrock or the Safety_Layer
+    - _Requirements: 7.10, 7.11, 7.12, 7.13, 7.15, 7.16, 7.17, 7.20, 7.21, 6.9, 6.10, 6.11, 3.3_
+    - _Design: Route Handlers (proAction.ts)_
+
+- [ ] 15. Homeowner routes
+  - [ ] 15.1 Create `GET /api/inspections/[id]/status`
+    - Create: `src/app/api/inspections/[id]/status/route.ts`
+    - `runtime = 'nodejs'`; id UUID (404), `getJob` (404 for missing and legacy, 500 `RESULT_INVALID`, 500 `LOAD_FAILED`), `toHomeownerStatusView`, 200; every response `Cache-Control: no-store`; does not import the rate limiter and does not set `hhi_session`
+    - _Requirements: 8.2, 8.4, 8.5, 8.14, 8.15, 8.17, 14.15, 6.14_
+    - _Design: Route Handlers (GET status)_
+  - [ ] 15.2 Write integration tests for the status route
+    - Create: `src/app/api/inspections/[id]/status/route.test.ts`
+    - One view per status with the exact field set; emergency body is exactly `{ status, message }`; a Job that is an emergency by `urgency` or `isEmergency` only (the `effectiveStatus` safeguard); 400-style non-UUID and unknown id return the SAME 404 body; Job without `status` gives 404; DynamoDB failure gives 500 `LOAD_FAILED` with no secret, cookie or free text in the log; no `Set-Cookie`; the rate limiter module is never imported (throwing mock factory); `Cache-Control: no-store`
+    - _Requirements: 8.2, 8.4, 8.5, 8.14, 8.15, 8.17, 14.15, 16.6, 16.17_
+  - [ ] 15.3 Create `POST /api/inspections/[id]/reply`
+    - Create: `src/app/api/inspections/[id]/reply/route.ts`
+    - Order: (1) body size cap 4096, (2) JSON parse and `text` is a string, (3) Safety_Layer on the full untrimmed text, (4) id UUID, (5) trimmed length 1 to 500 with the exact messages, (6) `getJob`, (7) status check, (8) reply limit 429, (9) conditional `applyReply` then `conflictResponse`
+    - A trigger at step 3 skips steps 4 to 9: if the id is a UUID call `applySafetyOverride` (any outcome swallowed, `error.name` logged), then respond 200 `{ status: 'emergency', message }` for any id and any Job state. No `GetCommand` or `UpdateCommand` before step 3
+    - Success returns only `{ status: 'new' }`; emergency Job without trigger returns 409 `JOB_IS_EMERGENCY` with the Emergency_Message; does not import the rate limiter; does not set `hhi_session`; `no-store`
+    - _Requirements: 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 9.10, 9.11, 9.12, 9.13, 9.14, 9.15, 9.18, 9.19, 9.22, 11.1, 11.4, 11.5, 14.7_
+    - _Design: Request Pipelines (Homeowner reply); Route Handlers (reply)_
+  - [ ] 15.4 Write integration tests for the reply route
+    - Create: `src/app/api/inspections/[id]/reply/route.test.ts`
+    - Success (200 `{ status: 'new' }` only); 400 for a non-string `text` and for an empty text ("Please write a reply before sending."); 501 and 600 characters with no trigger: 400 with "Your reply is too long. Please shorten it to 500 characters or fewer." and no write; 600 characters and about 4,000 bytes WITH a trigger: 200 emergency and the override applied; 404 for non-UUID, unknown and legacy Jobs; 413 for a body over 4 KB (a trigger inside it is not checked); 409 `ILLEGAL_TRANSITION` with the current status for `accepted` and `declined`; 409 `JOB_IS_EMERGENCY` with the message for an emergency Job without a trigger; a triggering reply still 200 for `accepted`, `declined`, `booked`, an unknown UUID and a non-UUID; 429 `REPLY_LIMIT_REACHED` with a hand-built `info_requested` item at `replyCount` 5; condition failure triggers one re-read and no second write; DynamoDB failure 500 `ACTION_FAILED` with no secret, cookie or free text in the log; no `GetCommand` or `UpdateCommand` before the Safety_Layer ran; the rate limiter is never imported and no `RATELIMIT#` write
+    - _Requirements: 9.3, 9.5, 9.6, 9.9, 9.10, 9.11, 9.12, 9.13, 9.14, 9.15, 9.19, 9.22, 11.1, 14.15, 16.6, 16.17_
+  - [ ] 15.5 Create `POST /api/inspections/[id]/book`
+    - Create: `src/app/api/inspections/[id]/book/route.ts`
+    - Order: body size cap, JSON and `bookBodySchema`, id UUID (404), `getJob`, status gate (`emergency` gives 409 `JOB_IS_EMERGENCY` with `{ error, message, status: 'emergency' }` and no slot; not `accepted` gives 409 `ILLEGAL_TRANSITION`), `SLOT_NOT_OFFERED` (400) BEFORE `SLOT_EXPIRED` (409, Job stays `accepted`), conditional `applyBooking`, then `conflictResponse`
+    - Success returns `{ status: 'booked', bookedSlot }`; does not import the rate limiter, does not set `hhi_session`; `no-store`
+    - _Requirements: 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.12, 10.13, 10.14, 11.13, 14.7_
+    - _Design: Request Pipelines (Homeowner book); Route Handlers (book)_
+  - [ ] 15.6 Write integration tests for the book route
+    - Create: `src/app/api/inspections/[id]/book/route.test.ts`
+    - Success; 400 `INVALID_REQUEST`; `SLOT_NOT_OFFERED` for a slot not in `offeredSlots`; `SLOT_EXPIRED` when the injected time is at and after the start of an offered slot; a slot that is both not offered and in the past returns `SLOT_NOT_OFFERED`; 409 `ILLEGAL_TRANSITION` for non-`accepted` statuses; emergency 409 with the message and no slots; two concurrent bookings produce exactly one success; 404 for non-UUID, unknown and legacy; 413; DynamoDB failure 500 `ACTION_FAILED`; the booking write sets `bookedSlot`, `bookedAt`, `statusUpdatedAt` and leaves `offeredSlots` and `ttl` unchanged; the rate limiter is never imported; log hygiene
+    - _Requirements: 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.12, 10.13, 10.14, 16.6, 16.9, 16.17_
+
+- [ ] 16. Pro read and action routes
+  - [ ] 16.1 Create `GET /api/pro/jobs`
+    - Create: `src/app/api/pro/jobs/route.ts`
+    - `requirePro` first, then `queryRecentJobs(Date.now())`, map through `toProListItem`, respond `{ jobs }`; no cursor or page parameter (ignored); query failure gives 500 `LOAD_FAILED` ("We couldn't load the jobs. Please try again."); `no-store`; no rate limiter
+    - _Requirements: 4.1, 4.4, 4.5, 4.7, 4.9, 4.14, 3.9_
+    - _Design: Route Handlers (GET /api/pro/jobs)_
+  - [ ] 16.2 Write integration tests for the job list route
+    - Create: `src/app/api/pro/jobs/route.test.ts`
+    - 200 with up to 50 items newest first; empty list 200; exact field set and `trade: null` for an emergency; exactly one `QueryCommand` with `GSI1`, `GSI1PK = "JOBS"`, `GSI1SK` lower bound 30 days before the injected time, `ScanIndexForward` false, `Limit` 50 (shared guard: no `Scan`, `DeleteItem`, `BatchWriteItem`); cursor ignored; a Query failure gives 500 `LOAD_FAILED` with no secret in the log; 401 matrix (absent, malformed, tampered, wrong-secret, expired cookie) with ZERO DynamoDB and S3 calls; 401 when `SESSION_SECRET` is unset
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.7, 4.9, 4.14, 3.2, 3.3, 3.5, 16.6, 16.7_
+  - [ ] 16.3 Create `GET /api/pro/jobs/[id]`
+    - Create: `src/app/api/pro/jobs/[id]/route.ts`
+    - Order: `requirePro`, id UUID (404), `getJob` (404 missing or legacy, 500 `RESULT_INVALID`, 500 `LOAD_FAILED`), then for an emergency Job `toProDetail(job, [])` with NO S3 call; otherwise `Promise.allSettled` over `getDownloadPresignedUrl(key, 900)` per key, omit a failed photo (log `error.name`), keep stored order
+    - URLs are generated per request, never stored, cached or logged; `no-store`
+    - _Requirements: 5.1, 5.2, 5.3, 5.8, 5.9, 5.10, 5.15, 5.17, 11.14, 14.12_
+    - _Design: Route Handlers (GET /api/pro/jobs/[id])_
+  - [ ] 16.4 Write integration tests for the job detail route
+    - Create: `src/app/api/pro/jobs/[id]/route.test.ts`
+    - Field set for an active Job (no `diySteps`, `s3Keys`, `isEmergency`, `replyCount`, `statusUpdatedAt`, `bookedAt`); exact emergency shape with `emergencyNote` and ZERO S3 calls; photo URLs generated per request with expiry 900; one failed URL omitted while the others return; 404 for non-UUID, unknown and legacy with the same body; 500 `RESULT_INVALID` for a stored Job that fails validation (no item data in the body); 500 `LOAD_FAILED`; `Cache-Control: no-store`; 401 matrix with zero DynamoDB and S3 calls
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.8, 5.9, 5.10, 5.15, 5.17, 14.12, 14.15, 16.6, 16.15_
+  - [ ] 16.5 Create `POST /api/pro/jobs/[id]/accept`
+    - Create: `src/app/api/pro/jobs/[id]/accept/route.ts`
+    - Calls `runProAction` with `parseBody` = `z.object({ slots: slotsSchema(nowMs) })` (the first issue message selects the `SLOT_RULE_MESSAGES` text for the 400) and `buildPatch` = `{ action: 'accept', slots }`; success 200 `{ status: 'accepted' }`
+    - Does not import the Safety_Layer or the rate limiter
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.10, 7.11, 7.14, 7.15, 7.17_
+    - _Design: Route Handlers (accept, decline, ask-info)_
+  - [ ] 16.6 Write integration tests for the accept route
+    - Create: `src/app/api/pro/jobs/[id]/accept/route.test.ts`
+    - Success from `new` AND from `info_requested` (200 `accepted`, `offeredSlots` stored sorted and canonical, `statusUpdatedAt` set, `ttl` unchanged; the condition is `status = info_requested` for the latter); 400 for each rule (count, format, distinct, past, horizon) with the rule message and the Job unchanged; 404; 409 `ILLEGAL_TRANSITION` for `accepted`, `declined`, `booked`; 409 `JOB_IS_EMERGENCY` with the Pro note and no slots; 413; 500 `ACTION_FAILED`; condition failure triggers one re-read and no second write; check order (a 401 never gives 400, 404 or 413); 401 matrix with zero AWS calls; log hygiene; no rate limiter
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.10, 7.11, 7.12, 7.13, 7.15, 7.16, 7.17, 7.21, 6.9, 6.10, 16.6, 16.9_
+  - [ ] 16.7 Create `POST /api/pro/jobs/[id]/decline`
+    - Create: `src/app/api/pro/jobs/[id]/decline/route.ts`
+    - Calls `runProAction` with `declineBodySchema` and `buildPatch` = `{ action: 'decline', reason: trimmed || undefined }`; success 200 `{ status: 'declined' }`; `declineReason` stored only when non-empty
+    - _Requirements: 7.5, 7.6, 7.10, 7.11, 7.14, 7.15, 7.17_
+    - _Design: Route Handlers (accept, decline, ask-info)_
+  - [ ] 16.8 Write integration tests for the decline route
+    - Create: `src/app/api/pro/jobs/[id]/decline/route.test.ts`
+    - Success from `new` AND from `info_requested` (the question, `replies` and `replyCount` stay unchanged); reason trimmed and stored; empty and whitespace reason not stored; 201-character reason gives 400 and the Job unchanged; 404; 409 `ILLEGAL_TRANSITION`; 409 `JOB_IS_EMERGENCY`; 413; 500; condition failure re-read; 401 matrix; log hygiene (the reason never appears in the log)
+    - _Requirements: 7.5, 7.6, 7.10, 7.11, 7.12, 7.13, 7.16, 6.18, 16.6_
+  - [ ] 16.9 Create `POST /api/pro/jobs/[id]/ask-info`
+    - Create: `src/app/api/pro/jobs/[id]/ask-info/route.ts`
+    - Calls `runProAction` with `askInfoBodySchema`, `buildPatch` = `{ action: 'ask_info', question }` and `precheck` returning 409 `REPLY_LIMIT_REACHED` when `replyCount >= 5`; success 200 `{ status: 'info_requested' }`; only a `new` Job can be asked
+    - _Requirements: 7.7, 7.8, 7.9, 7.10, 7.11, 7.14, 7.15, 7.17, 6.17_
+    - _Design: Route Handlers (accept, decline, ask-info)_
+  - [ ] 16.10 Write integration tests for the ask-info route
+    - Create: `src/app/api/pro/jobs/[id]/ask-info/route.test.ts`
+    - Success from `new` (question trimmed and appended with `askedAt`); missing, non-string, empty and 301-character question give 400; ask-info for a Job in `info_requested` gives 409 `ILLEGAL_TRANSITION` (one question at a time); 409 `REPLY_LIMIT_REACHED` at `replyCount` 5; 404; 409 `JOB_IS_EMERGENCY`; 413; 500; condition failure re-read; 401 matrix; log hygiene
+    - _Requirements: 7.7, 7.8, 7.9, 7.10, 7.11, 7.12, 7.13, 7.16, 6.17, 16.6, 16.17_
+
+- [ ] 17. Route-level property and cross-cutting tests
+  - [ ] 17.1 Write property test: emergency stays emergency through every handler (Property 2, route half)
+    - Create: `src/app/api/emergencyIrreversible.property.test.ts`
+    - **Property 2: Emergency stays emergency, through every handler and every view**
+    - **Validates: Requirements 6.3, 7.11, 8.5, 9.11, 10.7, 11.3, 11.9, 11.13, 16.3**
+    - At least 100 runs; sequences of 1 to 20 operations (accept with valid slots, decline, ask-info, reply without a trigger, book, status read, Pro detail read) over the REAL handlers and the fake table; the Job starts as created-emergency or overridden from each of the other five statuses; stored `status` stays `emergency`; every write returns 409 `JOB_IS_EMERGENCY`; the status route returns exactly `{ status, message }`; no response contains `offeredSlots`, `bookedSlot` or `bookedAt`
+    - The UI half (Status_Panel renders nothing) is the task "Write property test: Status_Panel renders nothing for an emergency (Property 2, UI half)"
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 2: Emergency stays emergency, through every handler and every view`
+  - [ ] 17.2 Write property test: any triggering reply ends in emergency (Property 3)
+    - Create: `src/app/api/inspections/[id]/reply/reply.safety.property.test.ts`
+    - **Property 3: Any triggering reply ends in emergency, whatever the state**
+    - **Validates: Requirements 6.13, 9.3, 9.4, 9.5, 9.6, 9.7, 11.1, 11.2, 11.4, 11.5, 11.12, 16.4**
+    - At least 100 runs; each of the four trigger phrases inserted at a random position in surrounding text with the serialised body up to the 4,096-byte cap (replies over 500 characters included); previous status from all six; `replyCount` 0 to 5; target is an existing Job, a UUID with no Job, a Job without `status` or a non-UUID; the write succeeds or throws; response is always 200 with the Emergency_Message; no `GetCommand` or `UpdateCommand` before `checkEmergency` ran (spy on `checkEmergency` and the fake table call log); when the Job exists and the write succeeds: emergency fields set, `offeredSlots`, `bookedSlot`, `bookedAt` removed, `replyCount` equals `replies.length` and is at most 5
+    - Include two fixed examples: a text of about 4,000 bytes and a text of 600 characters
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 3: Any triggering reply ends in emergency, whatever the state`
+  - [ ] 17.3 Write property test: tradesperson text and slots never trigger an emergency (Property 5)
+    - Create: `src/app/api/pro/proText.property.test.ts`
+    - **Property 5: Tradesperson text and slots never trigger an emergency**
+    - **Validates: Requirements 7.14, 11.11, 16.16**
+    - At least 100 runs; decline `reason`, ask-info `question` and Time_Slot values mixed with the four trigger phrases; the safety module is mocked with a spy that must stay uncalled; the stored status is the expected non-emergency status; the homeowner status view never contains the tradesperson text as, or inside, the Emergency_Message
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 5: Tradesperson text and slots never trigger an emergency`
+  - [ ] 17.4 Write property test: racing actions have exactly one winner (Property 11)
+    - Create: `src/app/api/race.property.test.ts`
+    - **Property 11: Racing actions have exactly one winner**
+    - **Validates: Requirements 6.9, 6.10, 6.11, 9.10, 10.6, 10.7, 11.15, 16.9, 16.20**
+    - At least 100 runs; pairs of operations over the fake table with `hold('UpdateCommand')` so both handlers finish their reads first: reply versus accept and reply versus decline on one `info_requested` Job produce exactly one HTTP 200 and the loser HTTP 409 `ILLEGAL_TRANSITION` with the winner's status; two bookings of one `accepted` Job produce one success; a pair containing the safety override always ends in `emergency` in both orders and the loser gets 409 `JOB_IS_EMERGENCY`; no loser retries a write
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 11: Racing actions have exactly one winner`
+  - [ ] 17.5 Write property test: reply bookkeeping stays consistent (Property 12)
+    - Create: `src/app/api/replyBookkeeping.property.test.ts`
+    - **Property 12: Reply bookkeeping stays consistent**
+    - **Validates: Requirements 6.12, 6.18, 7.9, 9.8, 9.9, 11.1, 12.1, 12.11, 12.13**
+    - At least 100 runs; sequences of up to 30 operations from `ask`, `reply`, `accept`, `decline`, `triggerReply` over a Job created as `new`; after every step `replyCount` equals `replies.length` and is at most 5, `infoRequests.length` is at most 5, `ttl` is unchanged, `statusUpdatedAt` changes exactly when `status` changes, ask-info is refused with 409 `REPLY_LIMIT_REACHED` at 5 replies, and a non-triggering reply is never stored beyond the fifth
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 12: Reply bookkeeping stays consistent`
+  - [ ] 17.6 Write suite-level guard test: no rate limiter, no forbidden commands, no RATELIMIT# writes
+    - Create: `src/app/api/noRateLimiter.test.ts`
+    - Imports every Homeowner_API route and Pro_API route that exists at this point (`status`, `reply`, `book`, `pro/jobs`, `pro/jobs/[id]`, `accept`, `decline`, `ask-info`) with throwing mock factories for `@/lib/rateLimiter` and `@/lib/aws/bedrock`; drives one request through each over the fake table; asserts no `RATELIMIT#` item is written, no `Set-Cookie: hhi_session` is set, and the shared guard saw no `ScanCommand`, `DeleteCommand` or `BatchWriteCommand`
+    - The login and logout routes are covered in their own tests (tasks under "Pro login and logout routes (DEPLOY-GATED)")
+    - _Requirements: 2.13, 7.17, 8.14, 9.14, 10.12, 14.10, 16.7, 16.17_
+
+- [ ] 18. Checkpoint - Data layer and routes verified
+  - Ensure all tests pass. Ask the user if any questions arise.
+  - Run `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`; all four must exit with code 0
+  - Covered: the data layer, the Homeowner_API routes and the Pro_API read and action routes. NOT yet covered: the rate limiter change and the Pro login and logout routes, which are DEPLOY-GATED and come after the DEPLOY GATE task
+  - Existing `intake-and-triage` tests (including `route.bodyLimit.test.ts`) must still pass
+
+- [ ] 19. Client emergency handling and session cache
+  - [ ] 19.1 Apply the emergency non-downgrade rule in the loader and the cache
+    - Modify: `src/lib/inspectionLoader.ts`, `src/lib/sessionResultCache.ts`
+    - `resolveFetchOutcome(cached, outcome)`: when `cached` is an emergency, return the cached result unless the outcome is an emergency copy; a failed, invalid, not-found or non-emergency fresh outcome never hides it. `loadInspection` returns `fresh` only when the fresh copy is the one shown
+    - `cacheResult`: a non-emergency result never overwrites a cached emergency entry (defence in depth); a cached non-emergency copy meeting a fresh emergency copy is still replaced
+    - Use `isEmergencyResult` from `@/lib/emergency/emergencyView`; `sessionStorage` errors stay swallowed
+    - _Requirements: 11.7, 14.6_
+    - _Design: Safety Design (The homeowner's emergency view, Non-downgrade rule)_
+  - [ ] 19.2 Add `markEmergency` to `useInspection`
+    - Modify: `src/hooks/useInspection.ts`
+    - Return `markEmergency()` in `UseInspectionReturn`: builds `toEmergencyResult(current)`, writes it with `cacheResult` (even when the server write failed), and sets state in the same render pass so `ResultsView` shows the emergency view
+    - Existing hook behaviour (cache first, background GET, 404 handling) is unchanged
+    - _Requirements: 11.6, 11.8_
+    - _Design: Safety Design (The homeowner's emergency view)_
+  - [ ] 19.3 Write unit tests for the loader and the cache
+    - Modify: `src/lib/inspectionLoader.test.ts`, `src/lib/sessionResultCache.test.ts`
+    - A cached emergency is not replaced by a fresh non-emergency copy with status `new`, `info_requested`, `accepted`, `declined` or `booked`; a failed or 404 fetch keeps the cached emergency; `cacheResult` of a non-emergency copy leaves a cached emergency entry unchanged; an emergency response writes the emergency entry even when the stored write failed (storage throwing is swallowed); all existing cases still pass
+    - _Requirements: 11.6, 11.7, 16.12_
+  - [ ] 19.4 Write unit tests for `markEmergency`
+    - Create: `src/hooks/useInspection.markEmergency.test.tsx`
+    - After `markEmergency()` the hook result is an emergency (urgency, `isEmergency`, costs 0, empty `jobBrief` and `diySteps`) and the cache entry equals it, within the same render pass, with `sessionStorage` available and with it throwing
+    - _Requirements: 11.6, 16.12_
+  - [ ] 19.5 Write property test: a cached emergency is never downgraded (Property 14)
+    - Create: `src/lib/emergencyNonDowngrade.property.test.ts`
+    - **Property 14: A cached emergency is never downgraded**
+    - **Validates: Requirements 11.6, 11.7, 16.12**
+    - At least 100 runs; any fresh non-emergency copy (`fc.constantFrom('urgent', 'soon', 'monitor')`), not found, invalid and failed outcomes: `resolveFetchOutcome` returns the cached emergency, `loadInspection` returns no non-emergency `fresh`, `cacheResult` leaves the emergency entry unchanged; after `markEmergency` the cache holds the emergency shape; `sessionStorage` from jsdom
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 14: A cached emergency is never downgraded`
+
+- [ ] 20. UI primitives and time formatting
+  - [ ] 20.1 Create the shared styles and form primitives
+    - Create: `src/components/ui/styles.ts` (class constants `CARD`, `HEADING`, `BODY`, `MUTED`, `FIELD`, `PRIMARY_BUTTON`, `SECONDARY_BUTTON`, `ERROR_TEXT`, `STATUS_BOX` from the design table), `src/components/ui/Button.tsx`, `src/components/ui/TextField.tsx`, `src/components/ui/TextAreaField.tsx`
+    - Colour only through Tailwind token classes with a `haunted:` partner for every background, text, border and focus-ring colour; every control has a `focus-visible:` ring; every field has a visible `<label htmlFor>` and links its live count and error with `aria-describedby`; no `animate-*`, `transition*`, `duration-*`; the components never read or write the theme
+    - _Requirements: 15.1, 15.2, 15.3, 15.5, 15.6, 15.10, 15.11_
+    - _Design: UI Design (Theming, Accessibility details)_
+  - [ ] 20.2 Create `formatDateTime` and `TimeText`
+    - Create: `src/lib/utils/formatDateTime.ts` (`Intl.DateTimeFormat` with `timeZoneName: 'short'`), `src/components/ui/TimeText.tsx` (`<time dateTime={iso}>` with the formatted value)
+    - Runs in the browser only; the `dateTime` attribute holds the UTC value
+    - _Requirements: 4.6, 5.16, 10.1, 10.8_
+    - _Design: UI Design (Time formatting)_
+  - [ ] 20.3 Write unit tests for the UI primitives
+    - Create: `src/components/ui/Button.test.tsx`, `src/components/ui/TextField.test.tsx`, `src/components/ui/TextAreaField.test.tsx`
+    - Label linked by `htmlFor` and `id`; `aria-describedby` for count and error; error with `role="alert"`; `focus-visible:` classes present; disabled state
+    - _Requirements: 15.5, 15.6, 15.7_
+  - [ ] 20.4 Write unit tests for time formatting
+    - Create: `src/lib/utils/formatDateTime.test.ts`, `src/components/ui/TimeText.test.tsx`
+    - Fixed locale and `process.env.TZ`; zone short name present (for example "EST"); `dateTime` equals the UTC value; invalid input does not crash
+    - _Requirements: 4.6, 5.16, 10.1, 10.8_
+
+- [ ] 21. Status polling hook
+  - [ ] 21.1 Create `src/hooks/useStatusPolling.ts`
+    - Create: `src/hooks/useStatusPolling.ts`
+    - Export `STATUS_POLL_INTERVAL_MS` (30000) and `useStatusPolling(id, { onEmergency })` returning `view`, `loaded`, `updateFailed`, `refreshing`, `stopped`, `gone`, `refresh`, `refreshNow`, `applyView`
+    - One request in flight at a time (an `AbortController` per request); no `setInterval`: a single `setTimeout(poll, 30000)` after each request completes, only while the tab is visible; `visibilitychange` clears the timer when hidden and polls at once when visible (unless stopped or in flight); stop on `declined`, `booked`, `emergency` and 404 (`emergency` calls `onEmergency` exactly once; 404 sets `gone`); responses validated with `homeownerStatusViewSchema`; a failure keeps `view` and sets `updateFailed`; one state update per response; unmount clears the timer, aborts and sets no state afterwards
+    - `refreshNow()` aborts any in-flight request first and ignores its late result (approved safeguard)
+    - _Requirements: 8.1, 8.6, 8.7, 8.8, 8.9, 8.10, 8.11, 8.15, 8.16, 8.18, 8.20_
+    - _Design: UI Design (Polling hook)_
+  - [ ] 21.2 Write unit tests for `useStatusPolling`
+    - Create: `src/hooks/useStatusPolling.test.tsx`
+    - Fake timers with `vi.advanceTimersByTimeAsync`, a stubbed `fetch`, and `Object.defineProperty(document, 'visibilityState', ...)` plus a dispatched `visibilitychange`: first request on mount; 30 s measured from completion; no request while hidden; request within 1 s when visible again; stop on `emergency`, `declined`, `booked` and 404; single in-flight request; Refresh ignored while a request is running; abort on unmount with no state update; last status kept after a failed or invalid response and the failure flag cleared by a later success; `onEmergency` called once
+    - `refreshNow` safeguard (16.21 c): a request in flight when `refreshNow()` is called is aborted, its late result is ignored and the view shows the immediate request's result
+    - _Requirements: 8.6, 8.7, 8.8, 8.9, 8.10, 8.11, 8.16, 8.20, 16.10, 16.21_
+
+- [ ] 22. Homeowner Status_Panel
+  - [ ] 22.1 Create `src/components/results/ReplyBox.tsx`
+    - Create: `src/components/results/ReplyBox.tsx`
+    - Visible label "Your reply"; no `maxlength`; live count `n/500` and, over 500, visible text such as "612/500, too long" plus the message "Your reply is too long. Please shorten it to 500 characters or fewer." both linked to the textarea with `aria-describedby` (not colour alone); the text is never cut; "Send reply" disabled ONLY while the trimmed text is empty or a request is in progress, ENABLED for any non-empty trimmed text whatever its length; shows the retention note from `copy.ts`
+    - On submit disables the box and the button, then the parent decides the outcome; errors in `role="alert"`; typed text kept
+    - _Requirements: 9.1, 9.20, 14.14, 15.6, 15.7_
+    - _Design: UI Design (Status_Panel states)_
+  - [ ] 22.2 Create `src/components/results/SlotPicker.tsx`
+    - Create: `src/components/results/SlotPicker.tsx`
+    - `<fieldset>` with `<legend>Pick a time</legend>`; one native `<input type="radio">` per slot with one shared `name`, ascending, each with `TimeText`; "Confirm this time" disabled until a slot is selected and while a booking request is running; slots whose start has passed can be removed by the parent
+    - _Requirements: 10.1, 15.5, 15.7_
+    - _Design: UI Design (Status_Panel states)_
+  - [ ] 22.3 Create `src/components/results/StatusPanel.tsx`
+    - Create: `src/components/results/StatusPanel.tsx`
+    - Props `{ id, onEmergency }`; uses `useStatusPolling`; status text in ONE `role="status"` element replaced as a whole when the view changes; renders every state of the design table: first load "Checking your job status…", `new`, `info_requested` (question as Plain_Text, `ReplyBox`), `accepted` (`SlotPicker`), `declined` (reason when present, Status_Safety_Line, "Start a new inspection" link), `booked` (confirmation `<p role="status">` with `TimeText`, Status_Safety_Line below it, no controls), emergency and 404 (render nothing), failed refresh (alert and last view kept), Refresh button for `new`, `info_requested`, `accepted`
+    - The Status_Safety_Line shows ONLY in `declined` and `booked`
+    - Reply and booking handlers with an `AbortController` aborted on unmount: reply 200 `new` applies the view and moves focus to the status element; any emergency response or 409 `JOB_IS_EMERGENCY` calls `onEmergency`; booking 200 applies `booked`; 409 `ILLEGAL_TRANSITION` calls `refreshNow()` then shows "This job has changed. Here is the latest." with `role="status"` and, for a reply, the read-only block "Your unsent reply"; `SLOT_EXPIRED` shows "That time has passed. Please pick another." and removes passed slots; 400 too-long shows the server message in `role="alert"` and keeps the text; 413 shows "Please shorten your reply." and keeps the text; other errors show an alert and keep text and selection
+    - Free text rendered as Plain_Text with `whitespace-pre-wrap break-words`; no `dangerouslySetInnerHTML`; `focus({ preventScroll: true })`
+    - _Requirements: 8.1, 8.3, 8.8, 8.9, 8.12, 8.13, 8.18, 8.19, 9.13, 9.16, 9.20, 9.21, 9.22, 10.1, 10.4, 10.8, 10.9, 10.10, 10.11, 10.13, 10.15, 10.16, 11.8, 14.9_
+    - _Design: UI Design (Status_Panel states, Reply and booking requests)_
+  - [ ] 22.4 Write unit tests for `ReplyBox`
+    - Create: `src/components/results/ReplyBox.test.tsx`
+    - Counter shows `120/500`; at 612 characters it shows "612/500, too long" and the over-limit message, both linked by `aria-describedby`; no `maxlength`; the text is never cut; "Send reply" disabled for empty and whitespace-only text; ENABLED for a 612-character text; disabled and box disabled while sending; the retention note is shown; label linked
+    - _Requirements: 9.1, 9.20, 14.14, 15.6_
+  - [ ] 22.5 Write unit tests for `SlotPicker`
+    - Create: `src/components/results/SlotPicker.test.tsx`
+    - Native radios inside a `<fieldset>` with a `<legend>`, one shared `name`; ascending order; each slot shows a zone name and a `<time dateTime>`; "Confirm this time" disabled until one is selected and while a request runs; keyboard arrow selection (user-event)
+    - _Requirements: 10.1, 15.5_
+  - [ ] 22.6 Write component tests for `StatusPanel`
+    - Create: `src/components/results/StatusPanel.test.tsx`
+    - Every state of the table with the exact texts; reply flow (200, 400 too long keeps text, 413, 429, 500, network error); booking flow (200 confirmation with `<time>`, `SLOT_EXPIRED` keeps the remaining slots, 409 `ILLEGAL_TRANSITION` immediate refresh and the "Your unsent reply" block, 409 `JOB_IS_EMERGENCY` calls `onEmergency`); Status_Safety_Line only in `declined` and `booked`; no reply box in `declined` and `booked`; no edit or cancel control after booking; the "Standard notice" is untouched; failed first load shows the alert and Refresh; 404 renders nothing and sends no retry; Refresh button ignored while a request is in flight
+    - _Requirements: 8.3, 8.8, 8.11, 8.15, 8.16, 8.18, 8.19, 9.13, 9.20, 9.21, 9.22, 10.4, 10.8, 10.9, 10.13, 10.15, 10.16, 16.10_
+  - [ ] 22.7 Write property test: Status_Panel renders nothing for an emergency (Property 2, UI half)
+    - Create: `src/components/results/StatusPanel.emergency.property.test.tsx`
+    - **Property 2: Emergency stays emergency, through every handler and every view**
+    - **Validates: Requirements 8.5, 8.12, 11.8, 16.3**
+    - At least 100 runs; for any emergency status response (and for any received emergency view) the Status_Panel renders no status text, question, reply box, time slots, radio control, booking confirmation or Refresh button, sends no further status request and calls `onEmergency` once; with the cache marking an emergency, `ResultsView` does not mount the panel and sends no status request
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 2: Emergency stays emergency, through every handler and every view`
+
+- [ ] 23. Results page integration
+  - [ ] 23.1 Mount `StatusPanel` in `ResultsView`
+    - Modify: `src/components/results/ResultsView.tsx`
+    - Mount `<StatusPanel id onEmergency={markEmergency} />` in the non-emergency branch only (the emergency branch is unchanged and renders no panel); keep the "This is a likely diagnosis, not a certain one." notice and the bottom "start a new inspection" link
+    - _Requirements: 8.1, 8.12, 11.6, 11.8, 10.9_
+    - _Design: Components and Interfaces (existing files that change)_
+  - [ ] 23.2 Update the `ResultsView` tests
+    - Modify: `src/components/results/ResultsView.test.tsx`
+    - `StatusPanel` is mounted for a non-emergency result and absent for an emergency (by `urgency` and by `isEmergency`); `markEmergency` from the mocked hook is passed to the panel; the emergency view still shows only the banner, the badge and the issue title; existing `emergencySuppression.property.test.tsx` still passes
+    - _Requirements: 8.12, 11.8, 16.14_
+
+- [ ] 24. Pro hooks
+  - [ ] 24.1 Create `useProJobs` and `useProJob`
+    - Create: `src/hooks/useProJobs.ts`, `src/hooks/useProJob.ts`
+    - `useProJobs()` returns `{ phase: 'loading' | 'ready' | 'unauthorized', jobs, error, refreshing, refresh }`: `GET /api/pro/jobs` on mount, keeps the previous list on a failed refresh, the Refresh disabled while a request runs, never refreshes on a timer, aborts on unmount, validates with `proJobsResponseSchema`
+    - `useProJob(id)` returns `{ phase: 'loading' | 'ready' | 'unauthorized' | 'notFound' | 'error', job, error, reload }`: 401 gives `unauthorized`, 404 gives `notFound`, 500 gives `error` with the server message; validates with `proJobDetailSchema`
+    - A shared `hadSession` ref (set after the first successful Pro response) tells the pages whether a 401 shows the plain form (first load) or the "session ended" notice
+    - _Requirements: 4.13, 4.14, 4.16, 3.10, 5.18, 1.9_
+    - _Design: UI Design (Props and states)_
+  - [ ] 24.2 Write unit tests for the Pro hooks
+    - Create: `src/hooks/useProJobs.test.tsx`, `src/hooks/useProJob.test.tsx`
+    - 401 on first load gives `unauthorized`; a later 401 is flagged as a lost session; failed refresh keeps the previous list and sets the error; refresh disabled while loading and no automatic refresh; abort on unmount; 404, 500 and invalid body handling for the detail; `reload` repeats the request
+    - _Requirements: 4.13, 4.14, 3.10, 5.18_
+
+- [ ] 25. Pro dashboard UI
+  - [ ] 25.1 Create `AccessCodeForm`
+    - Create: `src/components/pro/AccessCodeForm.tsx`
+    - One visible `<label>`-linked masked input (`maxlength` 200) and one "Enter" submit button; posts `{ code }` to `POST /api/pro/login`; success clears the field and calls `onSuccess`; 401 keeps the form, keeps focus in the code field and shows "That code isn't right." with `role="alert"`; 429 shows the response message and keeps the field editable; 503 `PRO_DISABLED` calls `onDisabled`; network error or non-JSON keeps the typed code and shows "We couldn't reach the server. Please try again." with `role="alert"`; optional `notice` prop shows "Your session has ended. Please enter the access code again."
+    - _Requirements: 1.1, 1.2, 1.7, 1.9, 1.13, 2.14, 3.6, 3.10, 15.6, 15.7_
+    - _Design: UI Design (Props and states)_
+  - [ ] 25.2 Create `JobListItem` and `JobList`
+    - Create: `src/components/pro/JobListItem.tsx`, `src/components/pro/JobList.tsx`
+    - Each item is a `<li>` with one `next/link` to `/pro/jobs/[id]` whose text includes the `UrgencyBadge`, the trade (omitted for an emergency), the location as Plain_Text, `TimeText` and the status label; "No jobs yet." when empty; "Loading jobs…" with `role="status"`; an error with `role="alert"` above the kept list; a "Refresh" button disabled while loading and never automatic
+    - An emergency item shows only the badge, location, time and status label (no trade, no cost, no action)
+    - _Requirements: 4.6, 4.7, 4.8, 4.12, 4.13, 4.14, 4.16, 6.6, 14.9_
+    - _Design: UI Design (Pro job list)_
+  - [ ] 25.3 Create `ProDashboard` and the `/pro` page
+    - Create: `src/components/pro/ProDashboard.tsx`, `src/app/pro/page.tsx`
+    - `page.tsx` is a Server Component with `metadata.robots = { index: false, follow: false }` rendering `<ProDashboard />`; `ProDashboard` state machine `checking | form | disabled | list` driven by `useProJobs`; first-load 401 shows the plain form, a later 401 shows the form with the session-ended notice and discards job data; 503 shows "Tradesperson access isn't available right now." in place of the form; "Log out" posts `POST /api/pro/logout` and shows the form again; no second `<main>`
+    - _Requirements: 1.1, 1.9, 1.11, 3.6, 3.10, 3.11_
+    - _Design: UI Design (Pages, Props and states)_
+  - [ ] 25.4 Write component tests for `AccessCodeForm`
+    - Create: `src/components/pro/AccessCodeForm.test.tsx`
+    - Label, masked input and "Enter" button; 200 clears the field and calls `onSuccess`; 401 keeps focus in the field with the alert; 429 shows the server message and stays editable; 503 calls `onDisabled`; network failure keeps the typed code; the session-ended notice
+    - _Requirements: 1.1, 1.2, 1.7, 1.13, 2.14, 3.6, 3.10_
+  - [ ] 25.5 Write component tests for `JobList` and `ProDashboard`
+    - Create: `src/components/pro/JobList.test.tsx`, `src/components/pro/ProDashboard.test.tsx`
+    - Item content and link text; emergency item has no trade; "No jobs yet."; loading state; error keeps the list; Refresh disabled while loading; first-load 401 shows the form; a later 401 shows the notice and discards data; disabled message; log out shows the form; `noindex` robots metadata exported by the page in every state
+    - _Requirements: 4.6, 4.7, 4.8, 4.12, 4.13, 4.14, 4.16, 1.11, 3.6, 3.10, 3.11_
+
+- [ ] 26. Pro job detail UI
+  - [ ] 26.1 Create the detail display components
+    - Create: `src/components/pro/JobFacts.tsx`, `src/components/pro/JobHistory.tsx`, `src/components/pro/PhotoGallery.tsx`, `src/components/pro/ProEmergencyView.tsx`
+    - `JobFacts`: likely issue, trade, confidence (`formatConfidence` with "AI confidence in this diagnosis"), the existing `CostRange` unchanged, `JobBrief`, the three answers labelled "Where in the home", "How long", "Anything else" (empty or whitespace shows "Not answered"), follow-up questions; NEVER renders `diySteps`
+    - `JobHistory`: `infoRequests` ("You asked") and `replies` ("Homeowner replied") ascending by time (ties: question first), Plain_Text and `TimeText`
+    - `PhotoGallery`: each URL as `<a target="_blank" rel="noopener noreferrer"><img alt="Photo 2 of 3 from the homeowner" loading="lazy"></a>` with a one-line ESLint exception for `@next/next/no-img-element`; omitted when there are no photos
+    - `ProEmergencyView`: the Pro_Emergency_Note, likely issue and answers as read-only Plain_Text; no controls, trade, photos, cost or brief
+    - _Requirements: 5.5, 5.6, 5.7, 5.11, 5.12, 5.13, 5.14, 5.16, 14.9, 15.9_
+    - _Design: UI Design (Pro job detail)_
+  - [ ] 26.2 Create the action forms and `ActionPanel`
+    - Create: `src/components/pro/AcceptForm.tsx`, `src/components/pro/DeclineForm.tsx`, `src/components/pro/AskInfoForm.tsx`, `src/components/pro/ActionPanel.tsx`
+    - `AcceptForm`: three `datetime-local` inputs labelled "First time you can start" (required), "Second time", "Third time" (optional), time-zone hint; each filled value is sent as `new Date(value).toISOString()`; "Accept job". `DeclineForm`: textarea "Reason (optional)" with limit 200 and live count "n / 200" via `aria-describedby`, over the limit shows an error and disables the button; "Decline job". `AskInfoForm`: textarea limit 300 and live count; "Send question"; shown only in `new`
+    - `ActionPanel` owns one `pending` flag that disables ALL controls until the response arrives; success calls `onDone(status)`, failure shows the server message with `role="alert"` and keeps the typed text and slots; 409 calls `onConflict`; 401 calls `onUnauthorized`; `new` shows all three actions, `info_requested` shows accept and decline only (no ask-info), any other status shows none
+    - _Requirements: 7.4, 7.18, 7.19, 6.17, 14.9, 15.6_
+    - _Design: UI Design (Pro action forms)_
+  - [ ] 26.3 Create `JobDetail` and the `/pro/jobs/[id]` page
+    - Create: `src/components/pro/JobDetail.tsx`, `src/app/pro/jobs/[id]/page.tsx`
+    - `page.tsx` is a Server Component with `metadata.robots = { index: false, follow: false }` that awaits `params` and renders `<JobDetail id={id} />`; `JobDetail` uses `useProJob`: "Back to jobs" link first, `UrgencyBadge`, the status label in `<p role="status" tabIndex={-1}>`, `JobFacts`, `PhotoGallery`, `JobHistory`, the status block (`info_requested` shows the latest question under "You asked"; `accepted` shows offered slots ascending; `booked` shows the booked slot; `declined` shows the reason; offered slots are NOT shown in `booked` or `declined`), then `ActionPanel`; an emergency Job shows `ProEmergencyView` only
+    - 401 shows `AccessCodeForm` then reloads; 404 shows "We couldn't find this job." with a link to `/pro`; 500 shows the server message with `role="alert"` and a "Try again" button; after an action focus moves to the status element with `focus({ preventScroll: true })`
+    - _Requirements: 5.11, 5.14, 5.18, 5.19, 3.10, 3.11, 7.18, 7.19_
+    - _Design: UI Design (Pages, Pro job detail)_
+  - [ ] 26.4 Write component tests for the detail display components
+    - Create: `src/components/pro/JobFacts.test.tsx`, `src/components/pro/JobHistory.test.tsx`, `src/components/pro/PhotoGallery.test.tsx`, `src/components/pro/ProEmergencyView.test.tsx`
+    - Cost exactly as `CostRange` renders it with "rough range, not a quote" next to it; confidence "~75%"; "Not answered" for empty and whitespace answers; `diySteps` never rendered even when passed; history order and labels; photo links open in a new tab with `rel`; emergency view has no buttons, photos, cost, trade or brief
+    - _Requirements: 5.5, 5.6, 5.7, 5.11, 5.12, 5.13, 15.9_
+  - [ ] 26.5 Write component tests for the action forms and `ActionPanel`
+    - Create: `src/components/pro/ActionForms.test.tsx`
+    - Controls per status (`new`: three actions, `info_requested`: accept and decline only, others: none); labels "First time you can start", "Second time", "Third time" with only the first required; live counts and `aria-describedby`; all controls disabled while pending; failure keeps typed text and slots and re-enables; 409 calls `onConflict`; 401 calls `onUnauthorized`
+    - _Requirements: 7.4, 7.18, 7.19, 6.17, 15.6_
+  - [ ] 26.6 Write component tests for `JobDetail`
+    - Create: `src/components/pro/JobDetail.test.tsx`
+    - Active job rendering by status (question, offered slots, booked slot, decline reason; no offered slots in `booked` or `declined`); emergency job shows the note with no controls; 404 message and link; 500 with a working "Try again"; 401 shows the access code form; the status label is announced in a `role="status"` element
+    - _Requirements: 5.11, 5.14, 5.18, 5.19, 3.10, 7.19_
+
+- [ ] 27. Privacy notice update
+  - [ ] 27.1 Change the `DataRetentionNotice` text
+    - Modify: `src/components/upload/DataRetentionNotice.tsx`
+    - Export `DATA_SHARING_NOTICE_TEXT` = "Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days." and render it as the first list item, replacing the first two bullets; the third bullet (video frames) stays
+    - Unchanged: the `onVisible` API, the 90% `IntersectionObserver` gate, the heading, the classes, the submit gating of intake criteria 2.3 to 2.5, the 30-day retention
+    - _Requirements: 17.1, 17.4, 17.5, 17.6_
+    - _Design: Privacy Notice Change_
+  - [ ] 27.2 Update the `DataRetentionNotice` tests
+    - Modify: `src/components/upload/DataRetentionNotice.test.tsx`
+    - Keep the observer tests (`onVisible` once, not again); add: renders exactly `DATA_SHARING_NOTICE_TEXT` (equal to the literal in 17.1), does not contain "Only people who have your result link" or any "only you" claim, mentions 30 days, none of `S3`, `bucket`, `AWS`, `encrypted at rest`
+    - _Requirements: 17.1, 17.3, 17.4, 17.6_
+  - [ ] 27.3 Update the `intake-and-triage` spec text
+    - Modify: `.kiro/specs/intake-and-triage/requirements.md` (criterion 2.1 "accessible only to the User" reworded to match the new notice; the IP wording of criteria 11.3 and 11.4 marked as superseded by Requirement 18 of this feature), `.kiro/specs/intake-and-triage/design.md` (the `DataRetentionNotice` section), `.kiro/specs/intake-and-triage/tasks.md` (the text of tasks 15.11 and 15.12)
+    - Documentation edit only; no code
+    - _Requirements: 17.3, 18.9_
+
+- [ ] 28. Source-scan test
+  - [ ] 28.1 Write the single source-scan test
+    - Create: `src/components/sourceScan.test.ts`
+    - Reads, with `fs` and the `typescript` compiler API (`ts.createSourceFile`, a JSX-aware walk), every `.ts` and `.tsx` file (tests excluded) under `src/components/pro/`, `src/components/ui/` and `src/app/pro/`, plus `StatusPanel.tsx`, `ReplyBox.tsx`, `SlotPicker.tsx`, `ResultsView.tsx`, `EmergencyBanner.tsx` and `DataRetentionNotice.tsx`
+    - Fails on: a hex colour; `rgb(`, `rgba(`, `hsl(`, `hsla(`; an arbitrary colour class (`bg-[#...]`, `text-[rgb(...)]`, `border-[color:...]`); a CSS colour name as a bare string literal or as a `style` value; a `style` attribute setting `color`, `background`, `backgroundColor`, `borderColor`, `fill`, `stroke` or `outlineColor`; `dangerouslySetInnerHTML`; a `button`, `a`, `input` or `textarea` without an accessible name (text or expression child, `aria-label`, `aria-labelledby`, or a matching `htmlFor` label) or whose `className` (resolved through same-file string constants) lacks `focus-visible:`; a class starting with `animate-`, `transition` or `duration-`
+    - This is the ONLY source-scan test of this feature; the scan must pass on the real files
+    - _Requirements: 15.1, 15.5, 15.10, 14.9, 16.13_
+    - _Design: UI Design (Source-scan test)_
+
+- [ ] 29. Checkpoint - UI verified
+  - Ensure all tests pass. Ask the user if any questions arise.
+  - Run `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`; all four must exit with code 0
+  - Covered: client emergency handling, session cache, polling hook, Status_Panel, Results page, Pro dashboard and detail pages, privacy notice, source scan
+  - The DEPLOY-GATED tasks that follow (rate limiter change, Pro login and logout routes) must not be merged or deployed before the DEPLOY GATE task
+
+- [ ] 30. Trusted proxy hops (USER-GATED)
+  - [ ] 30.1 Set TRUSTED_PROXY_HOPS and delete the diagnostic route
+    - USER-GATED (manual input required): an agent CANNOT complete this task alone. The agent makes the code change ONLY after the user supplies the live `suggestedHops` number read in "USER: deploy the diagnostic route from a branch and read suggestedHops". If the user has not supplied the number, stop and ask; never guess and never keep the diagnostic route
+    - Steps: (1) the user deploys the branch with the diagnostic route (done in the user task above); (2) the user opens `/api/diag/ip` in a browser, optionally runs `curl.exe -s -H "x-forwarded-for: 6.6.6.6" https://<domain>/api/diag/ip` and checks `suggestedHops` is unchanged and the spoofed entry is labelled `other`; (3) the user reads `suggestedHops` and gives it to the agent; (4) the agent sets `export const TRUSTED_PROXY_HOPS = <suggestedHops>` in `src/lib/net/getTrustedClientIp.ts` (the shared `getTrustedClientIp` module) and updates its unit tests in `src/lib/net/getTrustedClientIp.test.ts`; (5) the agent deletes `src/app/api/diag/ip/route.ts` and `src/app/api/diag/ip/route.test.ts` (and the empty `diag` folders); (6) the agent runs the four checks `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`
+    - If `suggestedHops` is `null` or differs between requests, the user reads `rawEntries` and reports it; no constant is set until the result is clear
+    - A hops value above 1 turns any test that sends a single `x-forwarded-for` entry into an `unknown` client: switch such tests (`rateLimiter.test.ts`, `route.ratelimit.test.ts`, `route.persist.property.test.ts`, the other inspect route tests) to the header helper built from `TRUSTED_PROXY_HOPS` where they depend on the address, and keep the whole suite green
+    - Modify: `src/lib/net/getTrustedClientIp.ts`, `src/lib/net/getTrustedClientIp.test.ts`, and any test whose header depends on the constant. Delete: `src/app/api/diag/ip/route.ts`, `src/app/api/diag/ip/route.test.ts`
+    - _Requirements: 18.8, 18.11, 18.13, 18.14, 18.17, 16.22_
+    - _Design: Trusted Client IP Design (Diagnostic procedure, steps 5 and 6)_
+  - [ ] 30.2 Confirm GET /api/diag/ip returns 404 on the deployed branch (manual, user)
+    - (manual, user) Redeploy the branch after 30.1 and confirm `GET https://<domain>/api/diag/ip` returns HTTP 404
+    - Before launch or any public use, repeat the check on the final deployment
+    - _Requirements: 18.14_
+
+- [ ] 31. DEPLOY GATE
+  - [ ] 31.1 DEPLOY GATE: no merge or deploy of the rate limiter change or Pro login before hops are set (manual, user)
+    - (manual, user) A hard stop. The rate limiter change and the Pro login with its Lockout_Counter must NOT be merged to `main` or deployed to any public environment until "Set TRUSTED_PROXY_HOPS and delete the diagnostic route" and its 404 confirmation are done. A value that is too high lets a client choose its own address and bypass the limit; a value that is too low merges unrelated visitors into one bucket
+    - `main` auto-deploys to the public domain: do NOT merge to `main`; the diagnostic run is done from a branch, and the route is deleted before merging
+    - Checklist before proceeding: `TRUSTED_PROXY_HOPS` in code equals the value read from the diagnostic route; `src/app/api/diag/ip/` is gone; `/api/diag/ip` returns 404; the four checks pass; `GSI1` is `ACTIVE` and the IAM statement is in place
+    - The default 1 is only allowed in tests and local development, never as the unverified final value of a deployment that carries the tasks below
+    - _Requirements: 18.11, 18.15, 18.16_
+    - _Design: Trusted Client IP Design (Deployment gating)_
+
+- [ ] 32. Rate limiter uses the trusted client IP (DEPLOY-GATED)
+  - [ ] 32.1 Change `ipVisitorId` to use `getTrustedClientIp`
+    - DEPLOY GATE: may be written on a branch, but must NOT be merged or deployed before the DEPLOY GATE task is done
+    - Modify: `src/lib/rateLimiter.ts`
+    - `ipVisitorId` calls `getTrustedClientIp(request.headers)` and keeps the id format `ip:` + SHA-256 hex; everything else (cookie-first identification, fail-open behaviour) is unchanged
+    - _Requirements: 18.3, 18.4, 18.9_
+    - _Design: Trusted Client IP Design (Rate limiter change)_
+  - [ ] 32.2 Update the rate limiter tests to the trusted-entry rule
+    - Modify: `src/lib/rateLimiter.test.ts` (and `src/lib/rateLimiter.property.test.ts` and `src/app/api/inspect/route.ratelimit.test.ts` if they depend on the address)
+    - Replace "uses the first x-forwarded-for entry" with "uses the trusted entry and ignores the entries before it" (`198.51.100.1, 10.0.0.1, 10.0.0.2` yields the id of `10.0.0.2` for hops 1); add: an invalid trusted entry gives `ip:` + hash of `unknown`; a spoofed prefix does not change the id; build headers with the helper from `TRUSTED_PROXY_HOPS` so the tests stay green after the constant changes
+    - _Requirements: 18.9, 16.19_
+  - [ ] 32.3 Extend Property 6 to the hashed IP and the visitor id
+    - Modify: `src/lib/net/getTrustedClientIp.property.test.ts`
+    - Add the remaining halves: for any spoofed prefix, `hashClientIp(getTrustedClientIp(...), secret)` and the rate limiter visitor id return the same value as for the trusted entry alone; absent or malformed trusted values give the same bucket as `unknown`
+    - **Property 6: Trusted client IP ignores client-supplied entries**
+    - **Validates: Requirements 2.2, 18.3, 18.4, 18.5, 18.6, 16.18**
+    - Tag: `// Feature: pro-dashboard-and-booking, Property 6: Trusted client IP ignores client-supplied entries`
+  - [ ] 32.4 Write integration test: spoofed headers cannot bypass the daily limit
+    - Create: `src/app/api/inspect/route.ratelimit.spoof.test.ts`
+    - 16 `POST /api/inspect` requests without a session cookie, each with a different spoofed leading `x-forwarded-for` entry and the same trusted entry, end with the rate-limit response (HTTP 429, Bedrock never invoked) on the 16th
+    - _Requirements: 16.19, 18.5_
+
+- [ ] 33. Pro login and logout routes (DEPLOY-GATED)
+  - [ ] 33.1 Create `POST /api/pro/login`
+    - DEPLOY GATE: may be written on a branch, but must NOT be merged or deployed before the DEPLOY GATE task is done
+    - Create: `src/app/api/pro/login/route.ts`
+    - Order: `readProConfig` FIRST (unset or empty `PRO_ACCESS_CODE` or `SESSION_SECRET` gives 503 `PRO_DISABLED`, nothing read or written), `readJsonBody` (413 or 400, not counted as an attempt), `loginBodySchema` (400, not counted), `hashClientIp(getTrustedClientIp(headers), secret)`, `attemptLogin(code, ipHash, { accessCode, secret, nowMs: Date.now(), store: dynamoLockoutStore })`
+    - Outcomes: `locked` 429 `TOO_MANY_ATTEMPTS` with `Retry-After` and the message "Too many attempts. Please wait a few minutes and try again."; `failed` 500 `LOGIN_FAILED`; `invalid_code` 401 `INVALID_CODE` "That code isn't right." with no cookie; `ok` 200 `{ ok: true }` with the `hhi_pro` cookie via `buildLoginCookie`
+    - `Cache-Control: no-store` on every status; never imports the rate limiter; logs only the error name; never logs the code, cookie, secret, IP or hash
+    - _Requirements: 1.2, 1.4, 1.5, 1.7, 1.8, 1.10, 2.2, 2.5, 2.6, 2.12, 2.13, 2.16, 3.4, 3.5, 3.12, 14.5_
+    - _Design: Route Handlers (POST /api/pro/login)_
+  - [ ] 33.2 Write integration tests for the login route
+    - Create: `src/app/api/pro/login/route.test.ts`
+    - 200 with cookie attributes (HttpOnly, Secure, SameSite=Strict, Path `/api/pro`, Max-Age 43200); 401 `INVALID_CODE` with no cookie; 429 with `Retry-After` after 5 wrong codes (including a correct code on the 6th); a correct code with 4 wrong attempts on record is accepted; 503 `PRO_DISABLED` for unset AND empty `PRO_ACCESS_CODE`, and for unset AND empty `SESSION_SECRET`, with NOTHING written to DynamoDB and no `Set-Cookie`; 400 and 413 are not counted as attempts; counter read or update failure gives 500 `LOGIN_FAILED` with no cookie; a failed release still gives 200 and the cookie; `Cache-Control: no-store` on every status; no raw IP, hash, code or cookie in the log output; no `RATELIMIT#` write and the rate limiter is never imported
+    - Spoofed-header test (16.19): 6 attempts, each with a different spoofed leading `x-forwarded-for` entry and the same trusted entry, end with HTTP 429 on the 6th
+    - _Requirements: 1.4, 1.5, 1.7, 1.8, 1.10, 2.5, 2.6, 2.7, 2.12, 2.13, 2.15, 2.16, 3.4, 3.5, 3.12, 16.6, 16.8, 16.19_
+  - [ ] 33.3 Create `POST /api/pro/logout`
+    - Create: `src/app/api/pro/logout/route.ts`
+    - No configuration check, no cookie check, no body read; always 200 `{ ok: true }` with `buildLogoutCookie()` (`hhi_pro`, empty value, `Max-Age=0`, `Path=/api/pro`, HttpOnly, Secure, SameSite=Strict); `no-store`
+    - _Requirements: 1.11, 1.12, 14.3, 3.9_
+    - _Design: Route Handlers (POST /api/pro/logout)_
+  - [ ] 33.4 Write integration tests for the logout route
+    - Create: `src/app/api/pro/logout/route.test.ts`
+    - 200 with and without a cookie; the serialised `Set-Cookie` contains `Max-Age=0`, `Path=/api/pro`, HttpOnly, Secure, SameSite=Strict; `Cache-Control: no-store`; no AWS call
+    - _Requirements: 1.11, 1.12, 14.3, 16.6_
+
+- [ ] 34. Documentation and configuration
+  - [ ] 34.1 Update `.env.example`, check `amplify.yml`, mention the feature in the README
+    - Modify: `.env.example` (comment above `SESSION_SECRET` only: without it the tradesperson dashboard is disabled and the rate limiter falls back to IP-only; recommend 32 or more random characters; comment above `PRO_ACCESS_CODE`: 12 or more random characters). NO new variable is added
+    - Check (no edit expected): `amplify.yml` already copies `PRO_ACCESS_CODE` and `SESSION_SECRET` into `.env.production`; `package.json` gains no dependency; `TRUSTED_PROXY_HOPS` is a code constant and is NOT added to `.env.example` or `amplify.yml`
+    - Modify: `README.md` with a short section: the `/pro` dashboard and booking flow, the two required variables, the `GSI1` index and IAM statement, and the rule that the diagnostic route is deleted before launch. `BUILD_LOG.md` is handled by the user's hook: do not touch it
+    - _Requirements: 13.10, 14.4, 18.8_
+    - _Design: IAM and Infrastructure (Environment variables)_
+
+- [ ] 35. Manual verification (manual, user)
+  - [ ] 35.1 Reminder: confirm IAM policy and GSI1 before any live test (manual, user)
+    - (manual, user) REMINDER, placed before any live test of this feature's code: `GSI1` must be `ACTIVE` (task "Create GSI1 on the table and confirm ACTIVE (manual, user)") and the IAM policy must contain `dynamodb:Query` on the `.../index/GSI1` ARN (task "Add dynamodb:Query on the GSI1 index ARN to the IAM policy (manual, user)"). Without them the Pro job list returns 500 `LOAD_FAILED`
+    - Also confirm `SESSION_SECRET` and `PRO_ACCESS_CODE` are set for the environment under test, and that the DEPLOY GATE task is done before testing login on a public environment
+    - _Requirements: 12.8, 13.3, 13.8, 18.15_
+  - [ ] 35.2 Live smoke test on Amplify (manual, user)
+    - (manual, user) Create one inspection, then: log in at `/pro`; the new job appears in the list within a few seconds; open the detail and check photos load; accept with 1 to 3 slots; as the homeowner pick a slot and see the booking confirmation; a second job: decline (with and without a reason); a third: ask-info then reply, then accept; an emergency reply on an `accepted` job shows the emergency guidance and the Pro view shows only the emergency note
+    - Six wrong codes from one network end in a lockout message on the sixth, a login from a second network is not locked, and spoofed `x-forwarded-for` prefixes do not reset it (then delete the `PROAUTH#` items in the DynamoDB console); 16 inspections without a cookie end in the rate-limit message on the 16th
+    - Check CloudWatch logs for names only (no codes, cookies, IPs, texts, URLs); the `hhi_pro` cookie is not sent to the `/pro` page request, is sent to `/api/pro/*`, is `Secure` on the production domain and is cleared by logout; two-tab race: reply in one tab while the tradesperson accepts in another, one wins and the other sees "This job has changed. Here is the latest."; times show a zone name from two browser zones; DynamoDB TTL is enabled on `ttl` and `PROAUTH#` items disappear after their window
+    - Final: `GET /api/diag/ip` returns 404 on the final deployment
+    - _Requirements: 2.6, 2.10, 3.1, 14.5, 14.13, 16.6, 18.14, 18.15_
+  - [ ] 35.3 Hand check: contrast of every new colour pair (manual, user)
+    - (manual, user) With a browser contrast tool, check every new Normal-theme and `haunted:` pair: at least 4.5:1 for text under 18.66px bold or 24px regular, at least 3:1 for large text, input borders, focus rings and radio controls. Full WCAG validation still needs manual testing with assistive technologies and expert review
+    - _Requirements: 15.4, 15.11_
+  - [ ] 35.4 Hand check: grade-8 reading level of Homeowner copy and the notice (manual, user)
+    - (manual, user) Read every Homeowner-facing string in `src/lib/jobs/copy.ts` (status texts, the Status_Safety_Line, reply messages, the retention note) and the new `DataRetentionNotice` sentence, and confirm each is at or below an 8th-grade reading level. No automated readability test is required
+    - _Requirements: 8.19, 15.9, 17.2_
+  - [ ] 35.5 Hand check: keyboard-only and screen reader pass (manual, user)
+    - (manual, user) Keyboard only: `/pro` form and list, detail forms, the radio group (arrow keys move the selection, Tab enters and leaves as one stop), Status_Panel buttons; visible focus rings; no keyboard trap. Screen reader (NVDA or VoiceOver): `role="status"` announcements, `role="alert"` errors, the fieldset legend, the assertive emergency banner. This does not replace an expert accessibility review
+    - _Requirements: 15.5, 15.6, 15.7, 15.8_
+
+- [ ] 36. Final checkpoint - Everything verified
+  - Ensure all tests pass. Ask the user if any questions arise.
+  - Run `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`; all four must exit with code 0
+  - Confirm `src/app/api/diag/ip/` no longer exists and `TRUSTED_PROXY_HOPS` holds the verified value
+  - List the manual items still open: 2.1, 3.1, 3.2, 3.3, 30.1 (needs the user's number), 30.2, 31.1, 35.1 to 35.5
+
+## Notes
+
+- NO property-test task is optional: there is no `*` marker on any task in this plan. Every property test (P1 to P14), every route integration test, every safety test, the cookie, compare, slot and polling unit tests, the source-scan test (16.13), the diagnostic route test (16.22), the `effectiveStatus`, canonical base64url and `refreshNow` tests (16.21) are required. Optional polish: none
+- Tasks marked `(manual, user)` cannot be executed by an agent: 2.1, 3.1, 3.2, 3.3, 30.2, 31.1, 35.1 to 35.5. The task "Set TRUSTED_PROXY_HOPS and delete the diagnostic route" (30.1) is USER-GATED: the agent makes the code change only after the user supplies the live `suggestedHops` number
+- Do not deploy or merge to `main`: `main` auto-deploys to the public domain. Run the diagnostic from a branch and delete the route before merging
+- DEPLOY GATE (Requirements 18.15, 18.16): the rate limiter change (task 32) and the Pro login with its lockout (task 33) are DEPLOY-GATED. They may be implemented on a branch, but must not be deployed or merged to the deploying branch before the task "Set TRUSTED_PROXY_HOPS and delete the diagnostic route" and its 404 confirmation are done. The dependency graph shows the gate after the set-hops task and the gated tasks after the gate
+- The set-hops task and the gate sit late in the wave graph on purpose: waves are barriers, so putting them early would block all other work on the user's live number. The set-hops task depends only on the user task 2.1 and on task 7, so the user can run it out of wave order as soon as the number is known; the user should do task 2.1 at the very start
+- Order of work: pure core, then the data layer, then the routes, then the UI, then the gated tasks; checkpoints after the pure core (11), after the data layer and routes (18), after the UI (29) and at the end (36)
+- `getTrustedClientIp` and its property test (Property 6) are in task 7 so the diagnostic result can be applied as early as possible. Property 6 is built in two parts: the `getTrustedClientIp` part in task 7.3 and the hashed-IP and visitor-id part in task 32.3; its tests pass `hops` explicitly so they survive a change of the constant
+- Writing the new status fields happens inside `persistInspection` (task 13.1); `POST /api/inspect` is changed only to use the shared body reader (task 8.2, existing inspect tests kept green) and still returns the plain `InspectionResult`
+- Tests mock the AWS client modules with `vi.mock`; MSW and real AWS calls are not used. The shared fake DynamoDB table (task 12.1) fails the test on any `Scan`, `DeleteItem`, `BatchWriteItem`, `BatchGetItem` or `TransactWriteItems` command and on any `RATELIMIT#` write by this feature's routes
+- The route files only export HTTP method handlers and route config; shared logic lives in `src/lib/`. Every Pro and Homeowner route returns `Cache-Control: no-store` and none of them imports the rate limiter or Bedrock
+- Every property test has the tag `// Feature: pro-dashboard-and-booking, Property N: <title>`, at least 100 fast-check runs, one `it` with one `fc.assert` (Property 4 and Property 6 have more than one `fc.assert` across their tasks), and a `**Validates: Requirements ...**` line
+- AWS setup order for the user: `GSI1` must be `ACTIVE` and the `dynamodb:Query` statement on the index ARN must be in place BEFORE any live test of code from this feature (tasks 3.1, 3.2 and the reminder 35.1)
+- The haunted-mode spec is not part of this feature; the new components only add `haunted:` variant classes and never read or set the theme. `product.md` and `BUILD_LOG.md` are already handled and have no task here
+
+## Task Dependency Graph
+
+```json
+{
+  "waves": [
+    { "id": 0, "tasks": ["2.1", "3.1", "3.2", "3.3", "4.1", "4.2", "6.1", "7.1", "9.1", "9.4", "9.7"] },
+    { "id": 1, "tasks": ["4.3", "4.4", "5.1", "6.2", "6.3", "7.2", "7.3", "8.1", "9.2", "9.3", "9.5", "9.6", "9.8", "10.1", "12.1", "12.5"] },
+    { "id": 2, "tasks": ["4.5", "5.2", "8.2", "8.3", "10.2", "10.3", "12.2", "12.3", "12.4", "12.7", "13.1"] },
+    { "id": 3, "tasks": ["12.6", "12.8", "12.9", "13.2", "13.3", "13.4", "13.5", "13.10", "13.13", "14.1", "14.3"] },
+    { "id": 4, "tasks": ["13.6", "13.7", "13.11", "14.2", "14.4"] },
+    { "id": 5, "tasks": ["13.8", "13.12", "14.5", "14.6"] },
+    { "id": 6, "tasks": ["13.9", "15.1", "15.3", "15.5", "16.1", "16.3", "16.5", "16.7", "16.9"] },
+    { "id": 7, "tasks": ["15.2", "15.4", "15.6", "16.2", "16.4", "16.6", "16.8", "16.10"] },
+    { "id": 8, "tasks": ["17.1", "17.2", "17.3", "17.4", "17.5", "17.6", "19.1", "20.1", "20.2", "21.1"] },
+    { "id": 9, "tasks": ["19.2", "19.3", "20.3", "20.4", "21.2", "22.1", "22.2", "24.1", "25.1", "26.1", "26.2"] },
+    { "id": 10, "tasks": ["19.4", "19.5", "22.3", "22.4", "22.5", "24.2", "25.2", "25.4", "26.3", "26.4", "26.5", "27.1"] },
+    { "id": 11, "tasks": ["22.6", "22.7", "23.1", "25.3", "26.6", "27.2", "27.3"] },
+    { "id": 12, "tasks": ["23.2", "25.5", "28.1", "34.1"] },
+    { "id": 13, "tasks": ["30.1"] },
+    { "id": 14, "tasks": ["30.2"] },
+    { "id": 15, "tasks": ["31.1"] },
+    { "id": 16, "tasks": ["32.1", "33.1", "33.3", "35.1"] },
+    { "id": 17, "tasks": ["32.2", "32.3", "32.4", "33.2", "33.4"] },
+    { "id": 18, "tasks": ["35.2", "35.3", "35.4", "35.5"] }
+  ]
+}
+```
