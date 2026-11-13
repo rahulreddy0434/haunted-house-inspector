@@ -270,25 +270,34 @@ Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, m
 
 ---
 
-## Nov 13, 2026 (Spec 2, day 1: AWS setup and the pure core, tasks 3 to 11)
+## Nov 13, 2026 (Spec 2, day 1: spec written, AWS setup and the pure core, tasks 1 to 11)
 
 **Done**
-- AWS setup by hand: GSI1 is ACTIVE with an INCLUDE projection, the JobsIndexQuery IAM statement is added, PRO_ACCESS_CODE and SESSION_SECRET are set in Amplify
-- Trusted client IP: the live check on laptop and phone gave 2 hops, so `TRUSTED_PROXY_HOPS` is 2; the temporary diagnostic route is deleted (404 on main); the design and requirements now say 2 hops
-- Task 4: shared job types, the emergency texts, and one copy file with every status label and error message
-- Task 5: the pure status transition function (13 allowed changes) and its property test
-- Task 6: time-slot validation (1 to 3 future slots within 30 days) with unit and property tests
-- Task 8: a shared request-body reader with a byte limit; the inspect route now uses it with no change in behaviour
-- Task 9: access-code check, signed Pro cookie and keyed IP hash, each with unit and property tests
-- Task 10: the login flow with the 5-attempt lockout, tested against a separate reference model with an injected clock
-- Task 11 checkpoint: lint, type-check and build clean; 615 tests pass in 72 files
+- Spec 2 (pro-dashboard-and-booking) written and reviewed: requirements, design and 36 tasks
+- Live-test screenshots saved to docs/screenshots/
+- Trusted client IP (tasks 1, 2, 7 and 30): a temporary diagnostic route measured the proxy chain on the live site from a laptop and a phone. Both gave 2 hops, so `TRUSTED_PROXY_HOPS` is 2 and `getTrustedClientIp` reads the second-to-last `x-forwarded-for` entry, with unit tests and Property 6. The diagnostic route is deleted (404 on main), and the requirements, design and tasks now say 2 hops
+- AWS setup by hand (task 3): GSI1 is ACTIVE with an INCLUDE projection of seven fields; the `JobsIndexQuery` IAM statement allows Query on the index only; PRO_ACCESS_CODE and SESSION_SECRET are set in Amplify
+- Task 4: shared job types, the emergency texts in one place, and one copy file with every status label and error message, tested word for word against the requirements
+- Task 5: the pure status transition function (13 allowed changes) and Property 1
+- Task 6: time-slot validation (1 to 3 different future times within 30 days, with an injected clock) and Property 9
+- Task 8: a shared request-body reader with a byte limit; the inspect route now uses it, and all its existing tests passed unchanged
+- Task 9: the access-code check (Property 8), the signed Pro cookie (Property 7) and the keyed IP hash. The cookie test changes every character of a valid cookie and confirms each one is rejected; a homeowner `hhi_session` token is rejected too
+- Task 10: the login flow. After 5 wrong codes in 15 minutes, login from that network is locked; Property 4 checks this against a separate reference model with an injected clock
+- Task 11 checkpoint: lint, type-check and build clean; 615 tests pass in 72 files (410 yesterday)
+- Deployed to main. Live check: a normal photo inspection shows its result, and "I smell gas in the kitchen" shows only the emergency page
 
 **Kiro features used**
-- Spec task execution: sub-agents built each module and wrote its tests in parallel; the four checks ran after every parent task
+- Spec-driven development: the design's correctness properties became fast-check property tests (Properties 1, 4, 6, 7, 8 and 9), each tagged with its property number
+- Spec task execution: sub-agents built each module and wrote its tests in parallel, and the four checks ran after every parent task
+- Spec updates: once the live measurement was in, Kiro changed the requirements, design and tasks to 2 hops and ticked off the manual tasks
 
 **Problems and fixes**
-- The new tests found a bug: a lower-case `cache-control` header could override `no-store` in the shared response helper; fixed so `no-store` always wins
-- Time-slot validation reports one rule at a time, so a bad slot is only reported once the count is fixed; kept as is
+- The new tests found a bug: a lower-case `cache-control` header could override `no-store` in the shared response helper. Fixed so `no-store` always wins
+- After the change to 2 hops, two lines in tasks.md still described 1 hop, including the test example for task 32. Caught in review and fixed, so the rate limiter tests will expect the second-to-last address
+- Kiro ran tasks 4 to 11 in one go, so they went in as one commit. From now on Kiro stops after each parent task, so each task gets its own commit
+- Time-slot validation reports one rule at a time, so a bad time is only reported once the count is fixed. Kept as is, because the design says to report the first rule that fails
 
 **Next**
-- Task 12 onward: the data layer (jobs and lockout on DynamoDB), then the routes, then the UI
+- Sat Nov 14: tasks 12 to 16 (test helpers, schemas and views; the data layer, with jobs and the lockout on DynamoDB; server helpers; the homeowner routes; the Pro read and action routes)
+- Weekly Reset site on weeklyresetwr.com and the LinkedIn Founder role, by Wed Nov 18
+- Keep booking calls with tradespeople and homeowners (target: 5 by Nov 18)

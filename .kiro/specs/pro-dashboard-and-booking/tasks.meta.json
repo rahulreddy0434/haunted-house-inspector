@@ -15,6 +15,10 @@
     "10.2 Write property test for the lockout counter (Property 4, model store)": {
       "status": "passed",
       "lastRunTimestamp": 1794593807480
+    },
+    "12.9 Write property test for the views (Property 10)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794599038073
     }
   },
   "executionHistory": {
@@ -493,6 +497,121 @@
         "executionId": "764f298d-16e2-4901-b050-360b59806c98",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794593966204
+      }
+    ],
+    "12.1 Create the fake DynamoDB table helper": [
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598723119
+      },
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598916326
+      }
+    ],
+    "12.3 Create `src/test/jobFixtures.ts`": [
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598723358
+      },
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598917418
+      }
+    ],
+    "12.4 Create `src/test/proRouteHarness.ts`": [
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598724346
+      },
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598918495
+      }
+    ],
+    "12.5 Create `src/lib/validation/jobSchema.ts`": [
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598725559
+      },
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598919558
+      }
+    ],
+    "12.7 Create `src/lib/jobs/views.ts`": [
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598726174
+      },
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598920635
+      }
+    ],
+    "12.2 Write unit tests for the fake DynamoDB table": [
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598934237
+      },
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794599095210
+      }
+    ],
+    "12.6 Write unit tests for the job schemas": [
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598935443
+      },
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794599095596
+      }
+    ],
+    "12.8 Write unit tests for the views and `effectiveStatus`": [
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598936622
+      },
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794599097179
+      }
+    ],
+    "12.9 Write property test for the views (Property 10)": [
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794598937135
+      },
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794599095893
+      }
+    ],
+    "12. Test helpers, schemas and views": [
+      {
+        "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794599097322
       }
     ]
   }

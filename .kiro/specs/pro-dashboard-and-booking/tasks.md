@@ -228,8 +228,8 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
   - Run `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`; all four must exit with code 0
   - Pure core covered: types, emergency texts, copy, transition table, Time_Slot validation, trusted client IP, body reader, access code, Pro cookie, IP hash, lockout flow
 
-- [ ] 12. Test helpers, schemas and views
-  - [ ] 12.1 Create the fake DynamoDB table helper
+- [x] 12. Test helpers, schemas and views
+  - [x] 12.1 Create the fake DynamoDB table helper
     - Create: `src/test/fakeDynamoTable.ts`
     - In-memory model installed with the same `vi.mock('@aws-sdk/lib-dynamodb', ...)` pattern as `src/app/api/inspections/[id]/route.test.ts`; implements `GetCommand`, `PutCommand`, `UpdateCommand` and `QueryCommand` (`GSI1` only: sparse filter on `GSI1PK`, key condition `GSI1PK = :pk AND GSI1SK > :since`, `ScanIndexForward`, `Limit`, INCLUDE projection)
     - Interprets the small expression grammar the code uses: `SET` with literals, `#alias`, `if_not_exists`, `list_append`, `+` and `-`; `ADD`; `REMOVE`; conditions with `attribute_exists`, `attribute_not_exists`, `= <> < <= > >=`, `AND`, `OR`, parentheses; throws on any unsupported token
@@ -237,42 +237,42 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - THE SHARED GUARD: fails the test on any other command class (`ScanCommand`, `DeleteCommand`, `BatchWriteCommand`, `BatchGetCommand`, `TransactWriteCommand`) and on any write to a `RATELIMIT#` item by this feature's routes
     - _Requirements: 16.1, 16.7, 14.10, 12.2, 12.3_
     - _Design: Testing Strategy (Test helpers)_
-  - [ ] 12.2 Write unit tests for the fake DynamoDB table
+  - [x] 12.2 Write unit tests for the fake DynamoDB table
     - Create: `src/test/fakeDynamoTable.test.ts`
     - Expression grammar cases (SET, ADD, REMOVE, `list_append`, `if_not_exists`, conditions); `ConditionalCheckFailedException`; sparse `GSI1` query with ordering, `Limit` and projection; the guard fails on `ScanCommand`, `DeleteCommand` and `BatchWriteCommand`; the reserved-word check; `hold` gating
     - _Requirements: 16.7, 14.10_
-  - [ ] 12.3 Create `src/test/jobFixtures.ts`
+  - [x] 12.3 Create `src/test/jobFixtures.ts`
     - Create: `src/test/jobFixtures.ts`
     - `makeJobItem(status, overrides)` builds a stored item for each of the six statuses in a consistent shape (an `accepted` item has `offeredSlots`, a `booked` item has `bookedSlot` and `bookedAt`, an `info_requested` item has at least one `infoRequests` entry, `replyCount` equals `replies.length`); `arbitraryJobRecord` and `arbitraryInspectionResult` for fast-check (the emergency shape included)
     - _Requirements: 12.1, 16.1_
     - _Design: Testing Strategy (Test helpers)_
-  - [ ] 12.4 Create `src/test/proRouteHarness.ts`
+  - [x] 12.4 Create `src/test/proRouteHarness.ts`
     - Create: `src/test/proRouteHarness.ts`
     - `makeRequest(path, { method, body, cookie, headers })` building a `NextRequest`; `validProCookie(now)`; `withEnv({ PRO_ACCESS_CODE, SESSION_SECRET, DYNAMODB_TABLE_NAME, S3_BUCKET_NAME })`; `expectNoStore(response)`; console spies for `error` and `warn`; a helper that builds an `x-forwarded-for` header with enough trailing entries for the current `TRUSTED_PROXY_HOPS` so tests do not break when the constant changes
     - _Requirements: 16.6, 16.1_
-  - [ ] 12.5 Create `src/lib/validation/jobSchema.ts`
+  - [x] 12.5 Create `src/lib/validation/jobSchema.ts`
     - Create: `src/lib/validation/jobSchema.ts`
     - Export `jobIdSchema` (`z.uuid()`), `loginBodySchema` (code 1 to 200, no trim), `declineBodySchema`, `askInfoBodySchema`, `replyBodySchema` (`{ text: z.string() }`, length rules run AFTER the Safety_Layer), `bookBodySchema`, `storedJobSchema` (with the `superRefine` that lets an `emergency` Job stay readable), `proListItemSchema`, `homeownerStatusViewSchema`, `proJobDetailSchema`, `proJobsResponseSchema`, `actionResponseSchema`, `apiErrorSchema`
     - Zod 4; importable from browser and server; no `server-only`. The accept body uses `slotsSchema(nowMs)` from `timeSlots.ts` per request
     - _Requirements: 12.10, 12.14, 6.15, 7.20, 14.8_
     - _Design: Data Models (Zod schemas)_
-  - [ ] 12.6 Write unit tests for the job schemas
+  - [x] 12.6 Write unit tests for the job schemas
     - Create: `src/lib/validation/jobSchema.test.ts`
     - Unknown `status` fails; missing new attributes default (`infoRequests`, `replies`, `replyCount`); `replyCount` must equal `replies.length` except for `emergency`; `accepted` without `offeredSlots` fails and `booked` without `bookedSlot` fails; an emergency Job with other inconsistencies still parses; unknown request fields are ignored; `declineBodySchema` trims and enforces 200; `askInfoBodySchema` trims and enforces 1 to 300; `homeownerStatusViewSchema` accepts each view and rejects extras of the wrong shape
     - _Requirements: 6.15, 7.5, 7.6, 7.8, 7.20, 12.10, 12.14_
-  - [ ] 12.7 Create `src/lib/jobs/views.ts`
+  - [x] 12.7 Create `src/lib/jobs/views.ts`
     - Create: `src/lib/jobs/views.ts`
     - Export `effectiveStatus`, `toProListItem` (`trade: null` for an emergency), `toProDetail(job, photos)` (two exact shapes: Requirement 5.3 for non-emergency, Requirement 5.10 for emergency with `emergencyNote`), `toHomeownerStatusView` (field set per status; latest `infoRequests` entry as `question`; exactly `{ status, message }` for emergency)
     - Never copy `diySteps`, `s3Keys`, `isEmergency`, `ttl`, `GSI1PK`, `GSI1SK`, `replyCount`, `statusUpdatedAt` or `bookedAt`
     - Pure; no AWS, no `server-only`
     - _Requirements: 4.5, 4.7, 5.3, 5.4, 5.10, 6.19, 8.4, 8.5, 11.13, 14.11_
     - _Design: Components and Interfaces (Pure views)_
-  - [ ] 12.8 Write unit tests for the views and `effectiveStatus`
+  - [x] 12.8 Write unit tests for the views and `effectiveStatus`
     - Create: `src/lib/jobs/views.test.ts`
     - One example per status for each view; `emergencyNote` equals `PRO_EMERGENCY_NOTE`; `offeredSlots`, `bookedSlot` and `declineReason` present only when stored; the latest question is used for `info_requested`
     - `effectiveStatus` safeguard (16.21 a): a Job with `urgency` `emergency` OR `isEmergency` true and any other `status` becomes `emergency`; a consistent Job is unchanged
     - _Requirements: 4.5, 4.7, 5.3, 5.10, 6.19, 8.4, 8.5, 16.21_
-  - [ ] 12.9 Write property test for the views (Property 10)
+  - [x] 12.9 Write property test for the views (Property 10)
     - Create: `src/lib/jobs/views.property.test.ts`
     - **Property 10: Views expose exactly the allowed fields**
     - **Validates: Requirements 4.5, 4.7, 5.3, 5.4, 5.10, 8.4, 8.5, 11.13, 11.14, 14.11, 16.15**
