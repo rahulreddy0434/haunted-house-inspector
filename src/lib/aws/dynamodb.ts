@@ -11,9 +11,26 @@ import type { InspectionResult } from '@/types/inspection';
 
 const TTL_SECONDS = 30 * 24 * 60 * 60;
 
+const STORAGE_ONLY_ATTRIBUTES = [
+  'PK',
+  'SK',
+  'ttl',
+  'status',
+  'statusUpdatedAt',
+  'GSI1PK',
+  'GSI1SK',
+  'offeredSlots',
+  'bookedSlot',
+  'bookedAt',
+  'declineReason',
+  'infoRequests',
+  'replies',
+  'replyCount',
+] as const;
+
 let docClient: DynamoDBDocumentClient | undefined;
 
-function getDocClient(): DynamoDBDocumentClient {
+export function getDocClient(): DynamoDBDocumentClient {
   if (!docClient) {
     // Credentials come from the default provider chain (IAM role / CLI profile).
     const client = new DynamoDBClient({ region: process.env.APP_AWS_REGION });
@@ -24,7 +41,7 @@ function getDocClient(): DynamoDBDocumentClient {
   return docClient;
 }
 
-function jobKey(id: string): string {
+export function jobKey(id: string): string {
   return `JOB#${id}`;
 }
 
@@ -51,12 +68,19 @@ export async function persistInspection(result: InspectionResult): Promise<boole
           SK: jobKey(result.id),
           ttl: baseSeconds + TTL_SECONDS,
           ...result,
+          status: result.isEmergency || result.urgency === 'emergency' ? 'emergency' : 'new',
+          statusUpdatedAt: result.createdAt,
+          GSI1PK: 'JOBS',
+          GSI1SK: result.createdAt,
+          replyCount: 0,
+          infoRequests: [],
+          replies: [],
         },
       }),
     );
     return true;
   } catch (error: unknown) {
-    console.error('Failed to persist inspection', error);
+    console.error('Failed to persist inspection', error instanceof Error ? error.name : 'UnknownError');
     return false;
   }
 }
@@ -78,11 +102,11 @@ export async function getInspection(id: string): Promise<InspectionResult | null
   if (!response.Item) {
     return null;
   }
-  const { PK: _pk, SK: _sk, ttl: _ttl, ...rest } = response.Item;
-  void _pk;
-  void _sk;
-  void _ttl;
-  return rest as InspectionResult;
+  const rest: Record<string, unknown> = { ...response.Item };
+  for (const attr of STORAGE_ONLY_ATTRIBUTES) {
+    delete rest[attr];
+  }
+  return rest as unknown as InspectionResult;
 }
 
 export interface RateLimitCounterResult {
@@ -98,7 +122,7 @@ function rateLimitKey(visitorId: string): string {
   return `RATELIMIT#${visitorId}`;
 }
 
-function requireTableName(): string {
+export function requireTableName(): string {
   const tableName = process.env.DYNAMODB_TABLE_NAME;
   if (!tableName) {
     throw new Error('DYNAMODB_TABLE_NAME is not set');

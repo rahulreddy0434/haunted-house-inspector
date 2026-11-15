@@ -4,6 +4,19 @@ import fc from 'fast-check';
 import { attemptLogin, type LockoutStore } from '@/lib/pro/loginFlow';
 import { verifyProCookie } from '@/lib/pro/proCookie';
 import { createInMemoryLockoutStore } from '@/test/inMemoryLockoutStore';
+import { createFakeDynamoTable, type FakeDynamoTable } from '@/test/fakeDynamoTable';
+
+vi.mock('server-only', () => ({}));
+
+const holder = vi.hoisted(() => ({ fake: null as unknown as FakeDynamoTable }));
+vi.mock('@aws-sdk/lib-dynamodb', async (importOriginal) => {
+  const { fakeDynamoMockFactory } = await import('@/test/fakeDynamoTable');
+  return fakeDynamoMockFactory(() => holder.fake)(
+    importOriginal as () => Promise<typeof import('@aws-sdk/lib-dynamodb')>,
+  );
+});
+
+import { dynamoLockoutStore } from '@/lib/aws/lockout';
 
 // Feature: pro-dashboard-and-booking, Property 4: Lockout counter
 // **Validates: Requirements 2.1, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.11, 2.12, 16.5**
@@ -220,5 +233,113 @@ describe('Property 4: Lockout counter (model store)', () => {
       { numRuns: 100 },
     );
     expect(dateNow).not.toHaveBeenCalled();
+  });
+});
+
+function peekReal(ip: string): { windowStart: number; count: number } | undefined {
+  const item = holder.fake.get(`PROAUTH#${ip}`);
+  if (!item) return undefined;
+  return { windowStart: item.windowStart as number, count: item.count as number };
+}
+
+const yieldToEventLoop = () => new Promise<void>((resolve) => setImmediate(resolve));
+
+async function runSequenceReal(steps: Step[]): Promise<void> {
+  holder.fake = createFakeDynamoTable();
+  const store = dynamoLockoutStore;
+  const model = new Map<string, ModelEntry>();
+  let now = BASE_MS;
+
+  for (const step of steps) {
+    now += step.gap;
+    const ip = ipNames[step.ip];
+    const expected = modelStep(model, ip, step.correct, now);
+    const outcome = await attemptLogin(step.correct ? ACCESS_CODE : 'wrong-code', ip, {
+      store,
+      accessCode: ACCESS_CODE,
+      secret: SECRET,
+      nowMs: now,
+      log: () => {},
+    });
+
+    expect(outcome.kind).toBe(expected.kind);
+    if (expected.kind === 'ok' && outcome.kind === 'ok') {
+      expect(verifyProCookie(outcome.cookieValue, SECRET, now)).not.toBeNull();
+    }
+    if (expected.kind === 'locked' && outcome.kind === 'locked') {
+      expect(outcome.retryAfterSeconds).toBeGreaterThanOrEqual(1);
+      expect(outcome.retryAfterSeconds).toBeLessThanOrEqual(900);
+      expect(outcome.retryAfterSeconds).toBe(expected.retryAfterSeconds);
+    }
+
+    for (const name of ipNames) {
+      const peeked = peekReal(name);
+      const modelled = model.get(name);
+      if (peeked) {
+        expect(peeked.count).toBeLessThanOrEqual(MAX_WRONG);
+        expect(peeked.count).toBeGreaterThanOrEqual(0);
+      }
+      if (modelled) {
+        expect(peeked).toBeDefined();
+        expect(peeked?.windowStart).toBe(modelled.start);
+        expect(peeked?.count).toBe(modelled.wrong);
+      } else {
+        expect(peeked).toBeUndefined();
+      }
+    }
+  }
+}
+
+describe('Property 4: Lockout counter (real dynamoLockoutStore over the fake table)', () => {
+  it('follows the same policy as the model store, with concurrent reserves and a clock jump', async () => {
+    process.env.DYNAMODB_TABLE_NAME = 'test-table';
+    await fc.assert(
+      fc.asyncProperty(
+        sequences(5 * WINDOW_MS, 2 * WINDOW_MS),
+        fc.integer({ min: 0, max: MAX_WRONG }),
+        fc.boolean(),
+        fc.integer({ min: 0, max: 3_600_000 }),
+        async (steps, prefill, interleave, extra) => {
+          await runSequenceReal(steps);
+
+          // Concurrent phase on a fresh IP: two reserves at the same instant.
+          const raceIp = 'ip-race';
+          const raceNow = BASE_MS + 10 * WINDOW_MS;
+          for (let i = 0; i < prefill; i++) {
+            const r = await dynamoLockoutStore.reserve(raceIp, raceNow);
+            expect(r.allowed).toBe(true);
+          }
+          if (interleave) holder.fake.hold('UpdateCommand');
+          const pair = Promise.all([
+            dynamoLockoutStore.reserve(raceIp, raceNow),
+            dynamoLockoutStore.reserve(raceIp, raceNow),
+          ]);
+          if (interleave) {
+            for (let i = 0; i < 100 && holder.fake.heldCount() < 2; i++) await yieldToEventLoop();
+            holder.fake.release();
+          }
+          const results = await pair;
+          const allowed = results.filter((r) => r.allowed).length;
+          expect(allowed).toBe(Math.min(2, MAX_WRONG - prefill));
+          for (const r of results) {
+            if (!r.allowed) {
+              expect(r.retryAfterSeconds).toBeGreaterThanOrEqual(1);
+              expect(r.retryAfterSeconds).toBeLessThanOrEqual(900);
+              expect(r.retryAfterSeconds).toBe(900);
+            }
+          }
+          const raced = peekReal(raceIp);
+          expect(raced?.count).toBe(Math.min(MAX_WRONG, prefill + 2));
+          expect(raced?.count).toBeLessThanOrEqual(MAX_WRONG);
+
+          // Tail: jump the clock by at least one full window; a fresh window opens.
+          const later = raceNow + WINDOW_MS + extra;
+          const fresh = await dynamoLockoutStore.reserve(raceIp, later);
+          expect(fresh).toEqual({ allowed: true, windowStart: later, count: 1 });
+          expect(peekReal(raceIp)).toEqual({ windowStart: later, count: 1 });
+        },
+      ),
+      { numRuns: 100 },
+    );
   });
 });

@@ -1,4 +1,4 @@
-﻿# Haunted House Inspector - Build Log
+# Haunted House Inspector - Build Log
 
 A daily record of what I built, which Kiro features I used, and what went wrong.
 This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the social post.
@@ -299,5 +299,31 @@ Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, m
 
 **Next**
 - Sat Nov 14: tasks 12 to 16 (test helpers, schemas and views; the data layer, with jobs and the lockout on DynamoDB; server helpers; the homeowner routes; the Pro read and action routes)
+- Weekly Reset site on weeklyresetwr.com and the LinkedIn Founder role, by Wed Nov 18
+- Keep booking calls with tradespeople and homeowners (target: 5 by Nov 18)
+---
+## Nov 15, 2026 (Spec 2, day 2: test helpers, data layer, server helpers and all API routes, tasks 12 to 16)
+**Done**
+- Task 12 (committed Nov 13 as d8a9e64): an in-memory fake DynamoDB table for tests, job fixtures, a route-test harness, the Zod schemas for every request and response, and the views that fix exactly which fields the Pro and the homeowner see; 800 tests
+- Task 13, data layer: new inspections are now stored with a status (`new`, or `emergency` when the safety check fired) and the index fields the Pro list needs. `jobs.ts` reads one job (consistent read; old jobs without a status are treated as not found) and lists the newest 50 from the last 30 days with one index Query, never a Scan. Every status change is a conditional write, so two people acting at once cannot both win. The safety override turns any job into an emergency and removes its time slots. The login lockout now lives in DynamoDB (`lockout.ts`), and Property 4 runs against it as well as the reference model, including two logins at the same moment
+- `GET /api/inspections/[id]` still returns exactly the old result fields, checked with a stored job that has every new field
+- Task 14, server helpers: the Pro cookie guard, the reply safety check (reuses the existing safety rules, no AI), the conflict response used after a failed conditional write, and one shared pipeline for the three Pro actions with a fixed check order (cookie first, then body size, JSON, fields, job id, job, status)
+- Task 15, homeowner routes: job status, reply, and book a time slot. A reply that mentions gas, sparks, flooding near power or a CO alarm makes the job an emergency and shows the 911 message, whatever state the job is in, even if the reply is too long
+- Task 16, Pro routes: job list, job detail (photo links made fresh on each request, none for an emergency), accept with 1 to 3 time slots, decline with an optional reason, and ask one question
+- After each task: lint, type-check, all tests and the build clean. 1150 tests pass in 93 files (800 after task 12)
+**Kiro features used**
+- Spec task execution: one sub-agent per sub-task, run in order, with the four checks after each parent task and a report of files and commit message
+- Spec-driven development: Property 13 (a new job carries the right status and index fields) and Property 4 extended to the real DynamoDB lockout store
+- Steering: the safety rules and the no-AWS-in-components rule shaped every route; each route test checks that the rate limiter is never imported and that no secret or user text reaches the logs
+**Problems and fixes**
+- The first version of the Pro cookie helpers returned header strings, but the design uses cookie objects for `res.cookies.set`. Caught in review and switched to the design version; the tests check the real `Set-Cookie` header
+- The lint rule for React hooks failed a test file because a test helper is called `useEnv`. Fixed by using `withEnv` in `beforeEach` and `afterEach`; later route tests follow the same pattern
+- A decline sent with no body at all gets a 400 (an empty body is not valid JSON); `{}` works. Left as is for now, the dashboard will send `{}`
+- One summary line in the design still describes the conflict helper with an older signature and a 429; the detailed design and the code agree. To tidy up in the spec
+- The limit of 5 replies is written in three places (job store, reply route, ask-info route). Possible small cleanup: one shared constant
+**Next**
+- Commit tasks 13 to 16 (one commit per task), then deploy to main and check that a new inspection still works live
+- Task 17: route-level property tests (emergency stays emergency, any triggering reply ends in emergency, racing actions have one winner, reply counts stay consistent) and the suite-wide guard test
+- Then the UI: the Pro login and dashboard, and the status panel on the results page
 - Weekly Reset site on weeklyresetwr.com and the LinkedIn Founder role, by Wed Nov 18
 - Keep booking calls with tradespeople and homeowners (target: 5 by Nov 18)

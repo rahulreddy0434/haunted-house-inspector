@@ -279,8 +279,8 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - At least 100 runs over `arbitraryJobRecord` with stray extra keys (`diySteps`, `s3Keys`, `GSI1PK`, `ttl`); exact key sets for the list item, the two detail shapes and the status view; `toHomeownerStatusView` output always passes `homeownerStatusViewSchema`
     - Tag: `// Feature: pro-dashboard-and-booking, Property 10: Views expose exactly the allowed fields`
 
-- [ ] 13. Data layer
-  - [ ] 13.1 Change `persistInspection` and export the shared client helpers
+- [x] 13. Data layer
+  - [x] 13.1 Change `persistInspection` and export the shared client helpers
     - Modify: `src/lib/aws/dynamodb.ts`
     - Export `getDocClient`, `requireTableName`, `jobKey`
     - `persistInspection` keeps its signature, its never-throws contract and the `ttl` formula (`createdAt` + 30 days); the same `PutItem` now also writes `status` (`emergency` when `isEmergency` or `urgency === 'emergency'`, otherwise `new`), `statusUpdatedAt` = `createdAt`, `GSI1PK` = `JOBS`, `GSI1SK` = `createdAt`, `replyCount` 0, `infoRequests` `[]`, `replies` `[]`; `offeredSlots`, `bookedSlot`, `bookedAt`, `declineReason` absent
@@ -288,21 +288,21 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - `RATELIMIT#` items never get `GSI1PK`, `GSI1SK` or `status`
     - _Requirements: 6.7, 6.8, 11.16, 12.2, 12.3, 12.4, 12.11_
     - _Design: Data Models (Create a Job)_
-  - [ ] 13.2 Write unit tests for `persistInspection`
+  - [x] 13.2 Write unit tests for `persistInspection`
     - Create: `src/lib/aws/dynamodb.persist.test.ts`
     - Emergency and non-emergency items; `ttl` formula unchanged; failure returns false and does not throw; `getInspection` and the existing `RATELIMIT#` writes carry none of the new attributes; existing `dynamodb` tests stay green
     - _Requirements: 6.7, 6.8, 12.2, 12.3, 12.4, 12.11_
-  - [ ] 13.3 Write property test for the created Job item (Property 13)
+  - [x] 13.3 Write property test for the created Job item (Property 13)
     - Create: `src/lib/aws/dynamodb.persist.property.test.ts`
     - **Property 13: A created Job carries the right status and index attributes**
     - **Validates: Requirements 6.7, 6.8, 11.16, 12.4, 12.11**
     - At least 100 runs over `arbitraryInspectionResult` (emergency shape included); DynamoDB document client mocked and the `PutCommand` input inspected: `status`, `statusUpdatedAt`, `GSI1PK`, `GSI1SK`, `replyCount`, empty lists, absent optional attributes, `ttl`, every result field preserved
     - Tag: `// Feature: pro-dashboard-and-booking, Property 13: A created Job carries the right status and index attributes`
-  - [ ] 13.4 Write integration test: inspect route persists the new job fields
+  - [x] 13.4 Write integration test: inspect route persists the new job fields
     - Create: `src/app/api/inspect/route.jobStatus.test.ts`
     - Uses the fake DynamoDB table: a non-emergency inspection is stored with `status` `new` and the index attributes; an emergency inspection (the context-answer path, Bedrock never called) is stored with `status` `emergency`, cost 0, empty `jobBrief` and `diySteps`, no slots; the HTTP response body is still the plain `InspectionResult` without a `status` field; the existing inspect tests stay green
     - _Requirements: 6.7, 6.8, 11.16, 12.4, 16.14_
-  - [ ] 13.5 Create `src/lib/aws/jobs.ts` reads
+  - [x] 13.5 Create `src/lib/aws/jobs.ts` reads
     - Create: `src/lib/aws/jobs.ts` (first part)
     - Start with `import 'server-only'`. Export `JobLookup`, `WriteResult`, `getJob(id)`, `queryRecentJobs(nowMs)`
     - `getJob`: strongly consistent `GetCommand` (`ConsistentRead: true`); returns `missing`, `legacy` (no `status` attribute), `invalid` (fails `storedJobSchema`, including an unknown status) or `found`; applies `effectiveStatus` once; throws on a DynamoDB error
@@ -310,31 +310,31 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - Never sends `Scan`, `DeleteItem`, `BatchWriteItem`
     - _Requirements: 4.1, 4.2, 4.3, 4.9, 4.10, 4.11, 4.17, 5.1, 6.14, 6.15, 6.19, 12.10, 12.14, 14.10_
     - _Design: Data Models (Reads)_
-  - [ ] 13.6 Write unit tests for the Job reads
+  - [x] 13.6 Write unit tests for the Job reads
     - Create: `src/lib/aws/jobs.read.test.ts`
     - `getJob` sends `ConsistentRead: true` and returns `missing`, `legacy`, `invalid` and `found`; `effectiveStatus` applied; thrown errors propagate; `queryRecentJobs` sends exactly one `QueryCommand` with `IndexName` `GSI1`, key condition, `ScanIndexForward` false, `Limit` 50 and the lower bound computed from the injected time; fewer than 50 and none; invalid items omitted; no `ScanCommand`, `DeleteCommand` or `BatchWriteCommand` is ever sent (shared guard); a legacy item and a pre-index item never appear
     - _Requirements: 4.2, 4.3, 4.10, 4.11, 4.17, 5.1, 6.14, 6.19, 12.14, 16.7, 16.21_
-  - [ ] 13.7 Add the conditional status writes to `src/lib/aws/jobs.ts`
+  - [x] 13.7 Add the conditional status writes to `src/lib/aws/jobs.ts`
     - Modify: `src/lib/aws/jobs.ts`
     - Add `applyTransition(id, expected, next, patch, nowIso)` (accept: `offeredSlots`; decline: `declineReason` only when the trimmed reason is non-empty; ask-info: `list_append(if_not_exists(infoRequests, :empty), :q)`), `applyReply(id, text, nowIso)` and `applyBooking(id, slot, nowIso)` as one `UpdateCommand` each
     - Conditions: transitions `attribute_exists(PK) AND #status = :expected` (for `accept` and `decline` of an `info_requested` Job, `:expected` is `info_requested`); reply `attribute_exists(PK) AND #status = :infoRequested AND replyCount < :five` with `replies` and `replyCount` changed in the same write; booking `attribute_exists(PK) AND #status = :accepted` leaving `offeredSlots` untouched
     - Every write sets `statusUpdatedAt`; NO write mentions `ttl`; `infoRequests`, `replies` and `replyCount` are not written by accept or decline; `ConditionalCheckFailedException` returns `{ ok: false, reason: 'CONDITION_FAILED' }`, every other error is rethrown
     - _Requirements: 6.9, 6.12, 6.18, 7.1, 7.3, 7.5, 7.7, 9.8, 10.5, 12.1, 12.11, 12.13_
     - _Design: Data Models (Writes)_
-  - [ ] 13.8 Add `applySafetyOverride` to `src/lib/aws/jobs.ts`
+  - [x] 13.8 Add `applySafetyOverride` to `src/lib/aws/jobs.ts`
     - Modify: `src/lib/aws/jobs.ts`
     - Add `applySafetyOverride(id, replyText, nowIso)`: attempt A appends the reply (trimmed, cut to 500 characters) and `ADD replyCount 1` when `replyCount < 5`; attempt B (only when A fails its condition) performs the same override without the reply and without changing `replyCount`; B failing its condition returns `skipped` (Job missing or already an emergency)
     - Both attempts set `status` `emergency`, `statusUpdatedAt`, `urgency` `emergency`, `isEmergency` true, costs 0, `jobBrief` `''`, `diySteps` `[]` and `REMOVE offeredSlots, bookedSlot, bookedAt`; the condition requires only that the Job exists and `status` is absent or not `emergency` (plus `replyCount` room for A); `declineReason`, `infoRequests` and `ttl` are left alone
     - Returns `applied` or `skipped`; any other error propagates (the route swallows it)
     - _Requirements: 6.13, 11.1, 11.2, 11.3, 11.4, 11.5, 12.1, 12.13_
     - _Design: Data Models (Safety override)_
-  - [ ] 13.9 Write unit tests for the Job writes and the override
+  - [x] 13.9 Write unit tests for the Job writes and the override
     - Create: `src/lib/aws/jobs.write.test.ts`
     - Each write sends the exact `ConditionExpression` (including the `info_requested` condition for accept and decline); `statusUpdatedAt` is set on every status change; no expression string contains `ttl`; accept and decline do not touch `infoRequests`, `replies` or `replyCount`; the `declineReason` is stored only when non-empty; reply keeps `replyCount` equal to `replies.length`
     - Override: condition requires only existence and not-emergency; attempt B runs when `replyCount` is 5 (reply not stored, `replyCount` unchanged); both attempts remove `offeredSlots`, `bookedSlot` and `bookedAt`; stored reply trimmed and cut to 500 characters; an already-emergency Job returns `skipped` with no further write; a status change out of `declined` and `booked`
     - Condition failure returns `CONDITION_FAILED`; other errors are rethrown; no `Scan`, `DeleteItem` or `BatchWriteItem` is ever sent
     - _Requirements: 6.9, 6.12, 6.13, 6.18, 9.8, 10.5, 11.1, 11.2, 11.4, 12.11, 12.13, 16.9, 16.7_
-  - [ ] 13.10 Create `src/lib/aws/lockout.ts`
+  - [x] 13.10 Create `src/lib/aws/lockout.ts`
     - Create: `src/lib/aws/lockout.ts`
     - Start with `import 'server-only'`. Export `LOCKOUT_MAX` (5), `LOCKOUT_WINDOW_MS` (900000), `dynamoLockoutStore` implementing `LockoutStore`
     - Step 1 reserve: `ADD #count :one SET windowStart = if_not_exists(windowStart, :now), #ttl = if_not_exists(#ttl, :ttl)` with condition `attribute_not_exists(windowStart) OR (windowStart > :cutoff AND #count < :max)`; step 2 new window: `SET #count = :one, windowStart = :now, #ttl = :ttl` with condition `windowStart <= :cutoff`; release: `SET #count = #count - :one` with condition `attribute_exists(PK) AND #count > :zero AND windowStart = :ws`
@@ -342,53 +342,53 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - Item `PK = SK = PROAUTH#<ipHash>`; `ttl` = `floor((windowStart + 900000) / 1000)`; no `GSI1PK`, `GSI1SK` or `status`; never touches `RATELIMIT#` items; uses only `UpdateItem` and `GetItem`; `nowMs` is a parameter
     - _Requirements: 2.1, 2.3, 2.4, 2.8, 2.10, 2.12, 2.13, 12.2, 14.10_
     - _Design: Data Models (Lockout_Counter)_
-  - [ ] 13.11 Write unit tests for the lockout store
+  - [x] 13.11 Write unit tests for the lockout store
     - Create: `src/lib/aws/lockout.test.ts`
     - Exact step 1, step 2 and release expressions; first-ever attempt creates the item; the 6th reserve is refused with `retryAfterSeconds` in 1 to 900; an expired window starts a new one with `count` 1; the item vanished through `ttl` between steps; a lost race on step 2 loops back to step 1; contention after 3 loops throws; non-conditional errors are rethrown; release never goes below 0 and never into a newer window; no `RATELIMIT#` write; the decision uses `windowStart`, never `ttl`
     - _Requirements: 2.1, 2.3, 2.4, 2.8, 2.10, 2.12, 2.13_
-  - [ ] 13.12 Extend Property 4 to the real lockout store
+  - [x] 13.12 Extend Property 4 to the real lockout store
     - Modify: `src/lib/pro/loginFlow.property.test.ts`
     - Add a second `fc.assert` that runs the same sequences against the real `dynamoLockoutStore` over the fake DynamoDB table (proves the actual expressions implement the policy), including two concurrent `reserve` calls that must not push `count` above 5, and a tail that jumps the clock by 900000 or more
     - Keep the tag and requirement list of Property 4
     - **Property 4: Lockout counter**
     - **Validates: Requirements 2.1, 2.3, 2.8, 2.9, 16.5**
     - Tag: `// Feature: pro-dashboard-and-booking, Property 4: Lockout counter`
-  - [ ] 13.13 Write regression test: `GET /api/inspections/[id]` stays unchanged
+  - [x] 13.13 Write regression test: `GET /api/inspections/[id]` stays unchanged
     - Modify: `src/app/api/inspections/[id]/route.test.ts`
     - Add: a stored item that carries EVERY new attribute (`status`, `statusUpdatedAt`, `GSI1PK`, `GSI1SK`, `offeredSlots`, `bookedSlot`, `bookedAt`, `declineReason`, `infoRequests`, `replies`, `replyCount`) returns HTTP 200 with exactly the `InspectionResult` keys and no new attribute
     - No change to `src/app/api/inspections/[id]/route.ts`
     - _Requirements: 14.11, 16.14_
     - _Design: Data Models (Shared types)_
 
-- [ ] 14. Server helpers
-  - [ ] 14.1 Create `src/lib/pro/proAuth.ts`
+- [x] 14. Server helpers
+  - [x] 14.1 Create `src/lib/pro/proAuth.ts`
     - Create: `src/lib/pro/proAuth.ts`
     - Start with `import 'server-only'`. Export `readProConfig` (reads both variables on every call; one warning per missing or empty variable naming ONLY the variable), `requirePro(request, nowMs)` (synchronous; reads only the `hhi_pro` cookie; empty `SESSION_SECRET` means 401; returns the 401 `noStoreJson` response on failure), `buildLoginCookie(value)`, `buildLogoutCookie()`
     - Cookie attributes: HttpOnly, Secure, SameSite=Strict, Path `/api/pro`, Max-Age 43200 (login) or 0 (logout)
     - The guard runs before any body read, id check, DynamoDB or S3 call
     - _Requirements: 3.1, 3.2, 3.3, 3.5, 3.7, 3.8, 3.9, 3.13, 1.5, 1.11, 14.3_
     - _Design: Pro Auth Design (Configuration, Route guard)_
-  - [ ] 14.2 Write unit tests for `proAuth`
+  - [x] 14.2 Write unit tests for `proAuth`
     - Create: `src/lib/pro/proAuth.test.ts`
     - `readProConfig` warnings name only the variable and never log a value; cookie attributes of login and logout (including `Max-Age=0`); `requirePro` with an empty secret returns 401; absent, malformed, tampered, wrong-secret and expired cookies return 401 `UNAUTHORIZED` with `Cache-Control: no-store`; a valid `hhi_session` cookie without a Pro cookie is 401
     - _Requirements: 3.1, 3.2, 3.5, 3.8, 3.13, 14.3_
-  - [ ] 14.3 Create `src/lib/safety/replyCheck.ts`
+  - [x] 14.3 Create `src/lib/safety/replyCheck.ts`
     - Create: `src/lib/safety/replyCheck.ts`
     - Start with `import 'server-only'`. Export `replyTriggersEmergency(text)`: `checkEmergency({ contextAnswers: { location: text, duration: '', recentChanges: '' } }).isEmergency`; no Bedrock output; the full untrimmed text
     - _Requirements: 9.4, 9.3_
     - _Design: Components and Interfaces (Emergency helpers)_
-  - [ ] 14.4 Create `src/lib/jobs/conflict.ts`
+  - [x] 14.4 Create `src/lib/jobs/conflict.ts`
     - Create: `src/lib/jobs/conflict.ts`
     - Start with `import 'server-only'`. Export `conflictResponse(id, audience)`: one strongly consistent re-read after a failed condition; `emergency` gives 409 `JOB_IS_EMERGENCY` (Pro note for `pro`, `{ error, message: EMERGENCY_MESSAGE, status: 'emergency' }` for `homeowner`); any other status gives 409 `ILLEGAL_TRANSITION` with the current `status`; a Job that is now missing or invalid gives 404 or 500 `RESULT_INVALID`; a re-read error gives 500 `ACTION_FAILED`; never retries a write
     - Bodies never include `offeredSlots`, `bookedSlot`, `bookedAt` or free text
     - _Requirements: 6.10, 6.11, 7.11, 10.7, 11.13, 9.11_
     - _Design: Route Handlers (runProAction and conflicts)_
-  - [ ] 14.5 Write unit tests for `replyCheck` and `conflictResponse`
+  - [x] 14.5 Write unit tests for `replyCheck` and `conflictResponse`
     - Create: `src/lib/safety/replyCheck.test.ts`, `src/lib/jobs/conflict.test.ts`
     - Each of the four trigger codes is detected; clean text and a short text are not; behaviour matches `checkEmergency` for a single context answer
     - Conflict: emergency (Pro and Homeowner bodies), non-emergency status, missing, invalid and re-read failure; exactly one re-read and no second write
     - _Requirements: 6.10, 9.4, 11.13_
-  - [ ] 14.6 Create `src/lib/jobs/proAction.ts`
+  - [x] 14.6 Create `src/lib/jobs/proAction.ts`
     - Create: `src/lib/jobs/proAction.ts`
     - Start with `import 'server-only'`. Export `runProAction({ request, params, action, parseBody, buildPatch, precheck })` running the fixed order: `requirePro` (cookie first), body size cap, JSON parse and object check, Zod, id UUID, `getJob`, `transition`, `precheck`, conditional `applyTransition`, conflict re-read
     - Stops at the first failing check; 404 for a missing or status-less Job; 500 `RESULT_INVALID` for an invalid Job; 409 `ILLEGAL_TRANSITION` or `JOB_IS_EMERGENCY` with no write when the transition is rejected; 500 `ACTION_FAILED` on other errors (logs `error.name` only)
@@ -396,83 +396,83 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - _Requirements: 7.10, 7.11, 7.12, 7.13, 7.15, 7.16, 7.17, 7.20, 7.21, 6.9, 6.10, 6.11, 3.3_
     - _Design: Route Handlers (proAction.ts)_
 
-- [ ] 15. Homeowner routes
-  - [ ] 15.1 Create `GET /api/inspections/[id]/status`
+- [x] 15. Homeowner routes
+  - [x] 15.1 Create `GET /api/inspections/[id]/status`
     - Create: `src/app/api/inspections/[id]/status/route.ts`
     - `runtime = 'nodejs'`; id UUID (404), `getJob` (404 for missing and legacy, 500 `RESULT_INVALID`, 500 `LOAD_FAILED`), `toHomeownerStatusView`, 200; every response `Cache-Control: no-store`; does not import the rate limiter and does not set `hhi_session`
     - _Requirements: 8.2, 8.4, 8.5, 8.14, 8.15, 8.17, 14.15, 6.14_
     - _Design: Route Handlers (GET status)_
-  - [ ] 15.2 Write integration tests for the status route
+  - [x] 15.2 Write integration tests for the status route
     - Create: `src/app/api/inspections/[id]/status/route.test.ts`
     - One view per status with the exact field set; emergency body is exactly `{ status, message }`; a Job that is an emergency by `urgency` or `isEmergency` only (the `effectiveStatus` safeguard); 400-style non-UUID and unknown id return the SAME 404 body; Job without `status` gives 404; DynamoDB failure gives 500 `LOAD_FAILED` with no secret, cookie or free text in the log; no `Set-Cookie`; the rate limiter module is never imported (throwing mock factory); `Cache-Control: no-store`
     - _Requirements: 8.2, 8.4, 8.5, 8.14, 8.15, 8.17, 14.15, 16.6, 16.17_
-  - [ ] 15.3 Create `POST /api/inspections/[id]/reply`
+  - [x] 15.3 Create `POST /api/inspections/[id]/reply`
     - Create: `src/app/api/inspections/[id]/reply/route.ts`
     - Order: (1) body size cap 4096, (2) JSON parse and `text` is a string, (3) Safety_Layer on the full untrimmed text, (4) id UUID, (5) trimmed length 1 to 500 with the exact messages, (6) `getJob`, (7) status check, (8) reply limit 429, (9) conditional `applyReply` then `conflictResponse`
     - A trigger at step 3 skips steps 4 to 9: if the id is a UUID call `applySafetyOverride` (any outcome swallowed, `error.name` logged), then respond 200 `{ status: 'emergency', message }` for any id and any Job state. No `GetCommand` or `UpdateCommand` before step 3
     - Success returns only `{ status: 'new' }`; emergency Job without trigger returns 409 `JOB_IS_EMERGENCY` with the Emergency_Message; does not import the rate limiter; does not set `hhi_session`; `no-store`
     - _Requirements: 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 9.10, 9.11, 9.12, 9.13, 9.14, 9.15, 9.18, 9.19, 9.22, 11.1, 11.4, 11.5, 14.7_
     - _Design: Request Pipelines (Homeowner reply); Route Handlers (reply)_
-  - [ ] 15.4 Write integration tests for the reply route
+  - [x] 15.4 Write integration tests for the reply route
     - Create: `src/app/api/inspections/[id]/reply/route.test.ts`
     - Success (200 `{ status: 'new' }` only); 400 for a non-string `text` and for an empty text ("Please write a reply before sending."); 501 and 600 characters with no trigger: 400 with "Your reply is too long. Please shorten it to 500 characters or fewer." and no write; 600 characters and about 4,000 bytes WITH a trigger: 200 emergency and the override applied; 404 for non-UUID, unknown and legacy Jobs; 413 for a body over 4 KB (a trigger inside it is not checked); 409 `ILLEGAL_TRANSITION` with the current status for `accepted` and `declined`; 409 `JOB_IS_EMERGENCY` with the message for an emergency Job without a trigger; a triggering reply still 200 for `accepted`, `declined`, `booked`, an unknown UUID and a non-UUID; 429 `REPLY_LIMIT_REACHED` with a hand-built `info_requested` item at `replyCount` 5; condition failure triggers one re-read and no second write; DynamoDB failure 500 `ACTION_FAILED` with no secret, cookie or free text in the log; no `GetCommand` or `UpdateCommand` before the Safety_Layer ran; the rate limiter is never imported and no `RATELIMIT#` write
     - _Requirements: 9.3, 9.5, 9.6, 9.9, 9.10, 9.11, 9.12, 9.13, 9.14, 9.15, 9.19, 9.22, 11.1, 14.15, 16.6, 16.17_
-  - [ ] 15.5 Create `POST /api/inspections/[id]/book`
+  - [x] 15.5 Create `POST /api/inspections/[id]/book`
     - Create: `src/app/api/inspections/[id]/book/route.ts`
     - Order: body size cap, JSON and `bookBodySchema`, id UUID (404), `getJob`, status gate (`emergency` gives 409 `JOB_IS_EMERGENCY` with `{ error, message, status: 'emergency' }` and no slot; not `accepted` gives 409 `ILLEGAL_TRANSITION`), `SLOT_NOT_OFFERED` (400) BEFORE `SLOT_EXPIRED` (409, Job stays `accepted`), conditional `applyBooking`, then `conflictResponse`
     - Success returns `{ status: 'booked', bookedSlot }`; does not import the rate limiter, does not set `hhi_session`; `no-store`
     - _Requirements: 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.12, 10.13, 10.14, 11.13, 14.7_
     - _Design: Request Pipelines (Homeowner book); Route Handlers (book)_
-  - [ ] 15.6 Write integration tests for the book route
+  - [x] 15.6 Write integration tests for the book route
     - Create: `src/app/api/inspections/[id]/book/route.test.ts`
     - Success; 400 `INVALID_REQUEST`; `SLOT_NOT_OFFERED` for a slot not in `offeredSlots`; `SLOT_EXPIRED` when the injected time is at and after the start of an offered slot; a slot that is both not offered and in the past returns `SLOT_NOT_OFFERED`; 409 `ILLEGAL_TRANSITION` for non-`accepted` statuses; emergency 409 with the message and no slots; two concurrent bookings produce exactly one success; 404 for non-UUID, unknown and legacy; 413; DynamoDB failure 500 `ACTION_FAILED`; the booking write sets `bookedSlot`, `bookedAt`, `statusUpdatedAt` and leaves `offeredSlots` and `ttl` unchanged; the rate limiter is never imported; log hygiene
     - _Requirements: 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.12, 10.13, 10.14, 16.6, 16.9, 16.17_
 
-- [ ] 16. Pro read and action routes
-  - [ ] 16.1 Create `GET /api/pro/jobs`
+- [x] 16. Pro read and action routes
+  - [x] 16.1 Create `GET /api/pro/jobs`
     - Create: `src/app/api/pro/jobs/route.ts`
     - `requirePro` first, then `queryRecentJobs(Date.now())`, map through `toProListItem`, respond `{ jobs }`; no cursor or page parameter (ignored); query failure gives 500 `LOAD_FAILED` ("We couldn't load the jobs. Please try again."); `no-store`; no rate limiter
     - _Requirements: 4.1, 4.4, 4.5, 4.7, 4.9, 4.14, 3.9_
     - _Design: Route Handlers (GET /api/pro/jobs)_
-  - [ ] 16.2 Write integration tests for the job list route
+  - [x] 16.2 Write integration tests for the job list route
     - Create: `src/app/api/pro/jobs/route.test.ts`
     - 200 with up to 50 items newest first; empty list 200; exact field set and `trade: null` for an emergency; exactly one `QueryCommand` with `GSI1`, `GSI1PK = "JOBS"`, `GSI1SK` lower bound 30 days before the injected time, `ScanIndexForward` false, `Limit` 50 (shared guard: no `Scan`, `DeleteItem`, `BatchWriteItem`); cursor ignored; a Query failure gives 500 `LOAD_FAILED` with no secret in the log; 401 matrix (absent, malformed, tampered, wrong-secret, expired cookie) with ZERO DynamoDB and S3 calls; 401 when `SESSION_SECRET` is unset
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.7, 4.9, 4.14, 3.2, 3.3, 3.5, 16.6, 16.7_
-  - [ ] 16.3 Create `GET /api/pro/jobs/[id]`
+  - [x] 16.3 Create `GET /api/pro/jobs/[id]`
     - Create: `src/app/api/pro/jobs/[id]/route.ts`
     - Order: `requirePro`, id UUID (404), `getJob` (404 missing or legacy, 500 `RESULT_INVALID`, 500 `LOAD_FAILED`), then for an emergency Job `toProDetail(job, [])` with NO S3 call; otherwise `Promise.allSettled` over `getDownloadPresignedUrl(key, 900)` per key, omit a failed photo (log `error.name`), keep stored order
     - URLs are generated per request, never stored, cached or logged; `no-store`
     - _Requirements: 5.1, 5.2, 5.3, 5.8, 5.9, 5.10, 5.15, 5.17, 11.14, 14.12_
     - _Design: Route Handlers (GET /api/pro/jobs/[id])_
-  - [ ] 16.4 Write integration tests for the job detail route
+  - [x] 16.4 Write integration tests for the job detail route
     - Create: `src/app/api/pro/jobs/[id]/route.test.ts`
     - Field set for an active Job (no `diySteps`, `s3Keys`, `isEmergency`, `replyCount`, `statusUpdatedAt`, `bookedAt`); exact emergency shape with `emergencyNote` and ZERO S3 calls; photo URLs generated per request with expiry 900; one failed URL omitted while the others return; 404 for non-UUID, unknown and legacy with the same body; 500 `RESULT_INVALID` for a stored Job that fails validation (no item data in the body); 500 `LOAD_FAILED`; `Cache-Control: no-store`; 401 matrix with zero DynamoDB and S3 calls
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.8, 5.9, 5.10, 5.15, 5.17, 14.12, 14.15, 16.6, 16.15_
-  - [ ] 16.5 Create `POST /api/pro/jobs/[id]/accept`
+  - [x] 16.5 Create `POST /api/pro/jobs/[id]/accept`
     - Create: `src/app/api/pro/jobs/[id]/accept/route.ts`
     - Calls `runProAction` with `parseBody` = `z.object({ slots: slotsSchema(nowMs) })` (the first issue message selects the `SLOT_RULE_MESSAGES` text for the 400) and `buildPatch` = `{ action: 'accept', slots }`; success 200 `{ status: 'accepted' }`
     - Does not import the Safety_Layer or the rate limiter
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.10, 7.11, 7.14, 7.15, 7.17_
     - _Design: Route Handlers (accept, decline, ask-info)_
-  - [ ] 16.6 Write integration tests for the accept route
+  - [x] 16.6 Write integration tests for the accept route
     - Create: `src/app/api/pro/jobs/[id]/accept/route.test.ts`
     - Success from `new` AND from `info_requested` (200 `accepted`, `offeredSlots` stored sorted and canonical, `statusUpdatedAt` set, `ttl` unchanged; the condition is `status = info_requested` for the latter); 400 for each rule (count, format, distinct, past, horizon) with the rule message and the Job unchanged; 404; 409 `ILLEGAL_TRANSITION` for `accepted`, `declined`, `booked`; 409 `JOB_IS_EMERGENCY` with the Pro note and no slots; 413; 500 `ACTION_FAILED`; condition failure triggers one re-read and no second write; check order (a 401 never gives 400, 404 or 413); 401 matrix with zero AWS calls; log hygiene; no rate limiter
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.10, 7.11, 7.12, 7.13, 7.15, 7.16, 7.17, 7.21, 6.9, 6.10, 16.6, 16.9_
-  - [ ] 16.7 Create `POST /api/pro/jobs/[id]/decline`
+  - [x] 16.7 Create `POST /api/pro/jobs/[id]/decline`
     - Create: `src/app/api/pro/jobs/[id]/decline/route.ts`
     - Calls `runProAction` with `declineBodySchema` and `buildPatch` = `{ action: 'decline', reason: trimmed || undefined }`; success 200 `{ status: 'declined' }`; `declineReason` stored only when non-empty
     - _Requirements: 7.5, 7.6, 7.10, 7.11, 7.14, 7.15, 7.17_
     - _Design: Route Handlers (accept, decline, ask-info)_
-  - [ ] 16.8 Write integration tests for the decline route
+  - [x] 16.8 Write integration tests for the decline route
     - Create: `src/app/api/pro/jobs/[id]/decline/route.test.ts`
     - Success from `new` AND from `info_requested` (the question, `replies` and `replyCount` stay unchanged); reason trimmed and stored; empty and whitespace reason not stored; 201-character reason gives 400 and the Job unchanged; 404; 409 `ILLEGAL_TRANSITION`; 409 `JOB_IS_EMERGENCY`; 413; 500; condition failure re-read; 401 matrix; log hygiene (the reason never appears in the log)
     - _Requirements: 7.5, 7.6, 7.10, 7.11, 7.12, 7.13, 7.16, 6.18, 16.6_
-  - [ ] 16.9 Create `POST /api/pro/jobs/[id]/ask-info`
+  - [x] 16.9 Create `POST /api/pro/jobs/[id]/ask-info`
     - Create: `src/app/api/pro/jobs/[id]/ask-info/route.ts`
     - Calls `runProAction` with `askInfoBodySchema`, `buildPatch` = `{ action: 'ask_info', question }` and `precheck` returning 409 `REPLY_LIMIT_REACHED` when `replyCount >= 5`; success 200 `{ status: 'info_requested' }`; only a `new` Job can be asked
     - _Requirements: 7.7, 7.8, 7.9, 7.10, 7.11, 7.14, 7.15, 7.17, 6.17_
     - _Design: Route Handlers (accept, decline, ask-info)_
-  - [ ] 16.10 Write integration tests for the ask-info route
+  - [x] 16.10 Write integration tests for the ask-info route
     - Create: `src/app/api/pro/jobs/[id]/ask-info/route.test.ts`
     - Success from `new` (question trimmed and appended with `askedAt`); missing, non-string, empty and 301-character question give 400; ask-info for a Job in `info_requested` gives 409 `ILLEGAL_TRANSITION` (one question at a time); 409 `REPLY_LIMIT_REACHED` at `replyCount` 5; 404; 409 `JOB_IS_EMERGENCY`; 413; 500; condition failure re-read; 401 matrix; log hygiene
     - _Requirements: 7.7, 7.8, 7.9, 7.10, 7.11, 7.12, 7.13, 7.16, 6.17, 16.6, 16.17_

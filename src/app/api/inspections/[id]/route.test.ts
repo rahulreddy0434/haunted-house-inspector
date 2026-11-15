@@ -14,6 +14,8 @@ vi.mock('@aws-sdk/lib-dynamodb', async (importOriginal) => {
 });
 
 import { GetCommand } from '@aws-sdk/lib-dynamodb';
+import { normalResult } from '@/test/inspectionFixtures';
+import { makeJobItem } from '@/test/jobFixtures';
 import { GET } from './route';
 
 const ID = '123e4567-e89b-42d3-a456-426614174000';
@@ -81,6 +83,35 @@ describe('GET /api/inspections/[id]', () => {
     const res = await call(ID);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(emergencyResult);
+  });
+
+  it('returns exactly the InspectionResult keys for an item carrying every booking attribute', async () => {
+    const item = makeJobItem('booked', { id: ID, declineReason: 'Outside my service area.' });
+    const newAttributes = [
+      'status',
+      'statusUpdatedAt',
+      'GSI1PK',
+      'GSI1SK',
+      'offeredSlots',
+      'bookedSlot',
+      'bookedAt',
+      'declineReason',
+      'infoRequests',
+      'replies',
+      'replyCount',
+    ];
+    for (const key of [...newAttributes, 'PK', 'SK', 'ttl']) {
+      expect(item).toHaveProperty(key);
+    }
+    sendMock.mockResolvedValue({ Item: item });
+
+    const res = await call(ID);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Object.keys(body).sort()).toEqual(Object.keys(normalResult).sort());
+    for (const key of [...newAttributes, 'PK', 'SK', 'ttl']) {
+      expect(body).not.toHaveProperty(key);
+    }
   });
 
   it('returns 404 when the item does not exist', async () => {

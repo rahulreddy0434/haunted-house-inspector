@@ -19,6 +19,10 @@
     "12.9 Write property test for the views (Property 10)": {
       "status": "passed",
       "lastRunTimestamp": 1794599038073
+    },
+    "13.3 Write property test for the created Job item (Property 13)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794760461746
     }
   },
   "executionHistory": {
@@ -612,6 +616,454 @@
         "executionId": "75e93d0f-41a9-4fc3-bbeb-6161e147e2fd",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794599097322
+      }
+    ],
+    "13.1 Change `persistInspection` and export the shared client helpers": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794759943724
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760138257
+      }
+    ],
+    "13.5 Create `src/lib/aws/jobs.ts` reads": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760139734
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760629564
+      }
+    ],
+    "13.10 Create `src/lib/aws/lockout.ts`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760140158
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760677786
+      }
+    ],
+    "13.2 Write unit tests for `persistInspection`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760141425
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760423452
+      }
+    ],
+    "13.3 Write property test for the created Job item (Property 13)": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760142628
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760469547
+      }
+    ],
+    "13.4 Write integration test: inspect route persists the new job fields": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760143908
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760550863
+      }
+    ],
+    "13.13 Write regression test: `GET /api/inspections/[id]` stays unchanged": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760144320
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760588923
+      }
+    ],
+    "13.6 Write unit tests for the Job reads": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760678055
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760760452
+      }
+    ],
+    "13.7 Add the conditional status writes to `src/lib/aws/jobs.ts`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760761668
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760834284
+      }
+    ],
+    "13.8 Add `applySafetyOverride` to `src/lib/aws/jobs.ts`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760835691
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760886808
+      }
+    ],
+    "13.9 Write unit tests for the Job writes and the override": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760888268
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760982995
+      }
+    ],
+    "13.11 Write unit tests for the lockout store": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794760983188
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761122621
+      }
+    ],
+    "13.12 Extend Property 4 to the real lockout store": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761123339
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761214029
+      }
+    ],
+    "13. Data layer": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761214162
+      }
+    ],
+    "14.1 Create `src/lib/pro/proAuth.ts`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761361765
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761478127
+      }
+    ],
+    "14.2 Write unit tests for `proAuth`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761479011
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761546641
+      }
+    ],
+    "14.3 Create `src/lib/safety/replyCheck.ts`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761547395
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761590489
+      }
+    ],
+    "14.4 Create `src/lib/jobs/conflict.ts`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761591280
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761648470
+      }
+    ],
+    "14.5 Write unit tests for `replyCheck` and `conflictResponse`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761649115
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761781201
+      }
+    ],
+    "14.6 Create `src/lib/jobs/proAction.ts`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761782007
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761844082
+      }
+    ],
+    "14. Server helpers": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761844204
+      }
+    ],
+    "15.1 Create `GET /api/inspections/[id]/status`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794761978352
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762032461
+      }
+    ],
+    "15.2 Write integration tests for the status route": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762033163
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762100034
+      }
+    ],
+    "15.3 Create `POST /api/inspections/[id]/reply`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762100828
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762242783
+      }
+    ],
+    "15.4 Write integration tests for the reply route": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762243423
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762478716
+      }
+    ],
+    "15.5 Create `POST /api/inspections/[id]/book`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762479658
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762650659
+      }
+    ],
+    "15.6 Write integration tests for the book route": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762651006
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762761974
+      }
+    ],
+    "15. Homeowner routes": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762762236
+      }
+    ],
+    "16.1 Create `GET /api/pro/jobs`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762904148
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762954490
+      }
+    ],
+    "16.2 Write integration tests for the job list route": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794762955206
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763112923
+      }
+    ],
+    "16.3 Create `GET /api/pro/jobs/[id]`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763113811
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763165491
+      }
+    ],
+    "16.4 Write integration tests for the job detail route": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763165719
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763285453
+      }
+    ],
+    "16.5 Create `POST /api/pro/jobs/[id]/accept`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763286435
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763327772
+      }
+    ],
+    "16.6 Write integration tests for the accept route": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763328493
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763457726
+      }
+    ],
+    "16.7 Create `POST /api/pro/jobs/[id]/decline`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763458585
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763494489
+      }
+    ],
+    "16.8 Write integration tests for the decline route": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763493525
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763594305
+      }
+    ],
+    "16.9 Create `POST /api/pro/jobs/[id]/ask-info`": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763593692
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763654581
+      }
+    ],
+    "16.10 Write integration tests for the ask-info route": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763653424
+      },
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763729776
+      }
+    ],
+    "16. Pro read and action routes": [
+      {
+        "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794763729919
       }
     ]
   }

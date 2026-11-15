@@ -25,6 +25,12 @@ export interface JobRecord extends InspectionResult {
   replyCount: number;                // 0..5, equals replies.length
 }
 
+/** Payload of a pro action write (accept, decline, ask-info). */
+export type TransitionPatch =
+  | { action: 'accept'; slots: TimeSlot[] }
+  | { action: 'decline'; reason?: string }
+  | { action: 'ask_info'; question: string };
+
 // ── Pro views ───────────────────────────────────────────────────────────────
 export interface ProJobListItem {
   id: string;
