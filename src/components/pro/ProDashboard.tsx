@@ -7,8 +7,8 @@ import { AccessCodeForm } from '@/components/pro/AccessCodeForm';
 import { JobList } from '@/components/pro/JobList';
 import { useProJobs } from '@/hooks/useProJobs';
 import { resetProSession } from '@/hooks/proSession';
+import { SESSION_ENDED_NOTICE } from '@/lib/jobs/copy';
 
-const SESSION_ENDED_NOTICE = 'Your session has ended. Please enter the access code again.';
 const DISABLED_MESSAGE = "Tradesperson access isn't available right now.";
 
 type DashboardView = 'checking' | 'form' | 'disabled' | 'list';

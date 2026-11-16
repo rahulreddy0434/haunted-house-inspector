@@ -44,6 +44,9 @@ export const REPLY_TOO_LONG_MESSAGE =
   "Your reply is too long. Please shorten it to 500 characters or fewer.";
 export const REPLY_EMPTY_MESSAGE = "Please write a reply before sending.";
 
+/** Shown above the access code form after a Pro session ends (Requirement 3.10). */
+export const SESSION_ENDED_NOTICE = "Your session has ended. Please enter the access code again.";
+
 /** Messages for every ApiErrorCode. Codes with variants hold an object. */
 export const ERROR_MESSAGES = {
   UNAUTHORIZED: "Access is needed, or your session has ended.",

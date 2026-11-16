@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { TimeText } from '@/components/ui/TimeText';
 import { BODY, CARD, ERROR_TEXT, HEADING, SECONDARY_BUTTON } from '@/components/ui/styles';
 import { useProJob } from '@/hooks/useProJob';
-import { PRO_STATUS_LABEL } from '@/lib/jobs/copy';
+import { PRO_STATUS_LABEL, SESSION_ENDED_NOTICE } from '@/lib/jobs/copy';
 import type { ProJobDetailActive } from '@/types/job';
 
 export interface JobDetailProps {
@@ -22,7 +22,6 @@ export interface JobDetailProps {
 
 const PAGE = 'mx-auto flex w-full max-w-2xl flex-col gap-4 p-6';
 const LINK = `inline-block rounded-md px-4 py-2 text-sm font-semibold ${SECONDARY_BUTTON}`;
-const SESSION_ENDED = 'Your session has ended. Please enter the access code again.';
 const DISABLED_MESSAGE = "Tradesperson access isn't available right now.";
 
 function BackLink() {
@@ -140,7 +139,7 @@ export function JobDetail({ id }: JobDetailProps) {
         <AccessCodeForm
           onSuccess={handleLoginSuccess}
           onDisabled={handleDisabled}
-          notice={sessionLost || forceForm ? SESSION_ENDED : undefined}
+          notice={sessionLost || forceForm ? SESSION_ENDED_NOTICE : undefined}
         />
       </div>
     );

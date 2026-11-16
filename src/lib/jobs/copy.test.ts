@@ -68,6 +68,11 @@ describe("copy: fixed messages", () => {
     );
     expect(copy.REPLY_EMPTY_MESSAGE).toBe("Please write a reply before sending.");
   });
+  it("SESSION_ENDED_NOTICE (3.10)", () => {
+    expect(copy.SESSION_ENDED_NOTICE).toBe(
+      "Your session has ended. Please enter the access code again.",
+    );
+  });
 });
 
 describe("copy: ERROR_MESSAGES (design error table)", () => {
