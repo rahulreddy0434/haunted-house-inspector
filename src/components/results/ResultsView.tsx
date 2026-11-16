@@ -8,6 +8,7 @@ import { UrgencyBadge } from "./UrgencyBadge";
 import { IssueSummary } from "./IssueSummary";
 import { CostRange } from "./CostRange";
 import { JobBrief } from "./JobBrief";
+import { StatusPanel } from "./StatusPanel";
 
 export interface ResultsViewProps {
   id: string;
@@ -29,7 +30,7 @@ function NewInspectionLink() {
 }
 
 export function ResultsView({ id }: ResultsViewProps) {
-  const { result, loading, error, notFound } = useInspection(id);
+  const { result, loading, error, notFound, markEmergency } = useInspection(id);
 
   if (!result) {
     if (notFound) {
@@ -107,6 +108,7 @@ export function ResultsView({ id }: ResultsViewProps) {
         urgency={urgency}
       />
       <JobBrief jobBrief={result.jobBrief} urgency={urgency} />
+      <StatusPanel id={id} onEmergency={markEmergency} />
       <p className="text-sm text-slate-700 haunted:text-slate-300">
         This is a likely diagnosis, not a certain one.
       </p>

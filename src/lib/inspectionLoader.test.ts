@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { emergencyResult, normalResult } from '@/test/inspectionFixtures';
+import { toEmergencyResult } from '@/lib/emergency/emergencyView';
+import type { InspectionResult } from '@/types/inspection';
 import {
   INVALID_RESULT_MESSAGE,
   LOAD_FAILED_MESSAGE,
@@ -88,5 +90,66 @@ describe('loadInspection', () => {
     });
     expect(bad.fresh).toBeNull();
     expect(bad.result).toEqual(emergencyResult);
+  });
+});
+
+const bookingLabels: ReadonlyArray<readonly [string, InspectionResult['urgency']]> = [
+  ['new', 'urgent'],
+  ['info_requested', 'soon'],
+  ['accepted', 'monitor'],
+  ['declined', 'soon'],
+  ['booked', 'urgent'],
+];
+
+describe('emergency is never downgraded (Req 11.7)', () => {
+  it.each(bookingLabels)('resolveFetchOutcome keeps cached emergency over fresh "%s" copy', (_label, urgency) => {
+    const fresh: InspectionResult = { ...normalResult, urgency };
+    expect(resolveFetchOutcome(emergencyResult, { kind: 'ok', result: fresh })).toEqual({
+      result: emergencyResult,
+      error: null,
+      notFound: false,
+    });
+  });
+
+  it.each(bookingLabels)('loadInspection returns no fresh for non-emergency "%s" copy', async (_label, urgency) => {
+    const fresh: InspectionResult = { ...normalResult, urgency };
+    const out = await loadInspection({
+      id: emergencyResult.id,
+      signal,
+      cached: emergencyResult,
+      fetchImpl: (() => json(200, fresh)) as unknown as typeof fetch,
+    });
+    expect(out.result).toEqual(emergencyResult);
+    expect(out.fresh).toBeNull();
+  });
+
+  it.each([
+    ['failed', () => json(500, {})],
+    ['404', () => json(404, { error: 'Inspection not found' })],
+    ['invalid', () => json(200, { id: 'x' })],
+  ] as const)('loadInspection keeps cached emergency on %s fetch', async (_name, respond) => {
+    const out = await loadInspection({
+      id: emergencyResult.id,
+      signal,
+      cached: emergencyResult,
+      fetchImpl: respond as unknown as typeof fetch,
+    });
+    expect(out.result).toEqual(emergencyResult);
+    expect(out.error).toBeNull();
+    expect(out.notFound).toBe(false);
+    expect(out.fresh).toBeNull();
+  });
+
+  it('a fresh emergency copy replaces a cached non-emergency', async () => {
+    const fresh = toEmergencyResult(normalResult);
+    expect(resolveFetchOutcome(normalResult, { kind: 'ok', result: fresh }).result).toEqual(fresh);
+    const out = await loadInspection({
+      id: normalResult.id,
+      signal,
+      cached: normalResult,
+      fetchImpl: (() => json(200, fresh)) as unknown as typeof fetch,
+    });
+    expect(out.result).toEqual(fresh);
+    expect(out.fresh).toEqual(fresh);
   });
 });

@@ -23,6 +23,30 @@
     "13.3 Write property test for the created Job item (Property 13)": {
       "status": "passed",
       "lastRunTimestamp": 1794760461746
+    },
+    "17.1 Write property test: emergency stays emergency through every handler (Property 2, route half)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794840235673
+    },
+    "17.5 Write property test: reply bookkeeping stays consistent (Property 12)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794840273647
+    },
+    "17.3 Write property test: tradesperson text and slots never trigger an emergency (Property 5)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794840281966
+    },
+    "17.4 Write property test: racing actions have exactly one winner (Property 11)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794840286328
+    },
+    "19.5 Write property test: a cached emergency is never downgraded (Property 14)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794840922347
+    },
+    "22.7 Write property test: Status_Panel renders nothing for an emergency (Property 2, UI half)": {
+      "status": "passed",
+      "lastRunTimestamp": 1794841457110
     }
   },
   "executionHistory": {
@@ -1064,6 +1088,544 @@
         "executionId": "ad5a9ded-a1ac-4471-82d4-1ffba563ef45",
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794763729919
+      }
+    ],
+    "17.1 Write property test: emergency stays emergency through every handler (Property 2, route half)": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840127046
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840309387
+      }
+    ],
+    "17.2 Write property test: any triggering reply ends in emergency (Property 3)": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840128133
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840309683
+      }
+    ],
+    "17.3 Write property test: tradesperson text and slots never trigger an emergency (Property 5)": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840129331
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840310836
+      }
+    ],
+    "17.4 Write property test: racing actions have exactly one winner (Property 11)": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840130140
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840312026
+      }
+    ],
+    "17.5 Write property test: reply bookkeeping stays consistent (Property 12)": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840131078
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840313241
+      }
+    ],
+    "17.6 Write suite-level guard test: no rate limiter, no forbidden commands, no RATELIMIT# writes": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840134506
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840379491
+      }
+    ],
+    "17. Route-level property and cross-cutting tests": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840379632
+      }
+    ],
+    "18. Checkpoint - Data layer and routes verified": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840544916
+      }
+    ],
+    "19.1 Apply the emergency non-downgrade rule in the loader and the cache": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840545540
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840645480
+      }
+    ],
+    "20.1 Create the shared styles and form primitives": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840546665
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840646651
+      }
+    ],
+    "20.2 Create `formatDateTime` and `TimeText`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840547384
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840647349
+      }
+    ],
+    "19.2 Add `markEmergency` to `useInspection`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840656708
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840841659
+      }
+    ],
+    "20.3 Write unit tests for the UI primitives": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840656909
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840843405
+      }
+    ],
+    "20.4 Write unit tests for time formatting": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840657698
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840843634
+      }
+    ],
+    "20. UI primitives and time formatting": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840843758
+      }
+    ],
+    "19.3 Write unit tests for the loader and the cache": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840845470
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840938775
+      }
+    ],
+    "19.4 Write unit tests for `markEmergency`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840845978
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840939432
+      }
+    ],
+    "19.5 Write property test: a cached emergency is never downgraded (Property 14)": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840846668
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840940282
+      }
+    ],
+    "19. Client emergency handling and session cache": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794840940427
+      }
+    ],
+    "21.1 Create `src/hooks/useStatusPolling.ts`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841097156
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841163399
+      }
+    ],
+    "21.2 Write unit tests for `useStatusPolling`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841165282
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841259582
+      }
+    ],
+    "22.1 Create `src/components/results/ReplyBox.tsx`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841170133
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841260138
+      }
+    ],
+    "22.2 Create `src/components/results/SlotPicker.tsx`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841170484
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841260464
+      }
+    ],
+    "21. Status polling hook": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841259814
+      }
+    ],
+    "22.3 Create `src/components/results/StatusPanel.tsx`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841261131
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841379493
+      }
+    ],
+    "22.4 Write unit tests for `ReplyBox`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841263219
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841381856
+      }
+    ],
+    "22.5 Write unit tests for `SlotPicker`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841263487
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841382122
+      }
+    ],
+    "22.6 Write component tests for `StatusPanel`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841383030
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841535232
+      }
+    ],
+    "22.7 Write property test: Status_Panel renders nothing for an emergency (Property 2, UI half)": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841383886
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841536526
+      }
+    ],
+    "22. Homeowner Status_Panel": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841536653
+      }
+    ],
+    "23.1 Mount `StatusPanel` in `ResultsView`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841747526
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841913589
+      }
+    ],
+    "24.1 Create `useProJobs` and `useProJob`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841748365
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841912341
+      }
+    ],
+    "23.2 Update the `ResultsView` tests": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841914709
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842014992
+      }
+    ],
+    "24.2 Write unit tests for the Pro hooks": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794841915375
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842016238
+      }
+    ],
+    "23. Results page integration": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842015144
+      }
+    ],
+    "24. Pro hooks": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842016404
+      }
+    ],
+    "25.1 Create `AccessCodeForm`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842213082
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842310189
+      }
+    ],
+    "25.2 Create `JobListItem` and `JobList`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842214231
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842310447
+      }
+    ],
+    "26.1 Create the detail display components": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842215040
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842311497
+      }
+    ],
+    "26.2 Create the action forms and `ActionPanel`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842216199
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842312678
+      }
+    ],
+    "25.3 Create `ProDashboard` and the `/pro` page": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842313876
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842509719
+      }
+    ],
+    "26.3 Create `JobDetail` and the `/pro/jobs/[id]` page": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842314686
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842510918
+      }
+    ],
+    "25.4 Write component tests for `AccessCodeForm`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842319472
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842508322
+      }
+    ],
+    "26.4 Write component tests for the detail display components": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842319943
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842512112
+      }
+    ],
+    "26.5 Write component tests for the action forms and `ActionPanel`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842320848
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842508615
+      }
+    ],
+    "25.5 Write component tests for `JobList` and `ProDashboard`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842513309
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842821498
+      }
+    ],
+    "26.6 Write component tests for `JobDetail`": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842514132
+      },
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842822219
+      }
+    ],
+    "25. Pro dashboard UI": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842821678
+      }
+    ],
+    "26. Pro job detail UI": [
+      {
+        "executionId": "980482ad-3cd7-461a-8bb3-e36e5dfc9ad9",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794842822346
       }
     ]
   }

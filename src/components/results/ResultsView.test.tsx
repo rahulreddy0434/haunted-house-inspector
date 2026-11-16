@@ -8,13 +8,26 @@ import { EMERGENCY_MESSAGE } from "./EmergencyBanner";
 const hook = vi.hoisted(() => ({ value: null as unknown as UseInspectionReturn }));
 vi.mock("@/hooks/useInspection", () => ({ useInspection: () => hook.value }));
 
+const panel = vi.hoisted(() => ({
+  calls: [] as { id: string; onEmergency: () => void }[],
+}));
+vi.mock("./StatusPanel", () => ({
+  StatusPanel: (props: { id: string; onEmergency: () => void }) => {
+    panel.calls.push(props);
+    return <div data-testid="status-panel-mock" />;
+  },
+}));
+
 import { ResultsView } from "./ResultsView";
 
 function setHook(v: Partial<UseInspectionReturn>) {
-  hook.value = { result: null, loading: false, error: null, notFound: false, ...v };
+  hook.value = { result: null, loading: false, error: null, notFound: false, markEmergency: () => {}, ...v };
 }
 
-beforeEach(() => cleanup());
+beforeEach(() => {
+  cleanup();
+  panel.calls.length = 0;
+});
 
 describe("ResultsView", () => {
   it("shows a loading status", () => {
@@ -78,6 +91,43 @@ describe("ResultsView", () => {
     }
     expect(screen.queryByRole("button", { name: /copy/i })).toBeNull();
     expect(screen.getByRole("link", { name: "Start a new inspection" })).toBeTruthy();
+  });
+
+  it("mounts the status panel with the id for a non-emergency result, after the job brief", () => {
+    setHook({ result: normalResult });
+    render(<ResultsView id="job-42" />);
+    const mock = screen.getByTestId("status-panel-mock");
+    expect(screen.getAllByTestId("status-panel-mock")).toHaveLength(1);
+    expect(panel.calls.at(-1)?.id).toBe("job-42");
+    const copy = screen.getByRole("button", { name: "Copy job brief" });
+    expect(copy.compareDocumentPosition(mock) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("passes markEmergency from the hook to the panel as onEmergency", () => {
+    const markEmergency = vi.fn();
+    setHook({ result: normalResult, markEmergency });
+    render(<ResultsView id="x" />);
+    expect(panel.calls.at(-1)?.onEmergency).toBe(markEmergency);
+  });
+
+  it.each([
+    ["urgency", { ...emergencyResult }],
+    ["isEmergency alone", { ...normalResult, isEmergency: true }],
+  ])("does not mount the status panel for an emergency by %s", (_n, result) => {
+    setHook({ result });
+    render(<ResultsView id="x" />);
+    expect(screen.queryByTestId("status-panel-mock")).toBeNull();
+    expect(panel.calls).toHaveLength(0);
+    expect(screen.getByText(EMERGENCY_MESSAGE)).toBeTruthy();
+    expect(screen.getByText("Emergency")).toBeTruthy();
+    expect(screen.getByText(result.likelyIssue)).toBeTruthy();
+  });
+
+  it("keeps the diagnosis notice and new-inspection link in the normal view", () => {
+    setHook({ result: normalResult });
+    render(<ResultsView id="x" />);
+    expect(screen.getByText("This is a likely diagnosis, not a certain one.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Start a new inspection" }).getAttribute("href")).toBe("/");
   });
 
   it("shows not found with a new-inspection link", () => {

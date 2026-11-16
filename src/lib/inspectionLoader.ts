@@ -1,5 +1,6 @@
 import type { InspectionResult } from '@/types/inspection';
 import { inspectionResultSchema } from '@/lib/validation/inspectionSchema';
+import { isEmergencyResult } from '@/lib/emergency/emergencyView';
 
 export const INVALID_RESULT_MESSAGE = 'This result could not be loaded.';
 export const LOAD_FAILED_MESSAGE = "We couldn't load this result. Please try again.";
@@ -20,11 +21,18 @@ export interface LoadState {
 /**
  * Decide the visible state once the GET has finished.
  * A valid cached result is never hidden by a failed GET (Req 14.8).
+ * A cached emergency is never replaced by a non-emergency copy (Req 11.7).
  */
 export function resolveFetchOutcome(
   cached: InspectionResult | null,
   outcome: FetchOutcome,
 ): LoadState {
+  if (cached && isEmergencyResult(cached)) {
+    if (outcome.kind === 'ok' && isEmergencyResult(outcome.result)) {
+      return { result: outcome.result, error: null, notFound: false };
+    }
+    return { result: cached, error: null, notFound: false };
+  }
   if (outcome.kind === 'ok') {
     return { result: outcome.result, error: null, notFound: false };
   }
@@ -77,5 +85,8 @@ export async function loadInspection(params: {
 }): Promise<LoadState & { fresh: InspectionResult | null }> {
   const outcome = await fetchInspection(params);
   const state = resolveFetchOutcome(params.cached, outcome);
-  return { ...state, fresh: outcome.kind === 'ok' ? outcome.result : null };
+  // resh is set only when it is the copy that is shown.
+  const fresh =
+    outcome.kind === 'ok' && state.result === outcome.result ? outcome.result : null;
+  return { ...state, fresh };
 }

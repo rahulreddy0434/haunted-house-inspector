@@ -55,6 +55,7 @@ describe('useInspection', () => {
       loading: false,
       error: null,
       notFound: false,
+      markEmergency: expect.any(Function),
     });
   });
 

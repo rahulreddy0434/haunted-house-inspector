@@ -1,5 +1,6 @@
 import type { InspectionResult } from '@/types/inspection';
 import { inspectionResultSchema } from '@/lib/validation/inspectionSchema';
+import { isEmergencyResult } from '@/lib/emergency/emergencyView';
 
 /** sessionStorage key for a cached result. */
 export function resultCacheKey(id: string): string {
@@ -10,6 +11,10 @@ export function resultCacheKey(id: string): string {
 export function cacheResult(result: InspectionResult): void {
   if (typeof window === 'undefined') return;
   try {
+    if (!isEmergencyResult(result)) {
+      const existing = readCachedResult(result.id);
+      if (existing && isEmergencyResult(existing)) return; // never downgrade (Req 11.7)
+    }
     window.sessionStorage.setItem(resultCacheKey(result.id), JSON.stringify(result));
   } catch {
     // Ignore: quota, private mode, or storage disabled.

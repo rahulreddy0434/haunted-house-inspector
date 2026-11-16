@@ -76,7 +76,7 @@ function renderResults(r: InspectionResult) {
 }
 
 function renderView(r: InspectionResult) {
-  hook.value = { result: r, loading: false, error: null, notFound: false };
+  hook.value = { result: r, loading: false, error: null, notFound: false, markEmergency: () => {} };
   return render(<ResultsView id="x" />);
 }
 

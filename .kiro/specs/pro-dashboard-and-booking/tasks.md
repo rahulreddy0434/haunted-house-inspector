@@ -477,127 +477,127 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - Success from `new` (question trimmed and appended with `askedAt`); missing, non-string, empty and 301-character question give 400; ask-info for a Job in `info_requested` gives 409 `ILLEGAL_TRANSITION` (one question at a time); 409 `REPLY_LIMIT_REACHED` at `replyCount` 5; 404; 409 `JOB_IS_EMERGENCY`; 413; 500; condition failure re-read; 401 matrix; log hygiene
     - _Requirements: 7.7, 7.8, 7.9, 7.10, 7.11, 7.12, 7.13, 7.16, 6.17, 16.6, 16.17_
 
-- [ ] 17. Route-level property and cross-cutting tests
-  - [ ] 17.1 Write property test: emergency stays emergency through every handler (Property 2, route half)
+- [x] 17. Route-level property and cross-cutting tests
+  - [x] 17.1 Write property test: emergency stays emergency through every handler (Property 2, route half)
     - Create: `src/app/api/emergencyIrreversible.property.test.ts`
     - **Property 2: Emergency stays emergency, through every handler and every view**
     - **Validates: Requirements 6.3, 7.11, 8.5, 9.11, 10.7, 11.3, 11.9, 11.13, 16.3**
     - At least 100 runs; sequences of 1 to 20 operations (accept with valid slots, decline, ask-info, reply without a trigger, book, status read, Pro detail read) over the REAL handlers and the fake table; the Job starts as created-emergency or overridden from each of the other five statuses; stored `status` stays `emergency`; every write returns 409 `JOB_IS_EMERGENCY`; the status route returns exactly `{ status, message }`; no response contains `offeredSlots`, `bookedSlot` or `bookedAt`
     - The UI half (Status_Panel renders nothing) is the task "Write property test: Status_Panel renders nothing for an emergency (Property 2, UI half)"
     - Tag: `// Feature: pro-dashboard-and-booking, Property 2: Emergency stays emergency, through every handler and every view`
-  - [ ] 17.2 Write property test: any triggering reply ends in emergency (Property 3)
+  - [x] 17.2 Write property test: any triggering reply ends in emergency (Property 3)
     - Create: `src/app/api/inspections/[id]/reply/reply.safety.property.test.ts`
     - **Property 3: Any triggering reply ends in emergency, whatever the state**
     - **Validates: Requirements 6.13, 9.3, 9.4, 9.5, 9.6, 9.7, 11.1, 11.2, 11.4, 11.5, 11.12, 16.4**
     - At least 100 runs; each of the four trigger phrases inserted at a random position in surrounding text with the serialised body up to the 4,096-byte cap (replies over 500 characters included); previous status from all six; `replyCount` 0 to 5; target is an existing Job, a UUID with no Job, a Job without `status` or a non-UUID; the write succeeds or throws; response is always 200 with the Emergency_Message; no `GetCommand` or `UpdateCommand` before `checkEmergency` ran (spy on `checkEmergency` and the fake table call log); when the Job exists and the write succeeds: emergency fields set, `offeredSlots`, `bookedSlot`, `bookedAt` removed, `replyCount` equals `replies.length` and is at most 5
     - Include two fixed examples: a text of about 4,000 bytes and a text of 600 characters
     - Tag: `// Feature: pro-dashboard-and-booking, Property 3: Any triggering reply ends in emergency, whatever the state`
-  - [ ] 17.3 Write property test: tradesperson text and slots never trigger an emergency (Property 5)
+  - [x] 17.3 Write property test: tradesperson text and slots never trigger an emergency (Property 5)
     - Create: `src/app/api/pro/proText.property.test.ts`
     - **Property 5: Tradesperson text and slots never trigger an emergency**
     - **Validates: Requirements 7.14, 11.11, 16.16**
     - At least 100 runs; decline `reason`, ask-info `question` and Time_Slot values mixed with the four trigger phrases; the safety module is mocked with a spy that must stay uncalled; the stored status is the expected non-emergency status; the homeowner status view never contains the tradesperson text as, or inside, the Emergency_Message
     - Tag: `// Feature: pro-dashboard-and-booking, Property 5: Tradesperson text and slots never trigger an emergency`
-  - [ ] 17.4 Write property test: racing actions have exactly one winner (Property 11)
+  - [x] 17.4 Write property test: racing actions have exactly one winner (Property 11)
     - Create: `src/app/api/race.property.test.ts`
     - **Property 11: Racing actions have exactly one winner**
     - **Validates: Requirements 6.9, 6.10, 6.11, 9.10, 10.6, 10.7, 11.15, 16.9, 16.20**
     - At least 100 runs; pairs of operations over the fake table with `hold('UpdateCommand')` so both handlers finish their reads first: reply versus accept and reply versus decline on one `info_requested` Job produce exactly one HTTP 200 and the loser HTTP 409 `ILLEGAL_TRANSITION` with the winner's status; two bookings of one `accepted` Job produce one success; a pair containing the safety override always ends in `emergency` in both orders and the loser gets 409 `JOB_IS_EMERGENCY`; no loser retries a write
     - Tag: `// Feature: pro-dashboard-and-booking, Property 11: Racing actions have exactly one winner`
-  - [ ] 17.5 Write property test: reply bookkeeping stays consistent (Property 12)
+  - [x] 17.5 Write property test: reply bookkeeping stays consistent (Property 12)
     - Create: `src/app/api/replyBookkeeping.property.test.ts`
     - **Property 12: Reply bookkeeping stays consistent**
     - **Validates: Requirements 6.12, 6.18, 7.9, 9.8, 9.9, 11.1, 12.1, 12.11, 12.13**
     - At least 100 runs; sequences of up to 30 operations from `ask`, `reply`, `accept`, `decline`, `triggerReply` over a Job created as `new`; after every step `replyCount` equals `replies.length` and is at most 5, `infoRequests.length` is at most 5, `ttl` is unchanged, `statusUpdatedAt` changes exactly when `status` changes, ask-info is refused with 409 `REPLY_LIMIT_REACHED` at 5 replies, and a non-triggering reply is never stored beyond the fifth
     - Tag: `// Feature: pro-dashboard-and-booking, Property 12: Reply bookkeeping stays consistent`
-  - [ ] 17.6 Write suite-level guard test: no rate limiter, no forbidden commands, no RATELIMIT# writes
+  - [x] 17.6 Write suite-level guard test: no rate limiter, no forbidden commands, no RATELIMIT# writes
     - Create: `src/app/api/noRateLimiter.test.ts`
     - Imports every Homeowner_API route and Pro_API route that exists at this point (`status`, `reply`, `book`, `pro/jobs`, `pro/jobs/[id]`, `accept`, `decline`, `ask-info`) with throwing mock factories for `@/lib/rateLimiter` and `@/lib/aws/bedrock`; drives one request through each over the fake table; asserts no `RATELIMIT#` item is written, no `Set-Cookie: hhi_session` is set, and the shared guard saw no `ScanCommand`, `DeleteCommand` or `BatchWriteCommand`
     - The login and logout routes are covered in their own tests (tasks under "Pro login and logout routes (DEPLOY-GATED)")
     - _Requirements: 2.13, 7.17, 8.14, 9.14, 10.12, 14.10, 16.7, 16.17_
 
-- [ ] 18. Checkpoint - Data layer and routes verified
+- [x] 18. Checkpoint - Data layer and routes verified
   - Ensure all tests pass. Ask the user if any questions arise.
   - Run `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`; all four must exit with code 0
   - Covered: the data layer, the Homeowner_API routes and the Pro_API read and action routes. NOT yet covered: the rate limiter change and the Pro login and logout routes, which are DEPLOY-GATED and come after the DEPLOY GATE task
   - Existing `intake-and-triage` tests (including `route.bodyLimit.test.ts`) must still pass
 
-- [ ] 19. Client emergency handling and session cache
-  - [ ] 19.1 Apply the emergency non-downgrade rule in the loader and the cache
+- [x] 19. Client emergency handling and session cache
+  - [x] 19.1 Apply the emergency non-downgrade rule in the loader and the cache
     - Modify: `src/lib/inspectionLoader.ts`, `src/lib/sessionResultCache.ts`
     - `resolveFetchOutcome(cached, outcome)`: when `cached` is an emergency, return the cached result unless the outcome is an emergency copy; a failed, invalid, not-found or non-emergency fresh outcome never hides it. `loadInspection` returns `fresh` only when the fresh copy is the one shown
     - `cacheResult`: a non-emergency result never overwrites a cached emergency entry (defence in depth); a cached non-emergency copy meeting a fresh emergency copy is still replaced
     - Use `isEmergencyResult` from `@/lib/emergency/emergencyView`; `sessionStorage` errors stay swallowed
     - _Requirements: 11.7, 14.6_
     - _Design: Safety Design (The homeowner's emergency view, Non-downgrade rule)_
-  - [ ] 19.2 Add `markEmergency` to `useInspection`
+  - [x] 19.2 Add `markEmergency` to `useInspection`
     - Modify: `src/hooks/useInspection.ts`
     - Return `markEmergency()` in `UseInspectionReturn`: builds `toEmergencyResult(current)`, writes it with `cacheResult` (even when the server write failed), and sets state in the same render pass so `ResultsView` shows the emergency view
     - Existing hook behaviour (cache first, background GET, 404 handling) is unchanged
     - _Requirements: 11.6, 11.8_
     - _Design: Safety Design (The homeowner's emergency view)_
-  - [ ] 19.3 Write unit tests for the loader and the cache
+  - [x] 19.3 Write unit tests for the loader and the cache
     - Modify: `src/lib/inspectionLoader.test.ts`, `src/lib/sessionResultCache.test.ts`
     - A cached emergency is not replaced by a fresh non-emergency copy with status `new`, `info_requested`, `accepted`, `declined` or `booked`; a failed or 404 fetch keeps the cached emergency; `cacheResult` of a non-emergency copy leaves a cached emergency entry unchanged; an emergency response writes the emergency entry even when the stored write failed (storage throwing is swallowed); all existing cases still pass
     - _Requirements: 11.6, 11.7, 16.12_
-  - [ ] 19.4 Write unit tests for `markEmergency`
+  - [x] 19.4 Write unit tests for `markEmergency`
     - Create: `src/hooks/useInspection.markEmergency.test.tsx`
     - After `markEmergency()` the hook result is an emergency (urgency, `isEmergency`, costs 0, empty `jobBrief` and `diySteps`) and the cache entry equals it, within the same render pass, with `sessionStorage` available and with it throwing
     - _Requirements: 11.6, 16.12_
-  - [ ] 19.5 Write property test: a cached emergency is never downgraded (Property 14)
+  - [x] 19.5 Write property test: a cached emergency is never downgraded (Property 14)
     - Create: `src/lib/emergencyNonDowngrade.property.test.ts`
     - **Property 14: A cached emergency is never downgraded**
     - **Validates: Requirements 11.6, 11.7, 16.12**
     - At least 100 runs; any fresh non-emergency copy (`fc.constantFrom('urgent', 'soon', 'monitor')`), not found, invalid and failed outcomes: `resolveFetchOutcome` returns the cached emergency, `loadInspection` returns no non-emergency `fresh`, `cacheResult` leaves the emergency entry unchanged; after `markEmergency` the cache holds the emergency shape; `sessionStorage` from jsdom
     - Tag: `// Feature: pro-dashboard-and-booking, Property 14: A cached emergency is never downgraded`
 
-- [ ] 20. UI primitives and time formatting
-  - [ ] 20.1 Create the shared styles and form primitives
+- [x] 20. UI primitives and time formatting
+  - [x] 20.1 Create the shared styles and form primitives
     - Create: `src/components/ui/styles.ts` (class constants `CARD`, `HEADING`, `BODY`, `MUTED`, `FIELD`, `PRIMARY_BUTTON`, `SECONDARY_BUTTON`, `ERROR_TEXT`, `STATUS_BOX` from the design table), `src/components/ui/Button.tsx`, `src/components/ui/TextField.tsx`, `src/components/ui/TextAreaField.tsx`
     - Colour only through Tailwind token classes with a `haunted:` partner for every background, text, border and focus-ring colour; every control has a `focus-visible:` ring; every field has a visible `<label htmlFor>` and links its live count and error with `aria-describedby`; no `animate-*`, `transition*`, `duration-*`; the components never read or write the theme
     - _Requirements: 15.1, 15.2, 15.3, 15.5, 15.6, 15.10, 15.11_
     - _Design: UI Design (Theming, Accessibility details)_
-  - [ ] 20.2 Create `formatDateTime` and `TimeText`
+  - [x] 20.2 Create `formatDateTime` and `TimeText`
     - Create: `src/lib/utils/formatDateTime.ts` (`Intl.DateTimeFormat` with `timeZoneName: 'short'`), `src/components/ui/TimeText.tsx` (`<time dateTime={iso}>` with the formatted value)
     - Runs in the browser only; the `dateTime` attribute holds the UTC value
     - _Requirements: 4.6, 5.16, 10.1, 10.8_
     - _Design: UI Design (Time formatting)_
-  - [ ] 20.3 Write unit tests for the UI primitives
+  - [x] 20.3 Write unit tests for the UI primitives
     - Create: `src/components/ui/Button.test.tsx`, `src/components/ui/TextField.test.tsx`, `src/components/ui/TextAreaField.test.tsx`
     - Label linked by `htmlFor` and `id`; `aria-describedby` for count and error; error with `role="alert"`; `focus-visible:` classes present; disabled state
     - _Requirements: 15.5, 15.6, 15.7_
-  - [ ] 20.4 Write unit tests for time formatting
+  - [x] 20.4 Write unit tests for time formatting
     - Create: `src/lib/utils/formatDateTime.test.ts`, `src/components/ui/TimeText.test.tsx`
     - Fixed locale and `process.env.TZ`; zone short name present (for example "EST"); `dateTime` equals the UTC value; invalid input does not crash
     - _Requirements: 4.6, 5.16, 10.1, 10.8_
 
-- [ ] 21. Status polling hook
-  - [ ] 21.1 Create `src/hooks/useStatusPolling.ts`
+- [x] 21. Status polling hook
+  - [x] 21.1 Create `src/hooks/useStatusPolling.ts`
     - Create: `src/hooks/useStatusPolling.ts`
     - Export `STATUS_POLL_INTERVAL_MS` (30000) and `useStatusPolling(id, { onEmergency })` returning `view`, `loaded`, `updateFailed`, `refreshing`, `stopped`, `gone`, `refresh`, `refreshNow`, `applyView`
     - One request in flight at a time (an `AbortController` per request); no `setInterval`: a single `setTimeout(poll, 30000)` after each request completes, only while the tab is visible; `visibilitychange` clears the timer when hidden and polls at once when visible (unless stopped or in flight); stop on `declined`, `booked`, `emergency` and 404 (`emergency` calls `onEmergency` exactly once; 404 sets `gone`); responses validated with `homeownerStatusViewSchema`; a failure keeps `view` and sets `updateFailed`; one state update per response; unmount clears the timer, aborts and sets no state afterwards
     - `refreshNow()` aborts any in-flight request first and ignores its late result (approved safeguard)
     - _Requirements: 8.1, 8.6, 8.7, 8.8, 8.9, 8.10, 8.11, 8.15, 8.16, 8.18, 8.20_
     - _Design: UI Design (Polling hook)_
-  - [ ] 21.2 Write unit tests for `useStatusPolling`
+  - [x] 21.2 Write unit tests for `useStatusPolling`
     - Create: `src/hooks/useStatusPolling.test.tsx`
     - Fake timers with `vi.advanceTimersByTimeAsync`, a stubbed `fetch`, and `Object.defineProperty(document, 'visibilityState', ...)` plus a dispatched `visibilitychange`: first request on mount; 30 s measured from completion; no request while hidden; request within 1 s when visible again; stop on `emergency`, `declined`, `booked` and 404; single in-flight request; Refresh ignored while a request is running; abort on unmount with no state update; last status kept after a failed or invalid response and the failure flag cleared by a later success; `onEmergency` called once
     - `refreshNow` safeguard (16.21 c): a request in flight when `refreshNow()` is called is aborted, its late result is ignored and the view shows the immediate request's result
     - _Requirements: 8.6, 8.7, 8.8, 8.9, 8.10, 8.11, 8.16, 8.20, 16.10, 16.21_
 
-- [ ] 22. Homeowner Status_Panel
-  - [ ] 22.1 Create `src/components/results/ReplyBox.tsx`
+- [x] 22. Homeowner Status_Panel
+  - [x] 22.1 Create `src/components/results/ReplyBox.tsx`
     - Create: `src/components/results/ReplyBox.tsx`
     - Visible label "Your reply"; no `maxlength`; live count `n/500` and, over 500, visible text such as "612/500, too long" plus the message "Your reply is too long. Please shorten it to 500 characters or fewer." both linked to the textarea with `aria-describedby` (not colour alone); the text is never cut; "Send reply" disabled ONLY while the trimmed text is empty or a request is in progress, ENABLED for any non-empty trimmed text whatever its length; shows the retention note from `copy.ts`
     - On submit disables the box and the button, then the parent decides the outcome; errors in `role="alert"`; typed text kept
     - _Requirements: 9.1, 9.20, 14.14, 15.6, 15.7_
     - _Design: UI Design (Status_Panel states)_
-  - [ ] 22.2 Create `src/components/results/SlotPicker.tsx`
+  - [x] 22.2 Create `src/components/results/SlotPicker.tsx`
     - Create: `src/components/results/SlotPicker.tsx`
     - `<fieldset>` with `<legend>Pick a time</legend>`; one native `<input type="radio">` per slot with one shared `name`, ascending, each with `TimeText`; "Confirm this time" disabled until a slot is selected and while a booking request is running; slots whose start has passed can be removed by the parent
     - _Requirements: 10.1, 15.5, 15.7_
     - _Design: UI Design (Status_Panel states)_
-  - [ ] 22.3 Create `src/components/results/StatusPanel.tsx`
+  - [x] 22.3 Create `src/components/results/StatusPanel.tsx`
     - Create: `src/components/results/StatusPanel.tsx`
     - Props `{ id, onEmergency }`; uses `useStatusPolling`; status text in ONE `role="status"` element replaced as a whole when the view changes; renders every state of the design table: first load "Checking your job status…", `new`, `info_requested` (question as Plain_Text, `ReplyBox`), `accepted` (`SlotPicker`), `declined` (reason when present, Status_Safety_Line, "Start a new inspection" link), `booked` (confirmation `<p role="status">` with `TimeText`, Status_Safety_Line below it, no controls), emergency and 404 (render nothing), failed refresh (alert and last view kept), Refresh button for `new`, `info_requested`, `accepted`
     - The Status_Safety_Line shows ONLY in `declined` and `booked`
@@ -605,77 +605,77 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - Free text rendered as Plain_Text with `whitespace-pre-wrap break-words`; no `dangerouslySetInnerHTML`; `focus({ preventScroll: true })`
     - _Requirements: 8.1, 8.3, 8.8, 8.9, 8.12, 8.13, 8.18, 8.19, 9.13, 9.16, 9.20, 9.21, 9.22, 10.1, 10.4, 10.8, 10.9, 10.10, 10.11, 10.13, 10.15, 10.16, 11.8, 14.9_
     - _Design: UI Design (Status_Panel states, Reply and booking requests)_
-  - [ ] 22.4 Write unit tests for `ReplyBox`
+  - [x] 22.4 Write unit tests for `ReplyBox`
     - Create: `src/components/results/ReplyBox.test.tsx`
     - Counter shows `120/500`; at 612 characters it shows "612/500, too long" and the over-limit message, both linked by `aria-describedby`; no `maxlength`; the text is never cut; "Send reply" disabled for empty and whitespace-only text; ENABLED for a 612-character text; disabled and box disabled while sending; the retention note is shown; label linked
     - _Requirements: 9.1, 9.20, 14.14, 15.6_
-  - [ ] 22.5 Write unit tests for `SlotPicker`
+  - [x] 22.5 Write unit tests for `SlotPicker`
     - Create: `src/components/results/SlotPicker.test.tsx`
     - Native radios inside a `<fieldset>` with a `<legend>`, one shared `name`; ascending order; each slot shows a zone name and a `<time dateTime>`; "Confirm this time" disabled until one is selected and while a request runs; keyboard arrow selection (user-event)
     - _Requirements: 10.1, 15.5_
-  - [ ] 22.6 Write component tests for `StatusPanel`
+  - [x] 22.6 Write component tests for `StatusPanel`
     - Create: `src/components/results/StatusPanel.test.tsx`
     - Every state of the table with the exact texts; reply flow (200, 400 too long keeps text, 413, 429, 500, network error); booking flow (200 confirmation with `<time>`, `SLOT_EXPIRED` keeps the remaining slots, 409 `ILLEGAL_TRANSITION` immediate refresh and the "Your unsent reply" block, 409 `JOB_IS_EMERGENCY` calls `onEmergency`); Status_Safety_Line only in `declined` and `booked`; no reply box in `declined` and `booked`; no edit or cancel control after booking; the "Standard notice" is untouched; failed first load shows the alert and Refresh; 404 renders nothing and sends no retry; Refresh button ignored while a request is in flight
     - _Requirements: 8.3, 8.8, 8.11, 8.15, 8.16, 8.18, 8.19, 9.13, 9.20, 9.21, 9.22, 10.4, 10.8, 10.9, 10.13, 10.15, 10.16, 16.10_
-  - [ ] 22.7 Write property test: Status_Panel renders nothing for an emergency (Property 2, UI half)
+  - [x] 22.7 Write property test: Status_Panel renders nothing for an emergency (Property 2, UI half)
     - Create: `src/components/results/StatusPanel.emergency.property.test.tsx`
     - **Property 2: Emergency stays emergency, through every handler and every view**
     - **Validates: Requirements 8.5, 8.12, 11.8, 16.3**
     - At least 100 runs; for any emergency status response (and for any received emergency view) the Status_Panel renders no status text, question, reply box, time slots, radio control, booking confirmation or Refresh button, sends no further status request and calls `onEmergency` once; with the cache marking an emergency, `ResultsView` does not mount the panel and sends no status request
     - Tag: `// Feature: pro-dashboard-and-booking, Property 2: Emergency stays emergency, through every handler and every view`
 
-- [ ] 23. Results page integration
-  - [ ] 23.1 Mount `StatusPanel` in `ResultsView`
+- [x] 23. Results page integration
+  - [x] 23.1 Mount `StatusPanel` in `ResultsView`
     - Modify: `src/components/results/ResultsView.tsx`
     - Mount `<StatusPanel id onEmergency={markEmergency} />` in the non-emergency branch only (the emergency branch is unchanged and renders no panel); keep the "This is a likely diagnosis, not a certain one." notice and the bottom "start a new inspection" link
     - _Requirements: 8.1, 8.12, 11.6, 11.8, 10.9_
     - _Design: Components and Interfaces (existing files that change)_
-  - [ ] 23.2 Update the `ResultsView` tests
+  - [x] 23.2 Update the `ResultsView` tests
     - Modify: `src/components/results/ResultsView.test.tsx`
     - `StatusPanel` is mounted for a non-emergency result and absent for an emergency (by `urgency` and by `isEmergency`); `markEmergency` from the mocked hook is passed to the panel; the emergency view still shows only the banner, the badge and the issue title; existing `emergencySuppression.property.test.tsx` still passes
     - _Requirements: 8.12, 11.8, 16.14_
 
-- [ ] 24. Pro hooks
-  - [ ] 24.1 Create `useProJobs` and `useProJob`
+- [x] 24. Pro hooks
+  - [x] 24.1 Create `useProJobs` and `useProJob`
     - Create: `src/hooks/useProJobs.ts`, `src/hooks/useProJob.ts`
     - `useProJobs()` returns `{ phase: 'loading' | 'ready' | 'unauthorized', jobs, error, refreshing, refresh }`: `GET /api/pro/jobs` on mount, keeps the previous list on a failed refresh, the Refresh disabled while a request runs, never refreshes on a timer, aborts on unmount, validates with `proJobsResponseSchema`
     - `useProJob(id)` returns `{ phase: 'loading' | 'ready' | 'unauthorized' | 'notFound' | 'error', job, error, reload }`: 401 gives `unauthorized`, 404 gives `notFound`, 500 gives `error` with the server message; validates with `proJobDetailSchema`
     - A shared `hadSession` ref (set after the first successful Pro response) tells the pages whether a 401 shows the plain form (first load) or the "session ended" notice
     - _Requirements: 4.13, 4.14, 4.16, 3.10, 5.18, 1.9_
     - _Design: UI Design (Props and states)_
-  - [ ] 24.2 Write unit tests for the Pro hooks
+  - [x] 24.2 Write unit tests for the Pro hooks
     - Create: `src/hooks/useProJobs.test.tsx`, `src/hooks/useProJob.test.tsx`
     - 401 on first load gives `unauthorized`; a later 401 is flagged as a lost session; failed refresh keeps the previous list and sets the error; refresh disabled while loading and no automatic refresh; abort on unmount; 404, 500 and invalid body handling for the detail; `reload` repeats the request
     - _Requirements: 4.13, 4.14, 3.10, 5.18_
 
-- [ ] 25. Pro dashboard UI
-  - [ ] 25.1 Create `AccessCodeForm`
+- [x] 25. Pro dashboard UI
+  - [x] 25.1 Create `AccessCodeForm`
     - Create: `src/components/pro/AccessCodeForm.tsx`
     - One visible `<label>`-linked masked input (`maxlength` 200) and one "Enter" submit button; posts `{ code }` to `POST /api/pro/login`; success clears the field and calls `onSuccess`; 401 keeps the form, keeps focus in the code field and shows "That code isn't right." with `role="alert"`; 429 shows the response message and keeps the field editable; 503 `PRO_DISABLED` calls `onDisabled`; network error or non-JSON keeps the typed code and shows "We couldn't reach the server. Please try again." with `role="alert"`; optional `notice` prop shows "Your session has ended. Please enter the access code again."
     - _Requirements: 1.1, 1.2, 1.7, 1.9, 1.13, 2.14, 3.6, 3.10, 15.6, 15.7_
     - _Design: UI Design (Props and states)_
-  - [ ] 25.2 Create `JobListItem` and `JobList`
+  - [x] 25.2 Create `JobListItem` and `JobList`
     - Create: `src/components/pro/JobListItem.tsx`, `src/components/pro/JobList.tsx`
     - Each item is a `<li>` with one `next/link` to `/pro/jobs/[id]` whose text includes the `UrgencyBadge`, the trade (omitted for an emergency), the location as Plain_Text, `TimeText` and the status label; "No jobs yet." when empty; "Loading jobs…" with `role="status"`; an error with `role="alert"` above the kept list; a "Refresh" button disabled while loading and never automatic
     - An emergency item shows only the badge, location, time and status label (no trade, no cost, no action)
     - _Requirements: 4.6, 4.7, 4.8, 4.12, 4.13, 4.14, 4.16, 6.6, 14.9_
     - _Design: UI Design (Pro job list)_
-  - [ ] 25.3 Create `ProDashboard` and the `/pro` page
+  - [x] 25.3 Create `ProDashboard` and the `/pro` page
     - Create: `src/components/pro/ProDashboard.tsx`, `src/app/pro/page.tsx`
     - `page.tsx` is a Server Component with `metadata.robots = { index: false, follow: false }` rendering `<ProDashboard />`; `ProDashboard` state machine `checking | form | disabled | list` driven by `useProJobs`; first-load 401 shows the plain form, a later 401 shows the form with the session-ended notice and discards job data; 503 shows "Tradesperson access isn't available right now." in place of the form; "Log out" posts `POST /api/pro/logout` and shows the form again; no second `<main>`
     - _Requirements: 1.1, 1.9, 1.11, 3.6, 3.10, 3.11_
     - _Design: UI Design (Pages, Props and states)_
-  - [ ] 25.4 Write component tests for `AccessCodeForm`
+  - [x] 25.4 Write component tests for `AccessCodeForm`
     - Create: `src/components/pro/AccessCodeForm.test.tsx`
     - Label, masked input and "Enter" button; 200 clears the field and calls `onSuccess`; 401 keeps focus in the field with the alert; 429 shows the server message and stays editable; 503 calls `onDisabled`; network failure keeps the typed code; the session-ended notice
     - _Requirements: 1.1, 1.2, 1.7, 1.13, 2.14, 3.6, 3.10_
-  - [ ] 25.5 Write component tests for `JobList` and `ProDashboard`
+  - [x] 25.5 Write component tests for `JobList` and `ProDashboard`
     - Create: `src/components/pro/JobList.test.tsx`, `src/components/pro/ProDashboard.test.tsx`
     - Item content and link text; emergency item has no trade; "No jobs yet."; loading state; error keeps the list; Refresh disabled while loading; first-load 401 shows the form; a later 401 shows the notice and discards data; disabled message; log out shows the form; `noindex` robots metadata exported by the page in every state
     - _Requirements: 4.6, 4.7, 4.8, 4.12, 4.13, 4.14, 4.16, 1.11, 3.6, 3.10, 3.11_
 
-- [ ] 26. Pro job detail UI
-  - [ ] 26.1 Create the detail display components
+- [x] 26. Pro job detail UI
+  - [x] 26.1 Create the detail display components
     - Create: `src/components/pro/JobFacts.tsx`, `src/components/pro/JobHistory.tsx`, `src/components/pro/PhotoGallery.tsx`, `src/components/pro/ProEmergencyView.tsx`
     - `JobFacts`: likely issue, trade, confidence (`formatConfidence` with "AI confidence in this diagnosis"), the existing `CostRange` unchanged, `JobBrief`, the three answers labelled "Where in the home", "How long", "Anything else" (empty or whitespace shows "Not answered"), follow-up questions; NEVER renders `diySteps`
     - `JobHistory`: `infoRequests` ("You asked") and `replies` ("Homeowner replied") ascending by time (ties: question first), Plain_Text and `TimeText`
@@ -683,27 +683,27 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - `ProEmergencyView`: the Pro_Emergency_Note, likely issue and answers as read-only Plain_Text; no controls, trade, photos, cost or brief
     - _Requirements: 5.5, 5.6, 5.7, 5.11, 5.12, 5.13, 5.14, 5.16, 14.9, 15.9_
     - _Design: UI Design (Pro job detail)_
-  - [ ] 26.2 Create the action forms and `ActionPanel`
+  - [x] 26.2 Create the action forms and `ActionPanel`
     - Create: `src/components/pro/AcceptForm.tsx`, `src/components/pro/DeclineForm.tsx`, `src/components/pro/AskInfoForm.tsx`, `src/components/pro/ActionPanel.tsx`
     - `AcceptForm`: three `datetime-local` inputs labelled "First time you can start" (required), "Second time", "Third time" (optional), time-zone hint; each filled value is sent as `new Date(value).toISOString()`; "Accept job". `DeclineForm`: textarea "Reason (optional)" with limit 200 and live count "n / 200" via `aria-describedby`, over the limit shows an error and disables the button; "Decline job". `AskInfoForm`: textarea limit 300 and live count; "Send question"; shown only in `new`
     - `ActionPanel` owns one `pending` flag that disables ALL controls until the response arrives; success calls `onDone(status)`, failure shows the server message with `role="alert"` and keeps the typed text and slots; 409 calls `onConflict`; 401 calls `onUnauthorized`; `new` shows all three actions, `info_requested` shows accept and decline only (no ask-info), any other status shows none
     - _Requirements: 7.4, 7.18, 7.19, 6.17, 14.9, 15.6_
     - _Design: UI Design (Pro action forms)_
-  - [ ] 26.3 Create `JobDetail` and the `/pro/jobs/[id]` page
+  - [x] 26.3 Create `JobDetail` and the `/pro/jobs/[id]` page
     - Create: `src/components/pro/JobDetail.tsx`, `src/app/pro/jobs/[id]/page.tsx`
     - `page.tsx` is a Server Component with `metadata.robots = { index: false, follow: false }` that awaits `params` and renders `<JobDetail id={id} />`; `JobDetail` uses `useProJob`: "Back to jobs" link first, `UrgencyBadge`, the status label in `<p role="status" tabIndex={-1}>`, `JobFacts`, `PhotoGallery`, `JobHistory`, the status block (`info_requested` shows the latest question under "You asked"; `accepted` shows offered slots ascending; `booked` shows the booked slot; `declined` shows the reason; offered slots are NOT shown in `booked` or `declined`), then `ActionPanel`; an emergency Job shows `ProEmergencyView` only
     - 401 shows `AccessCodeForm` then reloads; 404 shows "We couldn't find this job." with a link to `/pro`; 500 shows the server message with `role="alert"` and a "Try again" button; after an action focus moves to the status element with `focus({ preventScroll: true })`
     - _Requirements: 5.11, 5.14, 5.18, 5.19, 3.10, 3.11, 7.18, 7.19_
     - _Design: UI Design (Pages, Pro job detail)_
-  - [ ] 26.4 Write component tests for the detail display components
+  - [x] 26.4 Write component tests for the detail display components
     - Create: `src/components/pro/JobFacts.test.tsx`, `src/components/pro/JobHistory.test.tsx`, `src/components/pro/PhotoGallery.test.tsx`, `src/components/pro/ProEmergencyView.test.tsx`
     - Cost exactly as `CostRange` renders it with "rough range, not a quote" next to it; confidence "~75%"; "Not answered" for empty and whitespace answers; `diySteps` never rendered even when passed; history order and labels; photo links open in a new tab with `rel`; emergency view has no buttons, photos, cost, trade or brief
     - _Requirements: 5.5, 5.6, 5.7, 5.11, 5.12, 5.13, 15.9_
-  - [ ] 26.5 Write component tests for the action forms and `ActionPanel`
+  - [x] 26.5 Write component tests for the action forms and `ActionPanel`
     - Create: `src/components/pro/ActionForms.test.tsx`
     - Controls per status (`new`: three actions, `info_requested`: accept and decline only, others: none); labels "First time you can start", "Second time", "Third time" with only the first required; live counts and `aria-describedby`; all controls disabled while pending; failure keeps typed text and slots and re-enables; 409 calls `onConflict`; 401 calls `onUnauthorized`
     - _Requirements: 7.4, 7.18, 7.19, 6.17, 15.6_
-  - [ ] 26.6 Write component tests for `JobDetail`
+  - [x] 26.6 Write component tests for `JobDetail`
     - Create: `src/components/pro/JobDetail.test.tsx`
     - Active job rendering by status (question, offered slots, booked slot, decline reason; no offered slots in `booked` or `declined`); emergency job shows the note with no controls; 404 message and link; 500 with a working "Try again"; 401 shows the access code form; the status label is announced in a `role="status"` element
     - _Requirements: 5.11, 5.14, 5.18, 5.19, 3.10, 7.19_

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cacheResult, readCachedResult, resultCacheKey } from '@/lib/sessionResultCache';
 import { emergencyResult, normalResult } from '@/test/inspectionFixtures';
+import { toEmergencyResult } from '@/lib/emergency/emergencyView';
 
 const OTHER_ID = '22222222-2222-4222-8222-222222222222';
 
@@ -107,5 +108,38 @@ describe('sessionResultCache', () => {
       expect(() => cacheResult(normalResult)).not.toThrow();
       expect(readCachedResult(normalResult.id)).toBeNull();
     });
+  });
+});
+
+describe('sessionResultCache emergency protection (Req 11.7)', () => {
+  it.each(['urgent', 'soon', 'monitor'] as const)(
+    'a non-emergency (%s) copy leaves a cached emergency entry unchanged',
+    (urgency) => {
+      cacheResult(emergencyResult);
+      const before = sessionStorage.getItem(resultCacheKey(emergencyResult.id));
+      cacheResult({ ...normalResult, urgency });
+      expect(sessionStorage.getItem(resultCacheKey(emergencyResult.id))).toBe(before);
+      expect(readCachedResult(emergencyResult.id)).toEqual(emergencyResult);
+    },
+  );
+
+  it('an emergency result writes the emergency entry over a non-emergency one', () => {
+    cacheResult(normalResult);
+    const emergency = toEmergencyResult(normalResult);
+    cacheResult(emergency);
+    expect(sessionStorage.getItem(resultCacheKey(normalResult.id))).toBe(JSON.stringify(emergency));
+    expect(readCachedResult(normalResult.id)?.isEmergency).toBe(true);
+  });
+
+  it('swallows storage errors from getItem and setItem on the non-emergency path', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('blocked', 'SecurityError');
+    });
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('full', 'QuotaExceededError');
+    });
+    expect(() => cacheResult(normalResult)).not.toThrow();
+    expect(() => cacheResult(emergencyResult)).not.toThrow();
+    expect(readCachedResult(normalResult.id)).toBeNull();
   });
 });
