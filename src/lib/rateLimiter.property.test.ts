@@ -34,6 +34,7 @@ vi.mock('@/lib/aws/dynamodb', () => ({
 }));
 
 import { RATE_LIMIT_MAX, checkRateLimit } from '@/lib/rateLimiter';
+import { forwardedFor } from '@/test/proRouteHarness';
 
 // Feature: intake-and-triage, Property 20: Rate limiter blocks at the threshold
 // Validates: Requirements 11.1, 11.2
@@ -56,7 +57,7 @@ function visitorIdFor(ip: string): string {
 function requestFrom(ip: string): NextRequest {
   return new NextRequest('http://localhost/api/inspect', {
     method: 'POST',
-    headers: { 'x-forwarded-for': ip },
+    headers: { 'x-forwarded-for': forwardedFor(ip) },
   });
 }
 

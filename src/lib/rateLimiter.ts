@@ -4,6 +4,7 @@ import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { incrementRateLimitCounter } from '@/lib/aws/dynamodb';
+import { getTrustedClientIp } from '@/lib/net/getTrustedClientIp';
 
 export const RATE_LIMIT_MAX = 15;
 export const RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -98,8 +99,7 @@ function getSecret(): string | null {
 }
 
 function ipVisitorId(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded?.split(',')[0]?.trim() || 'unknown';
+  const ip = getTrustedClientIp(request.headers);
   return `ip:${createHash('sha256').update(ip).digest('hex')}`;
 }
 

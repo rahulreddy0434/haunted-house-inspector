@@ -708,24 +708,24 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - Active job rendering by status (question, offered slots, booked slot, decline reason; no offered slots in `booked` or `declined`); emergency job shows the note with no controls; 404 message and link; 500 with a working "Try again"; 401 shows the access code form; the status label is announced in a `role="status"` element
     - _Requirements: 5.11, 5.14, 5.18, 5.19, 3.10, 7.19_
 
-- [ ] 27. Privacy notice update
-  - [ ] 27.1 Change the `DataRetentionNotice` text
+- [x] 27. Privacy notice update
+  - [x] 27.1 Change the `DataRetentionNotice` text
     - Modify: `src/components/upload/DataRetentionNotice.tsx`
     - Export `DATA_SHARING_NOTICE_TEXT` = "Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days." and render it as the first list item, replacing the first two bullets; the third bullet (video frames) stays
     - Unchanged: the `onVisible` API, the 90% `IntersectionObserver` gate, the heading, the classes, the submit gating of intake criteria 2.3 to 2.5, the 30-day retention
     - _Requirements: 17.1, 17.4, 17.5, 17.6_
     - _Design: Privacy Notice Change_
-  - [ ] 27.2 Update the `DataRetentionNotice` tests
+  - [x] 27.2 Update the `DataRetentionNotice` tests
     - Modify: `src/components/upload/DataRetentionNotice.test.tsx`
     - Keep the observer tests (`onVisible` once, not again); add: renders exactly `DATA_SHARING_NOTICE_TEXT` (equal to the literal in 17.1), does not contain "Only people who have your result link" or any "only you" claim, mentions 30 days, none of `S3`, `bucket`, `AWS`, `encrypted at rest`
     - _Requirements: 17.1, 17.3, 17.4, 17.6_
-  - [ ] 27.3 Update the `intake-and-triage` spec text
+  - [x] 27.3 Update the `intake-and-triage` spec text
     - Modify: `.kiro/specs/intake-and-triage/requirements.md` (criterion 2.1 "accessible only to the User" reworded to match the new notice; the IP wording of criteria 11.3 and 11.4 marked as superseded by Requirement 18 of this feature), `.kiro/specs/intake-and-triage/design.md` (the `DataRetentionNotice` section), `.kiro/specs/intake-and-triage/tasks.md` (the text of tasks 15.11 and 15.12)
     - Documentation edit only; no code
     - _Requirements: 17.3, 18.9_
 
-- [ ] 28. Source-scan test
-  - [ ] 28.1 Write the single source-scan test
+- [x] 28. Source-scan test
+  - [x] 28.1 Write the single source-scan test
     - Create: `src/components/sourceScan.test.ts`
     - Reads, with `fs` and the `typescript` compiler API (`ts.createSourceFile`, a JSX-aware walk), every `.ts` and `.tsx` file (tests excluded) under `src/components/pro/`, `src/components/ui/` and `src/app/pro/`, plus `StatusPanel.tsx`, `ReplyBox.tsx`, `SlotPicker.tsx`, `ResultsView.tsx`, `EmergencyBanner.tsx` and `DataRetentionNotice.tsx`
     - Fails on: a hex colour; `rgb(`, `rgba(`, `hsl(`, `hsla(`; an arbitrary colour class (`bg-[#...]`, `text-[rgb(...)]`, `border-[color:...]`); a CSS colour name as a bare string literal or as a `style` value; a `style` attribute setting `color`, `background`, `backgroundColor`, `borderColor`, `fill`, `stroke` or `outlineColor`; `dangerouslySetInnerHTML`; a `button`, `a`, `input` or `textarea` without an accessible name (text or expression child, `aria-label`, `aria-labelledby`, or a matching `htmlFor` label) or whose `className` (resolved through same-file string constants) lacks `focus-visible:`; a class starting with `animate-`, `transition` or `duration-`
@@ -733,7 +733,7 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - _Requirements: 15.1, 15.5, 15.10, 14.9, 16.13_
     - _Design: UI Design (Source-scan test)_
 
-- [ ] 29. Checkpoint - UI verified
+- [x] 29. Checkpoint - UI verified
   - Ensure all tests pass. Ask the user if any questions arise.
   - Run `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`; all four must exit with code 0
   - Covered: client emergency handling, session cache, polling hook, Status_Panel, Results page, Pro dashboard and detail pages, privacy notice, source scan
@@ -762,30 +762,30 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - _Requirements: 18.11, 18.15, 18.16_
     - _Design: Trusted Client IP Design (Deployment gating)_
 
-- [ ] 32. Rate limiter uses the trusted client IP (DEPLOY-GATED)
-  - [ ] 32.1 Change `ipVisitorId` to use `getTrustedClientIp`
+- [x] 32. Rate limiter uses the trusted client IP (DEPLOY-GATED)
+  - [x] 32.1 Change `ipVisitorId` to use `getTrustedClientIp`
     - DEPLOY GATE: may be written on a branch, but must NOT be merged or deployed before the DEPLOY GATE task is done
     - Modify: `src/lib/rateLimiter.ts`
     - `ipVisitorId` calls `getTrustedClientIp(request.headers)` and keeps the id format `ip:` + SHA-256 hex; everything else (cookie-first identification, fail-open behaviour) is unchanged
     - _Requirements: 18.3, 18.4, 18.9_
     - _Design: Trusted Client IP Design (Rate limiter change)_
-  - [ ] 32.2 Update the rate limiter tests to the trusted-entry rule
+  - [x] 32.2 Update the rate limiter tests to the trusted-entry rule
     - Modify: `src/lib/rateLimiter.test.ts` (and `src/lib/rateLimiter.property.test.ts` and `src/app/api/inspect/route.ratelimit.test.ts` if they depend on the address)
     - Replace "uses the first x-forwarded-for entry" with "uses the trusted entry and ignores the entries before it" (`198.51.100.1, 10.0.0.1, 10.0.0.2` yields the id of `10.0.0.1`, the second-to-last entry, for hops 2); add: an invalid trusted entry gives `ip:` + hash of `unknown`; a spoofed prefix does not change the id; build headers with the helper from `TRUSTED_PROXY_HOPS` so the tests stay green after the constant changes
     - _Requirements: 18.9, 16.19_
-  - [ ] 32.3 Extend Property 6 to the hashed IP and the visitor id
+  - [x] 32.3 Extend Property 6 to the hashed IP and the visitor id
     - Modify: `src/lib/net/getTrustedClientIp.property.test.ts`
     - Add the remaining halves: for any spoofed prefix, `hashClientIp(getTrustedClientIp(...), secret)` and the rate limiter visitor id return the same value as for the trusted entry alone; absent or malformed trusted values give the same bucket as `unknown`
     - **Property 6: Trusted client IP ignores client-supplied entries**
     - **Validates: Requirements 2.2, 18.3, 18.4, 18.5, 18.6, 16.18**
     - Tag: `// Feature: pro-dashboard-and-booking, Property 6: Trusted client IP ignores client-supplied entries`
-  - [ ] 32.4 Write integration test: spoofed headers cannot bypass the daily limit
+  - [x] 32.4 Write integration test: spoofed headers cannot bypass the daily limit
     - Create: `src/app/api/inspect/route.ratelimit.spoof.test.ts`
     - 16 `POST /api/inspect` requests without a session cookie, each with a different spoofed leading `x-forwarded-for` entry and the same trusted entry, end with the rate-limit response (HTTP 429, Bedrock never invoked) on the 16th
     - _Requirements: 16.19, 18.5_
 
-- [ ] 33. Pro login and logout routes (DEPLOY-GATED)
-  - [ ] 33.1 Create `POST /api/pro/login`
+- [x] 33. Pro login and logout routes (DEPLOY-GATED)
+  - [x] 33.1 Create `POST /api/pro/login`
     - DEPLOY GATE: may be written on a branch, but must NOT be merged or deployed before the DEPLOY GATE task is done
     - Create: `src/app/api/pro/login/route.ts`
     - Order: `readProConfig` FIRST (unset or empty `PRO_ACCESS_CODE` or `SESSION_SECRET` gives 503 `PRO_DISABLED`, nothing read or written), `readJsonBody` (413 or 400, not counted as an attempt), `loginBodySchema` (400, not counted), `hashClientIp(getTrustedClientIp(headers), secret)`, `attemptLogin(code, ipHash, { accessCode, secret, nowMs: Date.now(), store: dynamoLockoutStore })`
@@ -793,23 +793,23 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - `Cache-Control: no-store` on every status; never imports the rate limiter; logs only the error name; never logs the code, cookie, secret, IP or hash
     - _Requirements: 1.2, 1.4, 1.5, 1.7, 1.8, 1.10, 2.2, 2.5, 2.6, 2.12, 2.13, 2.16, 3.4, 3.5, 3.12, 14.5_
     - _Design: Route Handlers (POST /api/pro/login)_
-  - [ ] 33.2 Write integration tests for the login route
+  - [x] 33.2 Write integration tests for the login route
     - Create: `src/app/api/pro/login/route.test.ts`
     - 200 with cookie attributes (HttpOnly, Secure, SameSite=Strict, Path `/api/pro`, Max-Age 43200); 401 `INVALID_CODE` with no cookie; 429 with `Retry-After` after 5 wrong codes (including a correct code on the 6th); a correct code with 4 wrong attempts on record is accepted; 503 `PRO_DISABLED` for unset AND empty `PRO_ACCESS_CODE`, and for unset AND empty `SESSION_SECRET`, with NOTHING written to DynamoDB and no `Set-Cookie`; 400 and 413 are not counted as attempts; counter read or update failure gives 500 `LOGIN_FAILED` with no cookie; a failed release still gives 200 and the cookie; `Cache-Control: no-store` on every status; no raw IP, hash, code or cookie in the log output; no `RATELIMIT#` write and the rate limiter is never imported
     - Spoofed-header test (16.19): 6 attempts, each with a different spoofed leading `x-forwarded-for` entry and the same trusted entry, end with HTTP 429 on the 6th
     - _Requirements: 1.4, 1.5, 1.7, 1.8, 1.10, 2.5, 2.6, 2.7, 2.12, 2.13, 2.15, 2.16, 3.4, 3.5, 3.12, 16.6, 16.8, 16.19_
-  - [ ] 33.3 Create `POST /api/pro/logout`
+  - [x] 33.3 Create `POST /api/pro/logout`
     - Create: `src/app/api/pro/logout/route.ts`
     - No configuration check, no cookie check, no body read; always 200 `{ ok: true }` with `buildLogoutCookie()` (`hhi_pro`, empty value, `Max-Age=0`, `Path=/api/pro`, HttpOnly, Secure, SameSite=Strict); `no-store`
     - _Requirements: 1.11, 1.12, 14.3, 3.9_
     - _Design: Route Handlers (POST /api/pro/logout)_
-  - [ ] 33.4 Write integration tests for the logout route
+  - [x] 33.4 Write integration tests for the logout route
     - Create: `src/app/api/pro/logout/route.test.ts`
     - 200 with and without a cookie; the serialised `Set-Cookie` contains `Max-Age=0`, `Path=/api/pro`, HttpOnly, Secure, SameSite=Strict; `Cache-Control: no-store`; no AWS call
     - _Requirements: 1.11, 1.12, 14.3, 16.6_
 
-- [ ] 34. Documentation and configuration
-  - [ ] 34.1 Update `.env.example`, check `amplify.yml`, mention the feature in the README
+- [x] 34. Documentation and configuration
+  - [x] 34.1 Update `.env.example`, check `amplify.yml`, mention the feature in the README
     - Modify: `.env.example` (comment above `SESSION_SECRET` only: without it the tradesperson dashboard is disabled and the rate limiter falls back to IP-only; recommend 32 or more random characters; comment above `PRO_ACCESS_CODE`: 12 or more random characters). NO new variable is added
     - Check (no edit expected): `amplify.yml` already copies `PRO_ACCESS_CODE` and `SESSION_SECRET` into `.env.production`; `package.json` gains no dependency; `TRUSTED_PROXY_HOPS` is a code constant and is NOT added to `.env.example` or `amplify.yml`
     - Modify: `README.md` with a short section: the `/pro` dashboard and booking flow, the two required variables, the `GSI1` index and IAM statement, and the rule that the diagnostic route is deleted before launch. `BUILD_LOG.md` is handled by the user's hook: do not touch it

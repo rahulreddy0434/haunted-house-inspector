@@ -337,11 +337,11 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
     - Use `fc.string({ minLength: 501, maxLength: 2000 })`; verify only first 500 chars accepted and counter shows `500/500`
     - Tag: `// Feature: intake-and-triage, Property 10: Character count limit enforcement`
   - [x] 15.11 Create `src/components/upload/DataRetentionNotice.tsx`
-    - Plain-language notice stating media stored privately and deleted after 30 days; 8th-grade reading level, no jargon
+    - Plain-language notice whose first bullet is the exported `DATA_SHARING_NOTICE_TEXT`: "Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days."; 8th-grade reading level, no jargon
     - Use `IntersectionObserver` with `threshold: 0.9`; fire `onVisible` callback once when 90% visible
     - _Requirements: 2.1–2.5, 12.1, 12.2_
   - [x] 15.12 Write unit test for `DataRetentionNotice` using Vitest
-    - Mock `IntersectionObserver`; verify `onVisible` fires exactly once on first intersection
+    - Mock `IntersectionObserver`; verify `onVisible` fires exactly once on first intersection; verify the notice renders the `DATA_SHARING_NOTICE_TEXT` wording
     - Verify `onVisible` does not fire again on subsequent intersections
     - _Requirements: 2.3, 2.4_
 

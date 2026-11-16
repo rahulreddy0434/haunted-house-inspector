@@ -1627,6 +1627,204 @@
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794842822346
       }
+    ],
+    "27.1 Change the `DataRetentionNotice` text": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794862754867
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794862863334
+      }
+    ],
+    "27.3 Update the `intake-and-triage` spec text": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794862755112
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794862864538
+      }
+    ],
+    "27.2 Update the `DataRetentionNotice` tests": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794862865318
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863054571
+      }
+    ],
+    "28.1 Write the single source-scan test": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794862866180
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863055728
+      }
+    ],
+    "27. Privacy notice update": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863054702
+      }
+    ],
+    "28. Source-scan test": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863055804
+      }
+    ],
+    "29. Checkpoint - UI verified": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863235254
+      }
+    ],
+    "32.1 Change `ipVisitorId` to use `getTrustedClientIp`": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863235568
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863320376
+      }
+    ],
+    "33.1 Create `POST /api/pro/login`": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863236758
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863321535
+      }
+    ],
+    "33.3 Create `POST /api/pro/logout`": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863237557
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863322730
+      }
+    ],
+    "32.2 Update the rate limiter tests to the trusted-entry rule": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863323985
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863459903
+      }
+    ],
+    "33.2 Write integration tests for the login route": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863324740
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863461409
+      }
+    ],
+    "33.4 Write integration tests for the logout route": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863325927
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863462611
+      }
+    ],
+    "32.3 Extend Property 6 to the hashed IP and the visitor id": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863326980
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863460690
+      }
+    ],
+    "33. Pro login and logout routes (DEPLOY-GATED)": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863462774
+      }
+    ],
+    "32.4 Write integration test: spoofed headers cannot bypass the daily limit": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863463749
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863519913
+      }
+    ],
+    "32. Rate limiter uses the trusted client IP (DEPLOY-GATED)": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863520005
+      }
+    ],
+    "34.1 Update `.env.example`, check `amplify.yml`, mention the feature in the README": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863702432
+      },
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863803598
+      }
+    ],
+    "34. Documentation and configuration": [
+      {
+        "executionId": "156321f6-c052-4d9c-b682-01b6cee7896b",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794863803731
+      }
     ]
   }
 }

@@ -232,7 +232,7 @@ Each field shows a real-time character counter (`{n}/500`). Input beyond 500 cha
 
 ### `DataRetentionNotice` (`src/components/upload/DataRetentionNotice.tsx`)
 
-Renders the plain-language data retention notice. Emits an `onVisible` callback (via `IntersectionObserver`) when the element enters the viewport for the first time. The parent page uses this to toggle the submit button's disabled state.
+Renders the plain-language data retention notice. Its first bullet is the exported constant `DATA_SHARING_NOTICE_TEXT` ("Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days."), which replaces the earlier "accessible only to the User" wording. Emits an `onVisible` callback (via `IntersectionObserver`) when the element enters the viewport for the first time. The parent page uses this to toggle the submit button's disabled state.
 
 ```typescript
 interface DataRetentionNoticeProps {

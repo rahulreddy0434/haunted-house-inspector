@@ -2,6 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 
+export const DATA_SHARING_NOTICE_TEXT =
+  'Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days.';
+
 interface DataRetentionNoticeProps {
   /** Called once, the first time at least 90% of the notice is visible. */
   onVisible: () => void;
@@ -59,11 +62,7 @@ export function DataRetentionNotice({ onVisible }: DataRetentionNoticeProps) {
         What happens to your upload
       </h2>
       <ul className="list-disc space-y-1 pl-5">
-        <li>
-          Your photos are kept in a private, secure place. Only people who have
-          your result link can open them.
-        </li>
-        <li>Everything you send is deleted for good after 30 days.</li>
+        <li>{DATA_SHARING_NOTICE_TEXT}</li>
         <li>
           If you choose a video, we never upload the video itself. We only send
           a few still pictures taken from it.

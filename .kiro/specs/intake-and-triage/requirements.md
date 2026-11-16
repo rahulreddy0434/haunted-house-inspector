@@ -59,7 +59,7 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 
 #### Acceptance Criteria
 
-1. THE App SHALL display a data retention notice on the upload page before the User submits, stating that uploaded media is stored privately in a secure cloud location accessible only to the User, and permanently deleted after 30 days.
+1. THE App SHALL display a data retention notice on the upload page before the User submits, stating: "Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days." (reworded from "accessible only to the User" because tradespeople now view jobs; see Requirement 17 of `pro-dashboard-and-booking`).
 2. THE App SHALL display the notice using plain language at or below an 8th-grade reading level, with no technical jargon, acronyms, or trade-specific terminology.
 3. WHILE the data retention notice has not yet scrolled into the User's viewport, THE App SHALL disable the submit button.
 4. WHEN the data retention notice scrolls into the User's viewport for the first time, THE App SHALL enable the submit button.
@@ -196,8 +196,8 @@ The intake-and-triage feature is the core user-facing flow of Haunted House Insp
 
 1. THE App SHALL permit each Visitor a maximum of 15 inspections per calendar day; WHEN the Visitor has reached this limit, THE App SHALL display a friendly message stating that the daily limit has been reached and inviting the Visitor to return tomorrow.
 2. WHEN a Visitor who has reached the daily limit attempts to start a new inspection whose context answers contain no Emergency_Trigger condition, THE App SHALL prevent the Submission from being analysed and SHALL display the limit-reached message without returning an error to the console.
-3. THE App SHALL track the per-Visitor inspection count using a session cookie or, where a session cookie is unavailable, by IP address; the tracking mechanism SHALL be an implementation detail resolved in the design phase.
-4. IF a Visitor's session cookie is cleared or absent, THE App SHALL apply the rate limit based on the available identifier (IP address) rather than blocking all access.
+3. THE App SHALL track the per-Visitor inspection count using a session cookie or, where a session cookie is unavailable, by IP address; the tracking mechanism SHALL be an implementation detail resolved in the design phase. *Superseded: the IP wording is superseded by Requirement 18 of `pro-dashboard-and-booking` (trusted client IP: the `x-forwarded-for` entry at position length - TRUSTED_PROXY_HOPS, hops = 2).*
+4. IF a Visitor's session cookie is cleared or absent, THE App SHALL apply the rate limit based on the available identifier (IP address) rather than blocking all access. *Superseded: the IP wording is superseded by Requirement 18 of `pro-dashboard-and-booking` (trusted client IP: the `x-forwarded-for` entry at position length - TRUSTED_PROXY_HOPS, hops = 2).*
 5. THE App SHALL display the limit-reached message in plain language at or below an 8th-grade reading level, with no technical jargon.
 6. IF the `SESSION_SECRET` environment variable is not configured, THEN THE App SHALL apply the rate limit by IP address only and SHALL NOT fail the request.
 7. THE App SHALL sign the session cookie with HMAC-SHA256 using the `SESSION_SECRET` environment variable, and THE App SHALL treat a session cookie with an invalid signature as absent.

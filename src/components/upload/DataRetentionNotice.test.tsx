@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
-import { DataRetentionNotice } from './DataRetentionNotice';
+import { DATA_SHARING_NOTICE_TEXT, DataRetentionNotice } from './DataRetentionNotice';
 
 type IOCallback = (entries: Array<{ isIntersecting: boolean; intersectionRatio: number }>) => void;
 
@@ -106,10 +106,40 @@ describe('DataRetentionNotice', () => {
   it('shows a heading, mentions 30 days, and avoids technical jargon', () => {
     const { container } = render(<DataRetentionNotice onVisible={vi.fn()} />);
     expect(screen.getByRole('heading')).toBeTruthy();
-    const text = container.textContent ?? '';
+    const text = (container.textContent ?? '').toLowerCase();
     expect(text).toMatch(/30 days/);
     for (const word of ['S3', 'bucket', 'AWS', 'encrypted at rest']) {
-      expect(text).not.toContain(word);
+      expect(text).not.toContain(word.toLowerCase());
     }
+  });
+
+  const EXPECTED_SHARING_TEXT =
+    'Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days.';
+
+  it('exports the sharing notice constant with the exact wording', () => {
+    expect(DATA_SHARING_NOTICE_TEXT).toBe(EXPECTED_SHARING_TEXT);
+  });
+
+  it('renders the sharing notice exactly as the first list item', () => {
+    render(<DataRetentionNotice onVisible={vi.fn()} />);
+    const items = screen.getAllByRole('listitem');
+    expect(items[0].textContent).toBe(EXPECTED_SHARING_TEXT);
+  });
+
+  it('makes no "only you" or link-only visibility claims', () => {
+    const { container } = render(<DataRetentionNotice onVisible={vi.fn()} />);
+    const text = (container.textContent ?? '').toLowerCase();
+    expect(text).not.toContain('only people who have your result link');
+    expect(text).not.toMatch(/only you/);
+    expect(text).not.toMatch(/only to you/);
+    expect(text).not.toMatch(/visible only/);
+  });
+
+  it('still includes the video-frames bullet', () => {
+    render(<DataRetentionNotice onVisible={vi.fn()} />);
+    const items = screen.getAllByRole('listitem');
+    expect(items).toHaveLength(2);
+    expect(items[1].textContent).toMatch(/never upload the video itself/);
+    expect(items[1].textContent).toMatch(/still pictures/);
   });
 });

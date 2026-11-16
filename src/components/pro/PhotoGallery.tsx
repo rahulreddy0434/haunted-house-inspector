@@ -15,7 +15,12 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
       <ul className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {photos.map((url, i) => (
           <li key={i}>
-            <a href={url} target="_blank" rel="noopener noreferrer">
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:focus-visible:ring-purple-300"
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt={`Photo ${i + 1} of ${photos.length} from the homeowner`} loading="lazy" className="h-auto w-full rounded-md" />
             </a>

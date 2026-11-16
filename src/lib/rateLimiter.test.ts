@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { NextRequest } from 'next/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { forwardedFor } from '@/test/proRouteHarness';
 
 vi.mock('server-only', () => ({}));
 
@@ -18,9 +19,10 @@ async function load(): Promise<RateLimiter> {
   return import('@/lib/rateLimiter');
 }
 
-function makeRequest(opts: { ip?: string | null; cookie?: string } = {}): NextRequest {
+function makeRequest(opts: { ip?: string | null; xff?: string; cookie?: string } = {}): NextRequest {
   const headers: Record<string, string> = {};
-  if (opts.ip !== null) headers['x-forwarded-for'] = opts.ip ?? '203.0.113.7';
+  if (opts.xff !== undefined) headers['x-forwarded-for'] = opts.xff;
+  else if (opts.ip !== null) headers['x-forwarded-for'] = forwardedFor(opts.ip ?? '203.0.113.7');
   if (opts.cookie !== undefined) headers.cookie = `hhi_session=${opts.cookie}`;
   return new NextRequest('http://localhost/api/inspect', { method: 'POST', headers });
 }
@@ -160,10 +162,28 @@ describe('checkRateLimit IP fallback', () => {
     expect(id).not.toContain('203.0.113.7');
   });
 
-  it('uses the first x-forwarded-for entry', async () => {
+  it('uses the trusted entry and ignores the entries before it', async () => {
     const { checkRateLimit } = await load();
-    await checkRateLimit(makeRequest({ ip: '198.51.100.1, 10.0.0.1, 10.0.0.2' }));
-    expect(incrementMock.mock.calls[0][0]).toBe(ipId('198.51.100.1'));
+    await checkRateLimit(
+      makeRequest({ xff: forwardedFor('10.0.0.1', { spoofed: ['198.51.100.1'] }) }),
+    );
+    expect(incrementMock.mock.calls[0][0]).toBe(ipId('10.0.0.1'));
+  });
+
+  it('is not changed by a spoofed prefix', async () => {
+    const { checkRateLimit } = await load();
+    await checkRateLimit(makeRequest({ ip: '203.0.113.7' }));
+    await checkRateLimit(
+      makeRequest({ xff: forwardedFor('203.0.113.7', { spoofed: ['198.51.100.1', '192.0.2.9'] }) }),
+    );
+    expect(incrementMock.mock.calls[1][0]).toBe(incrementMock.mock.calls[0][0]);
+    expect(incrementMock.mock.calls[0][0]).toBe(ipId('203.0.113.7'));
+  });
+
+  it("uses the hash of 'unknown' when the trusted entry is not a valid IP", async () => {
+    const { checkRateLimit } = await load();
+    await checkRateLimit(makeRequest({ xff: forwardedFor('not-an-ip') }));
+    expect(incrementMock.mock.calls[0][0]).toBe(ipId('unknown'));
   });
 
   it("uses 'unknown' when the header is missing", async () => {
