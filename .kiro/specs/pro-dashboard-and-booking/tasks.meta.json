@@ -1825,6 +1825,55 @@
         "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
         "timestamp": 1794863803731
       }
+    ],
+    "35.1 Reminder: confirm IAM policy and GSI1 before any live test (manual, user)": [
+      {
+        "executionId": "bd05d01a-2c13-4bab-90c1-4e8ba7e28ca1",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794948530844
+      }
+    ],
+    "35.2 Live smoke test on Amplify (manual, user)": [
+      {
+        "executionId": "bd05d01a-2c13-4bab-90c1-4e8ba7e28ca1",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794948534928
+      }
+    ],
+    "35.3 Hand check: contrast of every new colour pair (manual, user)": [
+      {
+        "executionId": "bd05d01a-2c13-4bab-90c1-4e8ba7e28ca1",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794948536053
+      }
+    ],
+    "35.4 Hand check: grade-8 reading level of Homeowner copy and the notice (manual, user)": [
+      {
+        "executionId": "bd05d01a-2c13-4bab-90c1-4e8ba7e28ca1",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794948537250
+      }
+    ],
+    "35.5 Hand check: keyboard-only and screen reader pass (manual, user)": [
+      {
+        "executionId": "bd05d01a-2c13-4bab-90c1-4e8ba7e28ca1",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794948537859
+      }
+    ],
+    "35. Manual verification (manual, user)": [
+      {
+        "executionId": "bd05d01a-2c13-4bab-90c1-4e8ba7e28ca1",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794948537954
+      }
+    ],
+    "36. Final checkpoint - Everything verified": [
+      {
+        "executionId": "bd05d01a-2c13-4bab-90c1-4e8ba7e28ca1",
+        "chatSessionId": "sess_2b24f549-ce47-4efd-947f-d99427e4634a",
+        "timestamp": 1794948747303
+      }
     ]
   }
 }

@@ -1,4 +1,4 @@
-# Haunted House Inspector - Build Log
+﻿# Haunted House Inspector - Build Log
 
 A daily record of what I built, which Kiro features I used, and what went wrong.
 This log feeds the Kiroween "How Kiro was used" write-up, the blog post and the social post.
@@ -325,5 +325,41 @@ Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, m
 - Commit tasks 13 to 16 (one commit per task), then deploy to main and check that a new inspection still works live
 - Task 17: route-level property tests (emergency stays emergency, any triggering reply ends in emergency, racing actions have one winner, reply counts stay consistent) and the suite-wide guard test
 - Then the UI: the Pro login and dashboard, and the status panel on the results page
+- Weekly Reset site on weeklyresetwr.com and the LinkedIn Founder role, by Wed Nov 18
+- Keep booking calls with tradespeople and homeowners (target: 5 by Nov 18)
+---
+## Nov 16, 2026 (Spec 2, day 3: route property tests, homeowner status panel, Pro dashboard, login and the trusted-IP rate limiter, tasks 17 to 34)
+
+**Done**
+- Task 17, route-level tests: property tests over the real routes and the fake table. An emergency job stays an emergency whatever anyone does (Property 2). A reply that matches a safety trigger (a gas smell or leak, sparks or burning near electrics, water near electrics, a carbon monoxide alarm) always ends in an emergency, from any state and for any job id, and the safety check runs before any database call (Property 3). The tradesperson's text never triggers an emergency (Property 5). When two actions race, exactly one wins and the other gets "This job has changed" (Property 11). Reply counts stay consistent over sequences of up to 30 actions (Property 12). A guard test confirms no new route imports the rate limiter or Bedrock. The task 18 checkpoint passed with these
+- Task 19: a cached emergency on the results page can never be replaced by a normal result (Property 14), and the page switches to the emergency view the moment a reply triggers one
+- Task 20: shared buttons, text fields and styles with Normal and Haunted colours and visible focus rings, plus times shown with a time zone name (for example "3:00 PM EST")
+- Tasks 21 to 23: the homeowner status panel on the results page. It checks the status every 30 seconds only while the tab is visible, stops once the job is declined, booked or an emergency, shows the tradesperson's question with a reply box, lets the homeowner pick a time, and shows the booking confirmation. It never shows for an emergency
+- Tasks 24 to 26: the tradesperson dashboard at /pro (access code form, job list, refresh, log out) and the job page (facts, cost labelled "rough range, not a quote", photos, history, accept with up to 3 times, decline with an optional reason, ask one question). An emergency job shows only the emergency note
+- Fix (430dcc9): the "Your session has ended" sentence moved into copy.ts with a word-for-word test (Requirement 3.10)
+- Task 27: the upload privacy notice now says photos and answers are shared with tradespeople using the app and deleted after 30 days; the intake spec says the same
+- Task 28: one source-scan test reads every new UI file and fails on hard-coded colours, `dangerouslySetInnerHTML`, animation classes, or a control without an accessible name or a focus ring. The task 29 checkpoint passed
+- Task 32: the daily limit of 15 now uses the trusted client address (the second-to-last `x-forwarded-for` entry, hops = 2), so a faked header can't reset it; tested with 16 requests carrying 16 different fake entries
+- Task 33: the login and logout routes. 5 wrong codes from one network lock login for 15 minutes; faked headers can't get around the lockout; the cookie is HttpOnly, Secure, SameSite=Strict and only sent to /api/pro
+- Task 34: `.env.example` comments for `PRO_ACCESS_CODE` and `SESSION_SECRET`, and a README section on the dashboard, the GSI1 index, the IAM rule and the hop count
+- All committed and pushed (0cf538d, 430dcc9, cbf951a). The four checks were clean after every two tasks; 1,447 tests pass in 126 files (1,150 on Nov 15)
+
+**Kiro features used**
+- Spec task execution: up to five sub-agents in parallel on independent sub-tasks, with the four checks after every two parent tasks
+- Spec-driven development: Properties 2, 3, 5, 11, 12 and 14 written as fast-check tests, and Property 6 extended to the hashed IP and the rate limiter id
+- Steering: safety.md drove the emergency rules in the UI (no panel, no controls, the 911 message), and tech.md the no-AWS-in-components and Zod-everywhere rules
+
+**Problems and fixes**
+- A new test found a real bug: if a reply made the job an emergency while the results page was still reloading in the background, the reload could put the normal result back on screen. Fixed in `useInspection`, so a normal copy never replaces an emergency already showing
+- The source scan found that the photo links on the Pro job page had no visible focus ring. Fixed with the same ring as the other controls
+- Switching the rate limiter to the trusted entry broke 11 old tests that sent a single address (with 2 hops, that reads as "unknown"). They now build the header from `TRUSTED_PROXY_HOPS`, so they stay correct if the number ever changes
+- Two sub-agents once ran builds at the same time, and one build failed on a missing `.next` file. The rerun passed; checks now run one at a time
+- The empty-body decline from Nov 15 is solved in the UI: the dashboard sends `{}` when there is no reason
+- Kiro ran tasks 17 to 26 in one go without stopping for commits. From task 27 on, each prompt says to do one parent task and stop
+- A local run failed at the upload step. The upload code hadn't changed since Nov 11; the laptop simply has no AWS access. Rule: test anything that uses S3, Bedrock or DynamoDB on the live link, not localhost
+
+**Next**
+- Tue Nov 17: task 35 by hand on the live site (login, accept, book, decline, ask and reply, the race, an emergency reply, the lockout from a second network, CloudWatch logs, contrast, reading level, keyboard and screen reader), then task 36, the final checkpoint
+- Then the Kiro features: MCP servers, a custom safety-reviewer agent, a power, and spec 3 (haunted-mode)
 - Weekly Reset site on weeklyresetwr.com and the LinkedIn Founder role, by Wed Nov 18
 - Keep booking calls with tradespeople and homeowners (target: 5 by Nov 18)

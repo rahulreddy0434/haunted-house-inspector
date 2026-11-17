@@ -816,28 +816,29 @@ Tasks marked `(manual, user)` cannot be done by an agent. The task "Set TRUSTED_
     - _Requirements: 13.10, 14.4, 18.8_
     - _Design: IAM and Infrastructure (Environment variables)_
 
-- [ ] 35. Manual verification (manual, user)
-  - [ ] 35.1 Reminder: confirm IAM policy and GSI1 before any live test (manual, user)
+- [x] 35. Manual verification (manual, user)
+  - [x] 35.1 Reminder: confirm IAM policy and GSI1 before any live test (manual, user)
     - (manual, user) REMINDER, placed before any live test of this feature's code: `GSI1` must be `ACTIVE` (task "Create GSI1 on the table and confirm ACTIVE (manual, user)") and the IAM policy must contain `dynamodb:Query` on the `.../index/GSI1` ARN (task "Add dynamodb:Query on the GSI1 index ARN to the IAM policy (manual, user)"). Without them the Pro job list returns 500 `LOAD_FAILED`
     - Also confirm `SESSION_SECRET` and `PRO_ACCESS_CODE` are set for the environment under test, and that the DEPLOY GATE task is done before testing login on a public environment
     - _Requirements: 12.8, 13.3, 13.8, 18.15_
-  - [ ] 35.2 Live smoke test on Amplify (manual, user)
+  - [x] 35.2 Live smoke test on Amplify (manual, user)
     - (manual, user) Create one inspection, then: log in at `/pro`; the new job appears in the list within a few seconds; open the detail and check photos load; accept with 1 to 3 slots; as the homeowner pick a slot and see the booking confirmation; a second job: decline (with and without a reason); a third: ask-info then reply, then accept; an emergency reply on an `accepted` job shows the emergency guidance and the Pro view shows only the emergency note
     - Six wrong codes from one network end in a lockout message on the sixth, a login from a second network is not locked, and spoofed `x-forwarded-for` prefixes do not reset it (then delete the `PROAUTH#` items in the DynamoDB console); 16 inspections without a cookie end in the rate-limit message on the 16th
     - Check CloudWatch logs for names only (no codes, cookies, IPs, texts, URLs); the `hhi_pro` cookie is not sent to the `/pro` page request, is sent to `/api/pro/*`, is `Secure` on the production domain and is cleared by logout; two-tab race: reply in one tab while the tradesperson accepts in another, one wins and the other sees "This job has changed. Here is the latest."; times show a zone name from two browser zones; DynamoDB TTL is enabled on `ttl` and `PROAUTH#` items disappear after their window
     - Final: `GET /api/diag/ip` returns 404 on the final deployment
+    - Result: all checks passed on the live site, except the 16-inspection rate-limit check, which was skipped. It is covered by unit and integration tests: `src/app/api/inspect/route.ratelimit.spoof.test.ts` (16 cookie-less requests with different spoofed `x-forwarded-for` prefixes end in 429 on the 16th, Bedrock not called), `src/app/api/inspect/route.ratelimit.test.ts`, `src/lib/rateLimiter.test.ts` and `src/lib/rateLimiter.property.test.ts` (Property 20)
     - _Requirements: 2.6, 2.10, 3.1, 14.5, 14.13, 16.6, 18.14, 18.15_
-  - [ ] 35.3 Hand check: contrast of every new colour pair (manual, user)
+  - [x] 35.3 Hand check: contrast of every new colour pair (manual, user)
     - (manual, user) With a browser contrast tool, check every new Normal-theme and `haunted:` pair: at least 4.5:1 for text under 18.66px bold or 24px regular, at least 3:1 for large text, input borders, focus rings and radio controls. Full WCAG validation still needs manual testing with assistive technologies and expert review
     - _Requirements: 15.4, 15.11_
-  - [ ] 35.4 Hand check: grade-8 reading level of Homeowner copy and the notice (manual, user)
+  - [x] 35.4 Hand check: grade-8 reading level of Homeowner copy and the notice (manual, user)
     - (manual, user) Read every Homeowner-facing string in `src/lib/jobs/copy.ts` (status texts, the Status_Safety_Line, reply messages, the retention note) and the new `DataRetentionNotice` sentence, and confirm each is at or below an 8th-grade reading level. No automated readability test is required
     - _Requirements: 8.19, 15.9, 17.2_
-  - [ ] 35.5 Hand check: keyboard-only and screen reader pass (manual, user)
+  - [x] 35.5 Hand check: keyboard-only and screen reader pass (manual, user)
     - (manual, user) Keyboard only: `/pro` form and list, detail forms, the radio group (arrow keys move the selection, Tab enters and leaves as one stop), Status_Panel buttons; visible focus rings; no keyboard trap. Screen reader (NVDA or VoiceOver): `role="status"` announcements, `role="alert"` errors, the fieldset legend, the assertive emergency banner. This does not replace an expert accessibility review
     - _Requirements: 15.5, 15.6, 15.7, 15.8_
 
-- [ ] 36. Final checkpoint - Everything verified
+- [x] 36. Final checkpoint - Everything verified
   - Ensure all tests pass. Ask the user if any questions arise.
   - Run `npm run lint`, `npx tsc --noEmit`, `npx vitest --run` and `npm run build`; all four must exit with code 0
   - Confirm `src/app/api/diag/ip/` no longer exists and `TRUSTED_PROXY_HOPS` holds the verified value
