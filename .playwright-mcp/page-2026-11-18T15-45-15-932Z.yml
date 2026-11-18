@@ -1,0 +1,46 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - link "Haunted House Inspector" [ref=e4] [cursor=pointer]:
+      - /url: /
+    - button "Haunted theme" [ref=e5] [cursor=pointer]: "Haunted mode: Off"
+  - main [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - heading "Upload a photo or video of your problem" [level=1] [ref=e9]
+        - paragraph [ref=e10]: Add up to 5 photos or one short video (up to 30 seconds) and we will give you a likely cause, who to call and a rough cost range.
+      - generic [ref=e11]:
+        - region "Upload photos or a video" [ref=e12]:
+          - generic [ref=e13]:
+            - paragraph [ref=e14]: Drag your photos or video here
+            - paragraph [ref=e15]: Up to 5 photos (JPEG, PNG or WebP, 10 MB each) or one video (MP4 or WebM, 30 seconds or less).
+            - button "Choose photos or a video" [ref=e16]
+            - generic [ref=e17] [cursor=pointer]: Choose photos or a video
+          - status
+          - alert
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e20]: Where in your home is the problem? (required)
+            - textbox "Where in your home is the problem? (required)" [ref=e21]
+            - paragraph [ref=e22]: 0/500
+            - alert
+          - generic [ref=e23]:
+            - generic [ref=e24]: How long has this been going on? (optional)
+            - textbox "How long has this been going on? (optional)" [ref=e25]
+            - paragraph [ref=e26]: 0/500
+          - generic [ref=e27]:
+            - generic [ref=e28]: Anything else we should know? For example smells, sounds, sparks or recent changes. (optional)
+            - textbox "Anything else we should know? For example smells, sounds, sparks or recent changes. (optional)" [ref=e29]
+            - paragraph [ref=e30]: 0/500
+        - region "What happens to your upload" [ref=e32]:
+          - heading "What happens to your upload" [level=2] [ref=e33]
+          - list [ref=e34]:
+            - listitem [ref=e35]: Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days.
+            - listitem [ref=e36]: If you choose a video, we never upload the video itself. We only send a few still pictures taken from it.
+        - status
+        - generic [ref=e37]:
+          - button "Inspect my home" [disabled] [ref=e38]
+          - alert
+  - contentinfo [ref=e39]: Estimates only. Not a professional inspection.
+  - alert [ref=e40]
