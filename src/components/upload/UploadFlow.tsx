@@ -6,6 +6,7 @@ import { DropZone } from '@/components/upload/DropZone';
 import { ContextForm } from '@/components/upload/ContextForm';
 import { DataRetentionNotice } from '@/components/upload/DataRetentionNotice';
 import { UploadProgress } from '@/components/upload/UploadProgress';
+import { ANALYSIS_FAILED_SAFETY_LINE } from '@/lib/jobs/copy';
 
 const NOTICE_PROMPT = 'Please read the notice below before sending.';
 const NO_FILES_PROMPT = 'Please add a photo or a short video first.';
@@ -167,6 +168,9 @@ export function UploadFlow() {
                 <p className="mt-1 text-sm">
                   This can happen on a slow connection. Your photos and answers are still here.
                 </p>
+              )}
+              {(errorKind === 'analysis' || errorKind === 'timeout') && (
+                <p className="mt-2 text-sm font-medium">{ANALYSIS_FAILED_SAFETY_LINE}</p>
               )}
               <button
                 type="button"

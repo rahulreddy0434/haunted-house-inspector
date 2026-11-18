@@ -3,6 +3,7 @@ import 'server-only';
 import { NextResponse, type NextRequest } from 'next/server';
 import { invokeInspectionModel } from '@/lib/aws/bedrock';
 import { persistInspection } from '@/lib/aws/dynamodb';
+import { EMERGENCY_FOLLOW_UP_QUESTIONS, EMERGENCY_LIKELY_ISSUE } from '@/lib/emergency/messages';
 import { declaredLengthExceeds, readBodyWithLimit } from '@/lib/http/readBodyWithLimit';
 import { checkRateLimit, type SessionCookie } from '@/lib/rateLimiter';
 import { applyOverrides, checkEmergency } from '@/lib/safety/safetyLayer';
@@ -20,17 +21,14 @@ const RATE_LIMIT_MESSAGE =
 
 /** Neutral placeholder; applyOverrides clears costs, brief and DIY steps for emergencies. */
 const EMERGENCY_PLACEHOLDER: BedrockInspectionResponse = {
-  likelyIssue: 'Possible emergency',
+  likelyIssue: EMERGENCY_LIKELY_ISSUE,
   trade: 'Emergency services',
   urgency: 'urgent',
   confidence: 0,
   costRangeLow: 0,
   costRangeHigh: 0,
   jobBrief: '',
-  followUpQuestions: [
-    'Is everyone out of the affected area?',
-    'Have you contacted emergency services or your utility?',
-  ],
+  followUpQuestions: [...EMERGENCY_FOLLOW_UP_QUESTIONS],
   diySteps: [],
 };
 

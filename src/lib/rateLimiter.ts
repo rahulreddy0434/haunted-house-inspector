@@ -148,7 +148,10 @@ export async function checkRateLimit(request: NextRequest): Promise<RateLimitRes
     }
     return result;
   } catch (error: unknown) {
-    console.error('Rate limit counter unavailable; allowing request', error);
+    console.error(
+      'Rate limit counter unavailable; allowing request',
+      error instanceof Error ? error.name : 'UnknownError',
+    );
     return {
       allowed: true,
       remaining: RATE_LIMIT_MAX,

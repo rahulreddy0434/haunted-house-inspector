@@ -165,6 +165,29 @@ describe('UploadFlow', () => {
     expect(reset).toHaveBeenCalledTimes(1);
   });
 
+  it.each(['analysis', 'timeout'] as const)(
+    'shows the 911 safety line under the error when the %s fails',
+    (errorKind) => {
+      hookState = makeState({
+        uploadStatus: 'error',
+        uploadError: "We couldn't analyse your photos. Please try again.",
+        errorKind,
+      });
+      render(<UploadFlow />);
+      expect(
+        screen.getByText(
+          'If you smell gas, see sparks or hear a CO alarm, leave the home and call 911.',
+        ),
+      ).toBeTruthy();
+    },
+  );
+
+  it.each(['upload', 'validation'] as const)('does not show the safety line for a %s error', (errorKind) => {
+    hookState = makeState({ uploadStatus: 'error', uploadError: 'Upload failed.', errorKind });
+    render(<UploadFlow />);
+    expect(screen.queryByText(/call 911/)).toBeNull();
+  });
+
   it('shows a friendly daily-limit message without a retry button', () => {
     hookState = makeState({
       uploadStatus: 'error',

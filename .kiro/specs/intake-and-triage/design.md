@@ -658,9 +658,11 @@ All matching is **case-insensitive substring** search, except that `'gas'` and `
 | Code | Triggers when… |
 |---|---|
 | `GAS_SMELL` | Input contains `'rotten egg'`, OR `'gas'` within 200 chars of (`'smell'` OR `'odor'` OR `'odour'` OR `'leak'` OR `'hiss'`) |
-| `ELECTRICAL_FIRE` | Input contains (`'spark'` OR `'burning'` OR `'scorch'` OR `'smoke'` OR `'melt'`) within 200 chars of (`'outlet'` OR `'socket'` OR `'plug'` OR `'panel'` OR `'breaker'` OR `'wire'` OR `'wiring'` OR `'switch'` OR `'appliance'` OR `'electrical'`) |
-| `WATER_ELECTRICAL` | Input contains (`'water'` OR `'flood'` OR `'leak'` OR `'wet'`) within 200 chars of (`'outlet'` OR `'socket'` OR `'panel'` OR `'breaker'` OR `'wiring'` OR `'electrical'`) |
-| `CO_ALARM` | Input contains `'carbon monoxide'`, `'co alarm'` OR `'co detector'` |
+| `ELECTRICAL_FIRE` | Input contains (`'spark'` OR `'burning'` OR `'burnt'` OR `'scorch'` OR `'charred'` OR `'arcing'` OR `'smoke'` OR `'melt'`) within 200 chars of (`'outlet'` OR `'socket'` OR `'plug'` OR `'panel'` OR `'breaker'` OR `'wire'` OR `'wiring'` OR `'switch'` OR `'appliance'` OR `'electrical'` OR `'power cord'` OR `'extension cord'` OR `'fuse box'` OR `'light fixture'` OR `'light switch'` OR `'dryer'` OR `'space heater'` OR `'baseboard heater'`) |
+| `WATER_ELECTRICAL` | Input contains (`'water'` OR `'flood'` OR `'leak'` OR `'wet'` OR `'drip'` OR `'puddle'` OR `'soak'` OR `'burst'`) within 200 chars of (`'outlet'` OR `'socket'` OR `'panel'` OR `'breaker'` OR `'wiring'` OR `'electrical'` OR `'wires'` OR `'light switch'` OR `'fuse box'` OR `'light fixture'` OR `'ceiling light'` OR `'pot light'`) |
+| `CO_ALARM` | Input contains `'carbon monoxide'`, `'co alarm'`, `'co detector'` OR `'co monitor'` |
+
+**Normalisation.** Before matching, each input is normalised: Unicode NFKC, zero-width characters removed, hyphens and dashes turned into spaces, repeated whitespace collapsed to one space. So `carbon-monoxide` and `co-detector` match. Single words such as `cord`, `fuse`, `switch` (in the water list) and `light` are not terms, because they match `record`, `confused`, "switched off the water" and `skylight`. `smoke` alone and `burning smell` alone are not triggers (a smoke alarm chirp is not an emergency).
 
 ### Override Rules (applied in `applyOverrides`)
 

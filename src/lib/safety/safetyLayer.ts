@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { EMERGENCY_FOLLOW_UP_QUESTIONS, EMERGENCY_LIKELY_ISSUE } from '@/lib/emergency/messages';
 import type { BedrockInspectionResponse } from '@/types/bedrock';
 import type { ContextAnswers, InspectionResult } from '@/types/inspection';
 
@@ -41,7 +42,7 @@ const PROXIMITY = 200;
 const WHOLE_WORD_TERMS = new Set(['gas', 'co']);
 
 const GAS_NEAR = ['smell', 'odor', 'odour', 'leak', 'hiss'];
-const FIRE_HEAT = ['spark', 'burning', 'scorch', 'smoke', 'melt'];
+const FIRE_HEAT = ['spark', 'burning', 'burnt', 'scorch', 'charred', 'arcing', 'smoke', 'melt'];
 const FIRE_ELECTRIC = [
   'outlet',
   'socket',
@@ -53,11 +54,44 @@ const FIRE_ELECTRIC = [
   'switch',
   'appliance',
   'electrical',
+  'power cord',
+  'extension cord',
+  'fuse box',
+  'light fixture',
+  'light switch',
+  'dryer',
+  'space heater',
+  'baseboard heater',
 ];
-const WATER_TERMS = ['water', 'flood', 'leak', 'wet'];
-const WATER_ELECTRIC = ['outlet', 'socket', 'panel', 'breaker', 'wiring', 'electrical'];
+const WATER_TERMS = ['water', 'flood', 'leak', 'wet', 'drip', 'puddle', 'soak', 'burst'];
+const WATER_ELECTRIC = [
+  'outlet',
+  'socket',
+  'panel',
+  'breaker',
+  'wiring',
+  'electrical',
+  'wires',
+  'light switch',
+  'fuse box',
+  'light fixture',
+  'ceiling light',
+  'pot light',
+];
 
-const CO_PHRASES = ['carbon monoxide', 'co alarm', 'co detector'];
+const CO_PHRASES = ['carbon monoxide', 'co alarm', 'co detector', 'co monitor'];
+
+const ZERO_WIDTH = /[\u00AD\u200B-\u200D\u2060\uFEFF]/g;
+const DASHES = /[-\u2010-\u2015\u2212]/g;
+
+/** NFKC, no zero-width characters, hyphens and dashes as spaces, one space between words. */
+function normalise(raw: string): string {
+  return raw
+    .normalize('NFKC')
+    .replace(ZERO_WIDTH, '')
+    .replace(DASHES, ' ')
+    .replace(/\s+/g, ' ');
+}
 
 interface Span {
   start: number;
@@ -103,7 +137,7 @@ function anyNear(a: Span[], b: Span[]): boolean {
 }
 
 function detect(rawText: string): EmergencyConditionCode | undefined {
-  const text = rawText.toLowerCase();
+  const text = normalise(rawText).toLowerCase();
 
   if (text.includes('rotten egg') || anyNear(findAll(text, 'gas'), findAny(text, GAS_NEAR))) {
     return 'GAS_SMELL';
@@ -142,7 +176,11 @@ export function checkEmergency(input: SafetyCheckInput): SafetyCheckResult {
   return { isEmergency: false };
 }
 
-const NO_DIY_TRADE_KEYWORDS = ['electric', 'gas', 'hvac', 'furnace'];
+const NO_DIY_TRADE_KEYWORDS = ['electric', 'gas', 'hvac', 'furnace', 'heat', 'boiler', 'propane'];
+
+/** Terms in likelyIssue or jobBrief that mean gas, electrical or heating work. */
+const NO_DIY_TEXT_PATTERN =
+  /\bgas\b|propane|pilot light|furnace|boiler|water heater|heater|electrical|wiring|breaker|panel|outlet/i;
 
 /**
  * Merges the Bedrock result with the safety result. Emergency always wins:
@@ -159,21 +197,26 @@ export function applyOverrides(
   context: OverrideContext = {},
 ): InspectionResult {
   const tradeLower = trade.toLowerCase();
-  const dangerousTrade = NO_DIY_TRADE_KEYWORDS.some((k) => tradeLower.includes(k));
+  const dangerousTrade =
+    NO_DIY_TRADE_KEYWORDS.some((k) => tradeLower.includes(k)) ||
+    NO_DIY_TEXT_PATTERN.test(bedrockResult.likelyIssue) ||
+    NO_DIY_TEXT_PATTERN.test(bedrockResult.jobBrief);
   const emergency = safetyResult.isEmergency;
 
   return {
     id: context.id ?? '',
     createdAt: context.createdAt ?? new Date(0).toISOString(),
     s3Keys: context.s3Keys ?? [],
-    likelyIssue: bedrockResult.likelyIssue,
+    likelyIssue: emergency ? EMERGENCY_LIKELY_ISSUE : bedrockResult.likelyIssue,
     trade,
     urgency: emergency ? 'emergency' : bedrockResult.urgency,
     confidence: bedrockResult.confidence,
     costRangeLow: emergency ? 0 : bedrockResult.costRangeLow,
     costRangeHigh: emergency ? 0 : bedrockResult.costRangeHigh,
     jobBrief: emergency ? '' : bedrockResult.jobBrief,
-    followUpQuestions: bedrockResult.followUpQuestions,
+    followUpQuestions: emergency
+      ? [...EMERGENCY_FOLLOW_UP_QUESTIONS]
+      : bedrockResult.followUpQuestions,
     diySteps: emergency || dangerousTrade ? [] : [...bedrockResult.diySteps],
     isEmergency: emergency,
     answers: context.answers ?? { location: '', duration: '', recentChanges: '' },

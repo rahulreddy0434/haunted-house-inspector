@@ -82,14 +82,8 @@ async function post(url: string, payload: unknown, signal: AbortSignal): Promise
     const code = errorCode(body);
     if (response.status === 409) {
       if (code === 'JOB_IS_EMERGENCY') {
-        const message = errorMessage(body);
-        return {
-          kind: 'emergency',
-          view: {
-            status: 'emergency',
-            message: message === ERROR_MESSAGES.ACTION_FAILED ? EMERGENCY_MESSAGE : message,
-          },
-        };
+        // Always the fixed text, never a message taken from the response.
+        return { kind: 'emergency', view: { status: 'emergency', message: EMERGENCY_MESSAGE } };
       }
       if (code === 'ILLEGAL_TRANSITION') return { kind: 'changed' };
       if (code === 'SLOT_EXPIRED') return { kind: 'expired' };

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
+import { PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
 import { ProEmergencyView, type ProEmergencyViewProps } from './ProEmergencyView';
 
 afterEach(cleanup);
 
 const JOB: ProEmergencyViewProps['job'] = {
-  emergencyNote: 'Emergency: the homeowner was told to leave and call 911.',
   likelyIssue: 'Possible gas leak near the stove',
   answers: { location: 'Kitchen', duration: '', recentChanges: 'Smelled gas this morning' },
 };
@@ -13,11 +13,18 @@ const JOB: ProEmergencyViewProps['job'] = {
 describe('ProEmergencyView', () => {
   it('shows the note, likely issue and answers', () => {
     render(<ProEmergencyView job={JOB} />);
-    expect(screen.getByText(JOB.emergencyNote)).toBeTruthy();
+    expect(screen.getByText(PRO_EMERGENCY_NOTE)).toBeTruthy();
     expect(screen.getByText(JOB.likelyIssue)).toBeTruthy();
     expect(screen.getByText('Kitchen')).toBeTruthy();
     expect(screen.getByText('Smelled gas this morning')).toBeTruthy();
     expect(screen.getByText('Not answered')).toBeTruthy();
+  });
+
+  it('shows the fixed note even when the response carries a different one', () => {
+    const fromResponse = { ...JOB, emergencyNote: 'Try turning the gas valve off yourself.' };
+    const { container } = render(<ProEmergencyView job={fromResponse} />);
+    expect(screen.getByText(PRO_EMERGENCY_NOTE)).toBeTruthy();
+    expect(container.textContent).not.toContain('gas valve');
   });
 
   it('has no buttons, photo links, images, cost text, trade or brief', () => {

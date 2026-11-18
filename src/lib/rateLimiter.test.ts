@@ -224,6 +224,9 @@ describe('checkRateLimit fail-open', () => {
     const result = await checkRateLimit(makeRequest());
     expect(result.allowed).toBe(true);
     expect(errorSpy).toHaveBeenCalled();
+    // Only the error name is logged, never the message or the error object.
+    expect(errorSpy).toHaveBeenCalledWith('Rate limit counter unavailable; allowing request', 'Error');
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain('dynamo down');
   });
 });
 

@@ -96,8 +96,9 @@ Implement the end-to-end intake-and-triage flow for Haunted House Inspector: pro
       - `GAS_SMELL`: "I smell gas", "smells like gas", "gas leak", "rotten egg"
       - `CO_ALARM`: "CO detector is beeping", "carbon monoxide", "co alarm"
       - `ELECTRICAL_FIRE`: "the outlet is sparking", "burning plastic smell from the breaker panel"
-      - `WATER_ELECTRICAL`: "basement flooded near the breaker panel", "water dripping onto the electrical outlet"
-    - Required test cases that MUST NOT trigger (`isEmergency: false`): "our gas bill is high", "the dishwasher is leaking", "water stain on the ceiling", "faucet drips all night", "the toilet gasket is leaking", "the dishwasher door gasket leaks"
+      - `WATER_ELECTRICAL`: "basement flooded near the breaker panel", "water dripping onto the electrical outlet", "water dripping from the light fixture"
+      - After normalisation: "burning smell from the dryer", "carbon-monoxide alarm", "co-detector beeping"
+    - Required test cases that MUST NOT trigger (`isEmergency: false`): "our gas bill is high", "the dishwasher is leaking", "water stain on the ceiling", "faucet drips all night", "the toilet gasket is leaking", "the dishwasher door gasket leaks", "I switched off the water under the sink", "the skylight leaks when it rains", "smoke alarm chirping", "replaced the gasket"
     - Test proximity boundary, measured as characters between the end of one term and the start of the other: 199 and 200 characters apart trigger; 201 does not (e.g. `spark` + N filler characters + `outlet`)
     - Test non-trigger inputs return `isEmergency: false`
     - Test emergency field suppression: cost range, job brief, DIY steps all cleared

@@ -73,3 +73,7 @@ export const ERROR_MESSAGES = {
   SLOT_EXPIRED: "That time has passed. Please pick another.",
   ACTION_FAILED: "Something went wrong. Please try again.",
 } as const satisfies Record<ApiErrorCode, string | Readonly<Record<string, string>>>;
+
+/** Shown under the error on the home page when the analysis fails or times out. Not the emergency message. */
+export const ANALYSIS_FAILED_SAFETY_LINE =
+  "If you smell gas, see sparks or hear a CO alarm, leave the home and call 911.";

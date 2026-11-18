@@ -5,6 +5,7 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import { JobDetail } from './JobDetail';
 import { resetProSession } from '@/hooks/proSession';
+import { PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
 import { proJobDetailSchema } from '@/lib/validation/jobSchema';
 
 const ID = 'job-123';
@@ -172,7 +173,7 @@ describe('JobDetail emergency job', () => {
   it('shows the Pro note with no buttons, forms, photos or cost', async () => {
     serveJob(emergencyJob());
     const { container } = render(<JobDetail id={ID} />);
-    expect(await screen.findByText('Emergency: the homeowner was told to leave and call 911.')).toBeTruthy();
+    expect(await screen.findByText(PRO_EMERGENCY_NOTE)).toBeTruthy();
     expect(screen.queryAllByRole('button')).toHaveLength(0);
     expect(container.querySelectorAll('form')).toHaveLength(0);
     expect(container.querySelectorAll('img')).toHaveLength(0);

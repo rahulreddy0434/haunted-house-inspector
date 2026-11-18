@@ -1,8 +1,9 @@
 import { BODY, CARD, HEADING, STATUS_BOX } from '@/components/ui/styles';
+import { PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
 import type { ProJobDetailEmergency } from '@/types/job';
 
 export interface ProEmergencyViewProps {
-  job: Pick<ProJobDetailEmergency, 'emergencyNote' | 'likelyIssue' | 'answers'>;
+  job: Pick<ProJobDetailEmergency, 'likelyIssue' | 'answers'>;
 }
 
 const NOT_ANSWERED = 'Not answered';
@@ -13,7 +14,7 @@ function answerText(value: string): string {
 
 /** Read-only emergency view: note, likely issue and answers. No controls, trade, photos, cost or brief. */
 export function ProEmergencyView({ job }: ProEmergencyViewProps) {
-  const { emergencyNote, likelyIssue, answers } = job;
+  const { likelyIssue, answers } = job;
   const answerRows: Array<[string, string]> = [
     ['Where in the home', answers.location],
     ['How long', answers.duration],
@@ -22,7 +23,7 @@ export function ProEmergencyView({ job }: ProEmergencyViewProps) {
 
   return (
     <div className="space-y-4">
-      <p className={`${STATUS_BOX} ${BODY} whitespace-pre-wrap break-words font-semibold`}>{emergencyNote}</p>
+      <p className={`${STATUS_BOX} ${BODY} whitespace-pre-wrap break-words font-semibold`}>{PRO_EMERGENCY_NOTE}</p>
 
       <section aria-label="Job facts" className={`${CARD} space-y-4`}>
         <div>
