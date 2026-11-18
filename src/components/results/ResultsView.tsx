@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useInspection } from "@/hooks/useInspection";
 import { formatConfidence } from "@/lib/utils/formatConfidence";
+import { EmergencyScope } from "@/components/ui/haunted/EmergencyScope";
 import { EmergencyBanner } from "./EmergencyBanner";
 import { UrgencyBadge } from "./UrgencyBadge";
 import { IssueSummary } from "./IssueSummary";
@@ -68,6 +69,7 @@ export function ResultsView({ id }: ResultsViewProps) {
   if (isEmergency) {
     return (
       <main className={PAGE}>
+        <EmergencyScope />
         <EmergencyBanner urgency="emergency" />
         <h1 className={`text-2xl font-bold ${TEXT}`}>Your inspection result</h1>
         <div>

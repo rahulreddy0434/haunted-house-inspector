@@ -10,6 +10,7 @@ import { PhotoGallery } from '@/components/pro/PhotoGallery';
 import { ProEmergencyView } from '@/components/pro/ProEmergencyView';
 import { UrgencyBadge } from '@/components/results/UrgencyBadge';
 import { Button } from '@/components/ui/Button';
+import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
 import { TimeText } from '@/components/ui/TimeText';
 import { BODY, CARD, ERROR_TEXT, HEADING, SECONDARY_BUTTON } from '@/components/ui/styles';
 import { useProJob } from '@/hooks/useProJob';
@@ -187,6 +188,7 @@ export function JobDetail({ id }: JobDetailProps) {
   if (job.status === 'emergency') {
     return (
       <div className={PAGE}>
+        <EmergencyScope />
         <BackLink />
         <h1 className={`text-2xl font-bold ${BODY}`}>Job details</h1>
         <div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import "./globals.css";
 
@@ -26,6 +27,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="flex min-h-screen flex-col bg-white text-gray-900 antialiased haunted:bg-haunted-bg haunted:text-haunted-text">
+        <ThemeProvider>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-gray-900 focus:shadow haunted:focus:bg-haunted-surface haunted:focus:text-haunted-text"
@@ -44,6 +46,7 @@ export default function RootLayout({
         <footer className="border-t border-gray-200 px-4 py-3 text-center text-sm text-gray-600 haunted:border-haunted-border haunted:text-haunted-muted">
           Estimates only. Not a professional inspection.
         </footer>
+        </ThemeProvider>
       </body>
     </html>
   );

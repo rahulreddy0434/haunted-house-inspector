@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
 import { TimeText } from '@/components/ui/TimeText';
 import { BODY, ERROR_TEXT, HEADING, MUTED, PRIMARY_BUTTON, STATUS_BOX } from '@/components/ui/styles';
 import { ReplyBox } from '@/components/results/ReplyBox';
@@ -214,7 +215,8 @@ export function StatusPanel({ id, onEmergency }: StatusPanelProps) {
     }
   }
 
-  if (gone || view?.status === 'emergency') return null;
+  if (view?.status === 'emergency') return <EmergencyScope />;
+  if (gone) return null;
 
   const failedFirstLoad = view === null && loaded && updateFailed;
   const showRefresh =

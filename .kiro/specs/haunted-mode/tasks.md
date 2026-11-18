@@ -14,32 +14,32 @@ Fixed constraints for every task:
 
 ## Tasks
 
-- [ ] 1. Emergency rules first
-  - [ ] 1.1 Add the effective-theme derivation and `ThemeProvider`
+- [x] 1. Emergency rules first
+  - [x] 1.1 Add the effective-theme derivation and `ThemeProvider`
     - Create `src/lib/haunted/effectiveTheme.ts` with `deriveEffectiveTheme(setting, scopes)`.
     - Create `src/components/ThemeProvider.tsx` (client): state `setting` (starts `normal`), `scopes` (starts 0), `ready` (starts false); a layout effect that reads `readStoredTheme()` and sets `ready`; a layout effect that calls the existing `applyTheme(effective)` only when `ready`; `setSetting` that stores via `storeTheme` and is a no-op while `scopes > 0`; `registerEmergencyScope()` counter that never goes below 0.
     - Export `useTheme()`, which returns a Normal, no-op context outside a provider so existing component tests keep passing.
     - Wrap the app in the provider in `src/app/layout.tsx`. Keep the inline head script and `src/lib/theme.ts` unchanged.
     - _Requirements: 1.9, 2.1, 2.2, 2.3, 2.4, 2.5, 2.7, 12.4, 12.6, 13.3, 13.5_
 
-  - [ ] 1.2 Add `EmergencyScope` and mount it in the three emergency branches
+  - [x] 1.2 Add `EmergencyScope` and mount it in the three emergency branches
     - Create `src/components/ui/haunted/EmergencyScope.tsx`. It calls `registerEmergencyScope()` inside `useLayoutEffect` (not `useEffect`) and renders `null`.
     - Mount it in the `ResultsView` emergency branch (`urgency === 'emergency' || isEmergency`), in `StatusPanel` (return `<EmergencyScope />` instead of `null` when `view.status === 'emergency'`), and in the `JobDetail` emergency branch (`job.status === 'emergency'`).
     - The Pro job list stays outside any scope. Emergency rows in the list keep the badge and show no ghost label.
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.6, 13.1, 13.2, 13.3, 13.4, 13.5_
 
-  - [ ] 1.3 Hide the switch on an Emergency_Page
+  - [x] 1.3 Hide the switch on an Emergency_Page
     - Change `src/components/ThemeToggle.tsx` to read `inEmergency`, `setting` and `setSetting` from `useTheme()` and return `null` while `inEmergency` is true (absent from the DOM, no replacement text, not disabled).
     - Keep its current markup and labels for now; the `role="switch"` conversion is in task 3.
     - _Requirements: 1.1, 12.5, 13.3_
 
-  - [ ] 1.4 Give the Fixed_Emergency_Elements one fixed style
+  - [x] 1.4 Give the Fixed_Emergency_Elements one fixed style
     - In `src/components/results/EmergencyBanner.tsx`, delete every `haunted:` class and keep one fixed high-contrast style, `role="alert"` and `aria-live="assertive"`. Text stays exactly `EMERGENCY_MESSAGE`, in the body font, with no animation or transition.
     - In `src/components/results/UrgencyBadge.tsx`, delete the four `haunted:` classes of the emergency level. Urgent, soon and monitor keep their current `haunted:` classes for now.
     - In `src/components/ui/styles.ts`, add `NOTE_BOX` (`rounded-lg border border-slate-300 bg-slate-50 p-4 text-slate-900`, no `haunted:` class) and use it for `PRO_EMERGENCY_NOTE` in `ProEmergencyView` instead of `STATUS_BOX`.
     - _Requirements: 8.10, 11.1, 11.2, 11.3, 11.4, 11.6, 11.7, 11.8, 11.10, 12.9, 13.1, 13.2_
 
-  - [ ]* 1.5 Write example tests for the emergency rules
+  - [x] 1.5 Write example tests for the emergency rules
     - Banner, emergency badge and Pro note (`ProEmergencyView`), each rendered with `theme-haunted` on `document.documentElement`: same fixed classes as without it, no class token starting with `haunted:`, no `[data-haunted-art]` inside.
     - Banner keeps `role="alert"` and `aria-live="assertive"` after a theme toggle.
     - Update `UrgencyBadge.test.tsx`: urgent, soon and monitor still carry `haunted:` variants; emergency carries none.
@@ -50,7 +50,7 @@ Fixed constraints for every task:
     - Exact-string test for `EMERGENCY_MESSAGE` and `PRO_EMERGENCY_NOTE`.
     - _Requirements: 11.1, 11.2, 11.6, 11.10, 12.1, 12.2, 12.5, 12.6, 13.1, 13.2, 13.5, 16.5, 17.7, 17.9, 17.12, 17.13_
 
-  - [ ]* 1.6 Write property tests for the effective theme and emergency pages
+  - [x] 1.6 Write property tests for the effective theme and emergency pages
     - **Property 5: Effective theme follows the model** (`src/components/ThemeProvider.property.test.tsx`; random operation sequences against a pure model; at least 100 runs)
     - **Validates: Requirements 12.4, 12.5, 12.6, 13.3, 13.5, 17.13**
     - **Property 6: Emergency pages never render Haunted styling** (`src/components/results/emergencyHaunted.property.test.tsx`; scenarios: direct load, reply 409, booking 409, poll `emergency`, Pro job page; stored setting `normal` or `haunted`; at least 100 runs; for this task assert the root class, no switch, no `[data-ghost]` or `[data-haunted-art]`, no `haunted:` token on the three fixed elements, exact message text, `hhi_theme` unchanged)
@@ -80,7 +80,7 @@ Fixed constraints for every task:
     - Create `src/lib/haunted/contrastRegistry.ts` with typed `CONTRAST_REGISTRY` rows H-01 to H-36, F-01 to F-05 (once with `theme: 'normal'` and once with `theme: 'haunted'`) and N-01 to N-32, using token names, plus `checkRegistry()`. Failure message format: `"<id> [<theme>/<role>] <usage>: ratio <x.xx> is below the minimum <m>"`.
     - _Requirements: 3.7, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 9.8, 11.5_
 
-  - [ ]* 2.4 Write property tests for contrast
+  - [ ] 2.4 Write property tests for contrast
     - **Property 7: Every registered colour pair meets its minimum** (`src/lib/haunted/contrastRegistry.property.test.ts`; `fc.constantFrom(...CONTRAST_REGISTRY)`; at least 100 runs; also asserts the banner and badge pairs are present for both themes)
     - **Validates: Requirements 3.7, 4.1, 4.3, 4.4, 4.5, 4.8, 9.8, 11.5, 17.4**
     - **Property 8: Contrast ratio is a well-formed measure** (symmetric, 1 to 21, equal colours give 1)
@@ -92,7 +92,7 @@ Fixed constraints for every task:
     - _Requirements: 4.6, 4.7_
 
 - [ ] 3. Palette swap, field border and the Haunted_Switch
-  - [ ]* 3.1 Capture the Normal-theme baseline
+  - [ ] 3.1 Capture the Normal-theme baseline
     - Write a test that snapshots the non-`haunted:` colour classes of every recipe in `src/components/ui/styles.ts` and of the components changed in 3.3, taken before any edit in this task. The only listed difference allowed later is the field border `gray-400` to `gray-500`.
     - _Requirements: 3.5, 16.8_
 
@@ -153,7 +153,7 @@ Fixed constraints for every task:
     - Plain wording is unchanged everywhere else; errors, urgency labels, cost labels, confidence and the upload notice never use `StateText`.
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 8.1, 14.1_
 
-  - [ ]* 4.5 Write property and example tests for the mapper
+  - [ ] 4.5 Write property and example tests for the mapper
     - **Property 1: Ghost label carries the real trade** (`src/lib/haunted/tradeMapper.property.test.ts`; at least 100 runs)
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5, 6.7, 6.12, 17.1**
     - **Property 2: Trade mapping is deterministic and case-insensitive** (including each category's ghost name and "Restless spirit" for unknown)
@@ -234,7 +234,7 @@ Fixed constraints for every task:
     - Remove `transition-colors` from `DropZone` and `transition-[width]` from `UploadProgress`. Normal computed colours stay the same.
     - _Requirements: 10.1, 10.3, 10.4, 16.8_
 
-  - [ ]* 7.3 Write motion tests
+  - [ ] 7.3 Write motion tests
     - Parse `haunted-motion.css`: exactly two keyframe names; opacity values within 0.85 to 1.0 with a spread of at most 0.15; every duration at least 2 s; fog duration at least 40 s and `transform` only; the reduced-motion block sets `animation: none`; every `animation` declaration starts with `.theme-haunted`.
     - No `@keyframes` or `animation:` in any other file under `src`; `tailwind.config.ts` has no `animation` or `keyframes` and no `flicker`.
     - Emergency fixtures contain no `hhi-flicker` or `hhi-fog-drift` class and no animation or transition class in the banner, badge or Pro note.

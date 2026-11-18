@@ -1,4 +1,4 @@
-import { BODY, CARD, HEADING, STATUS_BOX } from '@/components/ui/styles';
+import { BODY, CARD, HEADING, NOTE_BOX } from '@/components/ui/styles';
 import { PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
 import type { ProJobDetailEmergency } from '@/types/job';
 
@@ -23,7 +23,7 @@ export function ProEmergencyView({ job }: ProEmergencyViewProps) {
 
   return (
     <div className="space-y-4">
-      <p className={`${STATUS_BOX} ${BODY} whitespace-pre-wrap break-words font-semibold`}>{PRO_EMERGENCY_NOTE}</p>
+      <p className={`${NOTE_BOX} whitespace-pre-wrap break-words font-semibold`}>{PRO_EMERGENCY_NOTE}</p>
 
       <section aria-label="Job facts" className={`${CARD} space-y-4`}>
         <div>

@@ -14,7 +14,7 @@ export interface UrgencyBadgeProps {
  */
 const URGENCY_CLASSES: Record<UrgencyLevel, string> = {
   emergency:
-    "bg-red-100 text-red-900 border-red-600 haunted:bg-red-950 haunted:text-red-100 haunted:border-red-400",
+    "bg-red-100 text-red-900 border-red-600",
   urgent:
     "bg-orange-100 text-orange-900 border-orange-600 haunted:bg-orange-950 haunted:text-orange-100 haunted:border-orange-400",
   soon:

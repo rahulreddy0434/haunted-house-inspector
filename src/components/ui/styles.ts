@@ -26,3 +26,6 @@ export const ERROR_TEXT = 'text-red-800 haunted:text-red-300';
 
 export const STATUS_BOX =
   'rounded-lg border border-slate-300 bg-slate-50 p-4 text-slate-900 haunted:border-slate-600 haunted:bg-slate-800 haunted:text-slate-100';
+
+/** Fixed style for the Pro emergency note. No `haunted:` class, so it looks the same in every theme. */
+export const NOTE_BOX = 'rounded-lg border border-slate-300 bg-slate-50 p-4 text-slate-900';

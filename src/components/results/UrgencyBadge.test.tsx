@@ -62,8 +62,13 @@ describe('UrgencyBadge', () => {
       const normal = classes.filter((c) => !c.startsWith('haunted:'));
       const haunted = classes.filter((c) => c.startsWith('haunted:'));
       expect(normal.some((c) => hue.test(c))).toBe(true);
-      expect(haunted.length).toBeGreaterThan(0);
-      expect(haunted.some((c) => hue.test(c))).toBe(true);
+      if (level === 'emergency') {
+        // Fixed style: no haunted: variant at all (Requirement 11.2).
+        expect(haunted).toEqual([]);
+      } else {
+        expect(haunted.length).toBeGreaterThan(0);
+        expect(haunted.some((c) => hue.test(c))).toBe(true);
+      }
     });
   });
 

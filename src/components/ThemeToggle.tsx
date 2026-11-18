@@ -1,25 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { applyTheme, readStoredTheme, storeTheme, type Theme } from '@/lib/theme';
+import { useTheme } from '@/components/ThemeProvider';
+import type { Theme } from '@/lib/theme';
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>('normal');
+  const { setting, setSetting, inEmergency } = useTheme();
 
-  // Restore the stored choice after mount (the inline head script already applied the class).
-  useEffect(() => {
-    const stored = readStoredTheme();
-    setTheme(stored);
-    applyTheme(stored);
-  }, []);
+  // Hidden on an Emergency_Page: absent from the DOM, no replacement text.
+  if (inEmergency) return null;
 
-  const haunted = theme === 'haunted';
+  const haunted = setting === 'haunted';
 
   function toggle() {
     const next: Theme = haunted ? 'normal' : 'haunted';
-    setTheme(next);
-    applyTheme(next);
-    storeTheme(next);
+    setSetting(next);
   }
 
   return (

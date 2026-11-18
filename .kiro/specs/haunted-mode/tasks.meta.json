@@ -1,0 +1,89 @@
+{
+  "pbtResults": {
+    "1.6 Write property tests for the effective theme and emergency pages": {
+      "status": "passed",
+      "lastRunTimestamp": 1795038363519
+    }
+  },
+  "executionHistory": {
+    "1.1 Add the effective-theme derivation and `ThemeProvider`": [
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038008930
+      },
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038149476
+      }
+    ],
+    "1.4 Give the Fixed_Emergency_Elements one fixed style": [
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038009623
+      },
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038150278
+      }
+    ],
+    "1.2 Add `EmergencyScope` and mount it in the three emergency branches": [
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038154287
+      },
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038243827
+      }
+    ],
+    "1.3 Hide the switch on an Emergency_Page": [
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038154428
+      },
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038244182
+      }
+    ],
+    "1. Emergency rules first": [
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038244258
+      }
+    ],
+    "1.5 Write example tests for the emergency rules": [
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038249035
+      },
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038387504
+      }
+    ],
+    "1.6 Write property tests for the effective theme and emergency pages": [
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038249210
+      },
+      {
+        "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795038388243
+      }
+    ]
+  }
+}
