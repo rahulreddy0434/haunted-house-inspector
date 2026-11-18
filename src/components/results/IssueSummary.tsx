@@ -9,9 +9,9 @@ export interface IssueSummaryProps {
 }
 
 const HEADING =
-  "text-sm font-semibold uppercase tracking-wide text-slate-600 haunted:text-slate-300";
-const BODY = "text-base text-slate-900 haunted:text-slate-100";
-const LIST = "mt-1 list-disc space-y-1 pl-5 text-base text-slate-900 haunted:text-slate-100";
+  "text-sm font-semibold uppercase tracking-wide text-slate-600 haunted:text-haunted-muted";
+const BODY = "text-base text-slate-900 haunted:text-haunted-text";
+const LIST = "mt-1 list-disc space-y-1 pl-5 text-base text-slate-900 haunted:text-haunted-text";
 
 export function IssueSummary({
   likelyIssue,
@@ -26,7 +26,7 @@ export function IssueSummary({
   return (
     <section
       aria-label="Issue summary"
-      className="space-y-4 rounded-lg border border-slate-300 bg-white p-4 haunted:border-slate-600 haunted:bg-slate-900"
+      className="space-y-4 rounded-lg border border-slate-300 bg-white p-4 haunted:border-haunted-border haunted:bg-haunted-surface"
     >
       <div>
         <h2 className={HEADING}>Likely issue</h2>

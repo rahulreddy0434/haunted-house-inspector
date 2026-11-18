@@ -82,7 +82,7 @@ export function ContextForm({
         </p>
         <div id={`${ids.location}-error`} role="alert">
           {showLocationError && (
-            <p className="mt-1 text-sm font-medium text-red-700 haunted:text-red-300">
+            <p className="mt-1 text-sm font-medium text-red-700 haunted:text-haunted-error">
               Please tell us where the problem is.
             </p>
           )}

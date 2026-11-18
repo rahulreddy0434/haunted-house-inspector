@@ -15,7 +15,7 @@ export function JobListItem({ job }: JobListItemProps) {
     <li>
       <Link
         href={`/pro/jobs/${encodeURIComponent(job.id)}`}
-        className={`${CARD} flex flex-col gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:focus-visible:ring-purple-300`}
+        className={`${CARD} flex flex-col gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:focus-visible:ring-haunted-accent haunted:focus-visible:ring-offset-haunted-bg`}
       >
         <span className="flex flex-wrap items-center gap-2">
           <UrgencyBadge urgency={job.urgency} />

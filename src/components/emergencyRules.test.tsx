@@ -120,7 +120,7 @@ describe('Fixed emergency elements ignore the Haunted theme', () => {
         <EmergencyBanner urgency="emergency" />
       </ThemeProvider>,
     );
-    const toggle = screen.getByRole('button', { name: 'Haunted theme' });
+    const toggle = screen.getByRole('switch', { name: 'Haunted mode' });
     for (let i = 0; i < 2; i += 1) {
       fireEvent.click(toggle);
       const alert = screen.getByRole('alert');
@@ -233,8 +233,8 @@ describe('Leaving an emergency page restores Haunted', () => {
     rerender(<App show={false} />);
     expect(ROOT.classList.contains('theme-haunted')).toBe(true);
     expect(window.localStorage.getItem('hhi_theme')).toBe('haunted');
-    const toggle = screen.getByRole('button', { name: 'Haunted theme' });
-    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    const toggle = screen.getByRole('switch', { name: 'Haunted mode' });
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
   });
 });
 

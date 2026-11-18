@@ -284,7 +284,7 @@ export function DropZone({
           'border-brand-300 bg-brand-50 text-slate-900',
           'haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text',
           dragging
-            ? 'border-brand-600 bg-brand-100 haunted:border-haunted-accent haunted:bg-haunted-bg haunted:shadow-haunted-glow'
+            ? 'border-brand-600 bg-brand-100 haunted:border-haunted-accent haunted:bg-haunted-bg'
             : '',
         ].join(' ')}
       >
@@ -314,7 +314,7 @@ export function DropZone({
               className={[
                 'inline-flex min-h-11 cursor-pointer items-center rounded-lg px-5 py-2 font-medium',
                 'bg-brand-700 text-white hover:bg-brand-800',
-                'haunted:bg-haunted-glow haunted:text-white haunted:hover:bg-haunted-accent',
+                'haunted:bg-haunted-accent haunted:text-haunted-on-accent haunted:hover:bg-haunted-accent-hover',
                 'peer-focus-visible:outline peer-focus-visible:outline-4 peer-focus-visible:outline-offset-2',
                 'peer-focus-visible:outline-brand-900 haunted:peer-focus-visible:outline-haunted-accent',
                 'peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
@@ -390,7 +390,7 @@ export function DropZone({
         {errors.map((error, i) => (
           <p
             key={`${error.code}-${i}`}
-            className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 haunted:border-red-400 haunted:bg-haunted-surface haunted:text-red-300"
+            className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 haunted:border-haunted-error haunted:bg-haunted-surface haunted:text-haunted-error"
           >
             {error.message}
           </p>
@@ -400,7 +400,7 @@ export function DropZone({
             <button
               type="button"
               onClick={() => void runVideo(failure.file)}
-              className="min-h-11 rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand-900 haunted:bg-haunted-glow haunted:hover:bg-haunted-accent haunted:focus-visible:outline-haunted-accent"
+              className="min-h-11 rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand-900 haunted:bg-haunted-accent haunted:text-haunted-on-accent haunted:hover:bg-haunted-accent-hover haunted:focus-visible:outline-haunted-accent"
             >
               Try again
             </button>

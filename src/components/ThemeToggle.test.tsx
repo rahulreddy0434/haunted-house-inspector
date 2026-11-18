@@ -11,20 +11,20 @@ afterEach(() => {
 });
 
 describe('ThemeToggle', () => {
-  it('toggles the html class, aria-pressed and storage', () => {
+  it('toggles the html class, aria-checked and storage', () => {
     render(<ThemeProvider><ThemeToggle /></ThemeProvider>);
-    const button = screen.getByRole('button', { name: 'Haunted theme' });
-    expect(button.getAttribute('aria-pressed')).toBe('false');
-    expect(button.textContent).toBe('Haunted mode: Off');
+    const button = screen.getByRole('switch', { name: 'Haunted mode' });
+    expect(button.getAttribute('aria-checked')).toBe('false');
+    expect(button.textContent).toBe('Haunted modeOff');
 
     fireEvent.click(button);
-    expect(button.getAttribute('aria-pressed')).toBe('true');
-    expect(button.textContent).toBe('Haunted mode: On');
+    expect(button.getAttribute('aria-checked')).toBe('true');
+    expect(button.textContent).toBe('Haunted modeOn');
     expect(document.documentElement.classList.contains('theme-haunted')).toBe(true);
     expect(window.localStorage.getItem('hhi_theme')).toBe('haunted');
 
     fireEvent.click(button);
-    expect(button.getAttribute('aria-pressed')).toBe('false');
+    expect(button.getAttribute('aria-checked')).toBe('false');
     expect(document.documentElement.classList.contains('theme-haunted')).toBe(false);
     expect(window.localStorage.getItem('hhi_theme')).toBe('normal');
   });
@@ -32,7 +32,7 @@ describe('ThemeToggle', () => {
   it('restores the stored theme on mount', () => {
     window.localStorage.setItem('hhi_theme', 'haunted');
     render(<ThemeProvider><ThemeToggle /></ThemeProvider>);
-    expect(screen.getByRole('button').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('switch').getAttribute('aria-checked')).toBe('true');
     expect(document.documentElement.classList.contains('theme-haunted')).toBe(true);
   });
 
@@ -48,11 +48,11 @@ describe('ThemeToggle', () => {
     }
     const { rerender } = render(<Page emergency />);
     expect(screen.queryByText(/Haunted mode/)).toBeNull();
-    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.queryByRole('switch')).toBeNull();
     expect(window.localStorage.getItem('hhi_theme')).toBe('haunted');
     rerender(<Page emergency={false} />);
-    const button = screen.getByRole('button', { name: 'Haunted theme' });
-    expect(button.getAttribute('aria-pressed')).toBe('true');
+    const button = screen.getByRole('switch', { name: 'Haunted mode' });
+    expect(button.getAttribute('aria-checked')).toBe('true');
     expect(document.documentElement.classList.contains('theme-haunted')).toBe(true);
   });
 });

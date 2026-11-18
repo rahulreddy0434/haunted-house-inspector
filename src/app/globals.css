@@ -29,6 +29,7 @@ body {
 
 /* ─── Haunted theme overrides ───────────────────────────────────────── */
 .theme-haunted {
-  --foreground: #e9d5ff;
-  --background: #0f0a1a;
+  --foreground: theme('colors.haunted.text');
+  --background: theme('colors.haunted.bg');
+  color-scheme: dark;
 }

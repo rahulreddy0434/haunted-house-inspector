@@ -19,7 +19,7 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:focus-visible:ring-purple-300"
+              className="block rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:focus-visible:ring-haunted-accent haunted:focus-visible:ring-offset-haunted-bg"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt={`Photo ${i + 1} of ${photos.length} from the homeowner`} loading="lazy" className="h-auto w-full rounded-md" />

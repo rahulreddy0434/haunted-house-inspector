@@ -25,10 +25,10 @@ const STATUS_ICON: Record<UploadFileStatus, string> = {
 };
 
 const BAR_COLOUR: Record<UploadFileStatus, string> = {
-  pending: "bg-gray-400 haunted:bg-purple-400",
-  uploading: "bg-blue-600 haunted:bg-purple-500",
-  done: "bg-green-600 haunted:bg-green-400",
-  error: "bg-red-600 haunted:bg-red-400",
+  pending: "bg-gray-400 haunted:bg-haunted-muted",
+  uploading: "bg-blue-600 haunted:bg-haunted-accent",
+  done: "bg-green-600 haunted:bg-haunted-ok",
+  error: "bg-red-600 haunted:bg-haunted-error",
 };
 
 function clampProgress(value: number): number {
@@ -53,7 +53,7 @@ export function UploadProgress({ files }: UploadProgressProps) {
       <p
         role="status"
         aria-live="polite"
-        className="mb-2 text-sm font-medium text-gray-800 haunted:text-purple-100"
+        className="mb-2 text-sm font-medium text-gray-800 haunted:text-haunted-text"
       >
         {summarise(files)}
       </p>
@@ -63,13 +63,13 @@ export function UploadProgress({ files }: UploadProgressProps) {
           return (
             <li
               key={`${file.name}-${index}`}
-              className="rounded-md border border-gray-200 p-3 haunted:border-purple-800 haunted:bg-haunted-surface"
+              className="rounded-md border border-gray-200 p-3 haunted:border-haunted-border haunted:bg-haunted-surface"
             >
               <div className="mb-1 flex items-center justify-between gap-2 text-sm">
-                <span className="truncate font-medium text-gray-900 haunted:text-purple-50">
+                <span className="truncate font-medium text-gray-900 haunted:text-haunted-text">
                   {file.name}
                 </span>
-                <span className="shrink-0 text-gray-700 haunted:text-purple-200">
+                <span className="shrink-0 text-gray-700 haunted:text-haunted-muted">
                   <span aria-hidden="true">{STATUS_ICON[file.status]} </span>
                   {STATUS_LABEL[file.status]}
                 </span>
@@ -81,14 +81,14 @@ export function UploadProgress({ files }: UploadProgressProps) {
                   aria-valuenow={pct}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200 haunted:bg-purple-950"
+                  className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200 haunted:bg-haunted-field"
                 >
                   <div
                     className={`h-full rounded-full transition-[width] ${BAR_COLOUR[file.status]}`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className="w-10 text-right text-xs tabular-nums text-gray-700 haunted:text-purple-200">
+                <span className="w-10 text-right text-xs tabular-nums text-gray-700 haunted:text-haunted-muted">
                   {pct}%
                 </span>
               </div>

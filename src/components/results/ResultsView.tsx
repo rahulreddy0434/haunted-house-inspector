@@ -16,9 +16,9 @@ export interface ResultsViewProps {
 }
 
 const PAGE = "mx-auto flex w-full max-w-2xl flex-col gap-4 p-6";
-const TEXT = "text-slate-900 haunted:text-slate-100";
+const TEXT = "text-slate-900 haunted:text-haunted-text";
 const LINK =
-  "inline-block rounded-md border border-blue-800 bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:border-purple-300 haunted:bg-purple-700 haunted:hover:bg-purple-600";
+  "inline-block rounded-md border border-blue-800 bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:border-haunted-accent haunted:bg-haunted-accent haunted:text-haunted-on-accent haunted:hover:bg-haunted-accent-hover haunted:focus-visible:ring-haunted-accent haunted:focus-visible:ring-offset-haunted-bg";
 
 function NewInspectionLink() {
   return (
@@ -45,7 +45,7 @@ export function ResultsView({ id }: ResultsViewProps) {
     if (error) {
       return (
         <main className={PAGE}>
-          <p role="alert" className="text-base font-medium text-red-800 haunted:text-red-300">
+          <p role="alert" className="text-base font-medium text-red-800 haunted:text-haunted-error">
             {error}
           </p>
           <NewInspectionLink />
@@ -111,10 +111,10 @@ export function ResultsView({ id }: ResultsViewProps) {
       />
       <JobBrief jobBrief={result.jobBrief} urgency={urgency} />
       <StatusPanel id={id} onEmergency={markEmergency} />
-      <p className="text-sm text-slate-700 haunted:text-slate-300">
+      <p className="text-sm text-slate-700 haunted:text-haunted-muted">
         This is a likely diagnosis, not a certain one.
       </p>
-      <p className="text-sm text-slate-700 haunted:text-slate-300">
+      <p className="text-sm text-slate-700 haunted:text-haunted-muted">
         Anyone with this page&apos;s link can view it. Your photos are deleted after 30 days.
       </p>
       <NewInspectionLink />

@@ -34,7 +34,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <header className="flex items-center justify-between border-b border-gray-200 px-4 py-3 haunted:border-haunted-border">
+        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-4 py-3 haunted:border-haunted-border">
           <Link href="/" className="text-lg font-semibold haunted:text-haunted-accent">
             Haunted House Inspector
           </Link>

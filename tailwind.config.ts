@@ -33,13 +33,19 @@ const config: Config = {
         },
         // Haunted theme accent palette
         haunted: {
-          bg: "#0f0a1a",
-          surface: "#1a1028",
-          border: "#3d2d5c",
-          accent: "#a855f7",    // purple-500
-          glow: "#7c3aed",      // violet-600
-          text: "#e9d5ff",      // purple-100
-          muted: "#9ca3af",     // gray-400
+          bg: "#0d0814",
+          surface: "#2b1a48",
+          field: "#1a0f2e",
+          border: "#8a63c9",
+          text: "#f1e9fb",
+          muted: "#cdbbe8",
+          accent: "#ff9d2e",
+          "accent-hover": "#ffb454",
+          "on-accent": "#1a1008",
+          error: "#ffb3a7",
+          ok: "#9fe3b0",
+          soon: "#f2cf5b",
+          fog: "#6a45a8",
         },
       },
       fontFamily: {
@@ -48,10 +54,6 @@ const config: Config = {
       },
       borderRadius: {
         "4xl": "2rem",
-      },
-      boxShadow: {
-        "haunted-glow": "0 0 20px 4px rgba(168, 85, 247, 0.3)",
-        "haunted-card": "0 4px 24px 0 rgba(124, 58, 237, 0.2)",
       },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",

@@ -145,7 +145,7 @@ export function UploadFlow() {
           className={
             isRateLimit
               ? 'rounded-lg border border-slate-300 bg-slate-50 p-4 text-slate-900 focus:outline-none haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text'
-              : 'rounded-lg border border-red-300 bg-red-50 p-4 text-red-900 focus:outline-none haunted:border-red-400 haunted:bg-haunted-surface haunted:text-red-300'
+              : 'rounded-lg border border-red-300 bg-red-50 p-4 text-red-900 focus:outline-none haunted:border-haunted-error haunted:bg-haunted-surface haunted:text-haunted-error'
           }
         >
           {isRateLimit ? (
@@ -175,7 +175,7 @@ export function UploadFlow() {
               <button
                 type="button"
                 onClick={reset}
-                className={`mt-3 min-h-11 rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800 haunted:bg-haunted-glow haunted:hover:bg-haunted-accent ${focusRing}`}
+                className={`mt-3 min-h-11 rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800 haunted:bg-haunted-accent haunted:text-haunted-on-accent haunted:hover:bg-haunted-accent-hover ${focusRing}`}
               >
                 Try again
               </button>
@@ -190,7 +190,7 @@ export function UploadFlow() {
           onClick={handleSubmit}
           disabled={busy}
           aria-disabled={busy || !ready ? 'true' : undefined}
-          className={`min-h-12 w-full rounded-lg bg-brand-700 px-6 py-3 text-lg font-semibold text-white hover:bg-brand-800 haunted:bg-haunted-glow haunted:hover:bg-haunted-accent ${focusRing} ${
+          className={`min-h-12 w-full rounded-lg bg-brand-700 px-6 py-3 text-lg font-semibold text-white hover:bg-brand-800 haunted:bg-haunted-accent haunted:text-haunted-on-accent haunted:hover:bg-haunted-accent-hover ${focusRing} ${
             busy || !ready ? 'cursor-not-allowed opacity-60' : ''
           }`}
         >
@@ -198,7 +198,7 @@ export function UploadFlow() {
         </button>
         <div role="alert" className="mt-2">
           {prompt && (
-            <p className="text-sm font-medium text-red-700 haunted:text-red-300">{prompt}</p>
+            <p className="text-sm font-medium text-red-700 haunted:text-haunted-error">{prompt}</p>
           )}
         </div>
       </div>

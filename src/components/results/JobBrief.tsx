@@ -72,7 +72,7 @@ export function JobBrief({ jobBrief, urgency }: JobBriefProps) {
   return (
     <section
       aria-labelledby="job-brief-heading"
-      className="rounded-lg border border-gray-300 bg-white p-4 text-gray-900 haunted:border-purple-400 haunted:bg-gray-900 haunted:text-gray-100"
+      className="rounded-lg border border-gray-300 bg-white p-4 text-gray-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text"
     >
       <div className="flex items-center justify-between gap-3">
         <h2 id="job-brief-heading" className="text-lg font-semibold">
@@ -82,7 +82,7 @@ export function JobBrief({ jobBrief, urgency }: JobBriefProps) {
           type="button"
           onClick={handleCopy}
           aria-label="Copy job brief"
-          className="rounded-md border border-blue-800 bg-blue-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:border-purple-300 haunted:bg-purple-700 haunted:hover:bg-purple-600 haunted:focus-visible:ring-purple-300"
+          className="rounded-md border border-blue-800 bg-blue-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:border-haunted-accent haunted:bg-haunted-accent haunted:text-haunted-on-accent haunted:hover:bg-haunted-accent-hover haunted:focus-visible:ring-haunted-accent haunted:focus-visible:ring-offset-haunted-bg"
         >
           Copy
         </button>
@@ -92,10 +92,10 @@ export function JobBrief({ jobBrief, urgency }: JobBriefProps) {
 
       <div aria-live="polite" role="status" className="mt-2 text-sm font-medium">
         {copyState === "copied" && (
-          <span className="text-green-800 haunted:text-green-300">Copied!</span>
+          <span className="text-green-800 haunted:text-haunted-ok">Copied!</span>
         )}
         {copyState === "failed" && (
-          <span className="text-red-800 haunted:text-red-300">
+          <span className="text-red-800 haunted:text-haunted-error">
             Copying didn&apos;t work. Select the text below and copy it yourself.
           </span>
         )}
@@ -109,7 +109,7 @@ export function JobBrief({ jobBrief, urgency }: JobBriefProps) {
           value={jobBrief}
           aria-label="Job brief text to copy"
           onFocus={(e) => e.currentTarget.select()}
-          className="mt-2 w-full rounded-md border border-gray-400 bg-gray-50 p-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 haunted:border-purple-400 haunted:bg-gray-800 haunted:text-gray-100 haunted:focus-visible:ring-purple-300"
+          className="mt-2 w-full rounded-md border border-gray-500 bg-gray-50 p-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 haunted:border-haunted-border haunted:bg-haunted-field haunted:text-haunted-text haunted:focus-visible:ring-haunted-accent haunted:focus-visible:ring-offset-haunted-bg"
         />
       )}
     </section>

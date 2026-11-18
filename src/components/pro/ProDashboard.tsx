@@ -78,7 +78,7 @@ export function ProDashboard() {
   const [generation, setGeneration] = useState(0);
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold text-slate-900 haunted:text-slate-100">Tradesperson dashboard</h1>
+      <h1 className="text-2xl font-bold text-slate-900 haunted:text-haunted-accent">Tradesperson dashboard</h1>
       <DashboardBody key={generation} onLoggedIn={() => setGeneration((g) => g + 1)} />
     </div>
   );

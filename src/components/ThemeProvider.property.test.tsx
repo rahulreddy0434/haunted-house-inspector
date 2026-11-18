@@ -13,7 +13,7 @@ import { HAUNTED_CLASS, THEME_STORAGE_KEY } from '@/lib/theme';
 type Op = 'toggle' | 'mountScope' | 'unmountScope' | 'remount';
 type Stored = 'haunted' | 'normal' | null;
 
-const SWITCH_SELECTOR = '[role="switch"], button[aria-label="Haunted theme"]';
+const SWITCH_SELECTOR = '[role="switch"]';
 
 function Page({ scopes }: { scopes: number }) {
   return (
@@ -33,7 +33,7 @@ function simulateHeadScript(): void {
 }
 
 function switchState(el: Element): boolean {
-  const checked = el.getAttribute('aria-checked') ?? el.getAttribute('aria-pressed');
+  const checked = el.getAttribute('aria-checked');
   return checked === 'true';
 }
 

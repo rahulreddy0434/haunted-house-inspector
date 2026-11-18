@@ -3,6 +3,10 @@
     "1.6 Write property tests for the effective theme and emergency pages": {
       "status": "passed",
       "lastRunTimestamp": 1795038363519
+    },
+    "2.4 Write property tests for contrast": {
+      "status": "passed",
+      "lastRunTimestamp": 1795039320065
     }
   },
   "executionHistory": {
@@ -83,6 +87,128 @@
         "executionId": "1839093a-5cce-4b16-b69f-b77ae714baef",
         "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
         "timestamp": 1795038388243
+      }
+    ],
+    "2.1 Define the Haunted tokens in `tailwind.config.ts`": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039161360
+      },
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039179382
+      }
+    ],
+    "2.2 Read the palette from CSS variables": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039182177
+      },
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039292002
+      }
+    ],
+    "2.3 Add the contrast library and the Contrast_Registry": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039182664
+      },
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039292773
+      }
+    ],
+    "2.4 Write property tests for contrast": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039293138
+      },
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039326253
+      }
+    ],
+    "2. Palette tokens and contrast data": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039326373
+      }
+    ],
+    "3.1 Capture the Normal-theme baseline": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039613779
+      },
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039692070
+      }
+    ],
+    "3.2 Move the shared recipes to tokens": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039692295
+      },
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039918589
+      }
+    ],
+    "3.3 Replace raw palette classes on every in-scope page": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039918855
+      },
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795040196651
+      }
+    ],
+    "3.4 Convert the toggle to a `role=\"switch\"`": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795039919035
+      },
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795040196904
+      }
+    ],
+    "3.5 Remove the unused glow token and shadows": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795040201211
+      },
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795040271582
+      }
+    ],
+    "3. Palette swap, field border and the Haunted_Switch": [
+      {
+        "executionId": "98579bfd-d32e-4d1f-a973-3285697ebcf6",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795040271668
       }
     ]
   }

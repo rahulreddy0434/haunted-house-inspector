@@ -62,25 +62,25 @@ Fixed constraints for every task:
     - **Property 10: Only the exact value `haunted` turns the theme on** (also checks the inline head script condition)
     - **Validates: Requirements 2.1, 2.3, 2.4**
 
-- [ ] 2. Palette tokens and contrast data
-  - [ ] 2.1 Define the Haunted tokens in `tailwind.config.ts`
+- [x] 2. Palette tokens and contrast data
+  - [x] 2.1 Define the Haunted tokens in `tailwind.config.ts`
     - Set `colors.haunted` to the design values: `bg #0d0814`, `surface #2b1a48`, `field #1a0f2e`, `border #8a63c9`, `text #f1e9fb`, `muted #cdbbe8`, `accent #ff9d2e`, `accent-hover #ffb454`, `on-accent #1a1008`, `error #ffb3a7`, `ok #9fe3b0`, `soon #f2cf5b`, `fog #6a45a8`.
     - Keep the existing `glow` token, shadows, `animation` and `keyframes` for now; later tasks remove them once nothing uses them.
     - These hex values live only in this file.
     - _Requirements: 3.1, 3.2_
 
-  - [ ] 2.2 Read the palette from CSS variables
+  - [x] 2.2 Read the palette from CSS variables
     - In `src/app/globals.css`, define `--foreground` and `--background` under `.theme-haunted` with `theme('colors.haunted.text')` and `theme('colors.haunted.bg')`, and set `color-scheme: dark`.
     - Delete the old literal `#e9d5ff` and `#0f0a1a`. Leave the Normal `:root` values and the existing reduced-motion rule unchanged.
     - _Requirements: 3.1, 3.2, 3.3_
 
-  - [ ] 2.3 Add the contrast library and the Contrast_Registry
+  - [x] 2.3 Add the contrast library and the Contrast_Registry
     - Create `src/lib/haunted/contrast.ts` (`relativeLuminance`, `contrastRatio`, `blend`, `minimumFor`; WCAG 2.x formula).
     - Create `src/lib/haunted/palette.ts` (`resolveColour(ref)` using `tailwindcss/resolveConfig` on `tailwind.config.ts`; imported only by tests).
     - Create `src/lib/haunted/contrastRegistry.ts` with typed `CONTRAST_REGISTRY` rows H-01 to H-36, F-01 to F-05 (once with `theme: 'normal'` and once with `theme: 'haunted'`) and N-01 to N-32, using token names, plus `checkRegistry()`. Failure message format: `"<id> [<theme>/<role>] <usage>: ratio <x.xx> is below the minimum <m>"`.
     - _Requirements: 3.7, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 9.8, 11.5_
 
-  - [ ] 2.4 Write property tests for contrast
+  - [x] 2.4 Write property tests for contrast
     - **Property 7: Every registered colour pair meets its minimum** (`src/lib/haunted/contrastRegistry.property.test.ts`; `fc.constantFrom(...CONTRAST_REGISTRY)`; at least 100 runs; also asserts the banner and badge pairs are present for both themes)
     - **Validates: Requirements 3.7, 4.1, 4.3, 4.4, 4.5, 4.8, 9.8, 11.5, 17.4**
     - **Property 8: Contrast ratio is a well-formed measure** (symmetric, 1 to 21, equal colours give 1)
@@ -91,18 +91,18 @@ Fixed constraints for every task:
     - Design-table ratios (for example H-01 16.75, H-23 5.25, F-04 3.95) match the computed values to two decimals.
     - _Requirements: 4.6, 4.7_
 
-- [ ] 3. Palette swap, field border and the Haunted_Switch
-  - [ ] 3.1 Capture the Normal-theme baseline
+- [x] 3. Palette swap, field border and the Haunted_Switch
+  - [x] 3.1 Capture the Normal-theme baseline
     - Write a test that snapshots the non-`haunted:` colour classes of every recipe in `src/components/ui/styles.ts` and of the components changed in 3.3, taken before any edit in this task. The only listed difference allowed later is the field border `gray-400` to `gray-500`.
     - _Requirements: 3.5, 16.8_
 
-  - [ ] 3.2 Move the shared recipes to tokens
+  - [x] 3.2 Move the shared recipes to tokens
     - In `src/components/ui/styles.ts`, replace every `haunted:` colour in `CARD`, `HEADING`, `BODY`, `MUTED`, `FIELD`, `PRIMARY_BUTTON`, `SECONDARY_BUTTON`, `ERROR_TEXT` and `STATUS_BOX` with the `haunted-*` token classes from the design table.
     - Change the Normal field border `gray-400` to `gray-500` in `FIELD`.
     - Add `PAGE_TITLE` (`text-2xl font-bold text-slate-900 haunted:text-haunted-accent`) and `haunted:` focus ring colours and ring offsets from tokens.
     - _Requirements: 3.1, 3.3, 3.4, 3.5, 3.6, 3.7, 16.8_
 
-  - [ ] 3.3 Replace raw palette classes on every in-scope page
+  - [x] 3.3 Replace raw palette classes on every in-scope page
     - Home page: `DataRetentionNotice`, `UploadFlow`, `DropZone` (replace `haunted:bg-haunted-glow haunted:text-white` with the primary-button Haunted classes), `UploadProgress` (bars use `haunted-accent`, `haunted-ok`, `haunted-error`).
     - Results page: `ResultsView` (`TEXT`, `LINK`), `IssueSummary`, `CostRange`, `JobBrief`, `StatusPanel` and its reply box, `ContextForm` and `SlotPicker` (`haunted:accent-haunted-accent`).
     - Pro pages: `AccessCodeForm`, `JobListItem`, `PhotoGallery`, `JobFacts`, `JobHistory`, `ActionPanel` and its accept, decline and ask forms.
@@ -110,13 +110,13 @@ Fixed constraints for every task:
     - Update `UrgencyBadge` urgent, soon and monitor levels to `haunted-*` tokens. Emergency stays fixed.
     - _Requirements: 3.3, 3.4, 3.6, 8.7, 8.9, 14.1, 14.2, 14.3, 14.4, 16.8_
 
-  - [ ] 3.4 Convert the toggle to a `role="switch"`
+  - [x] 3.4 Convert the toggle to a `role="switch"`
     - In `src/components/ThemeToggle.tsx`: `<button type="button" role="switch" aria-checked={setting === 'haunted'}>`, visible text "Haunted mode" (accessible name exactly that), an `aria-hidden` "On" or "Off" span, a track and thumb that move left or right, `min-h-11 min-w-11`, `focus-visible:ring-2` with Normal and Haunted ring colours, and no `aria-pressed` or `aria-label`. Off by default.
     - Make the header container in `layout.tsx` `flex flex-wrap` so it fits 320 px.
     - Keep focus on the switch after a toggle. Keep the `return null` from task 1.3 on emergency pages.
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.10, 15.1, 15.7_
 
-  - [ ] 3.5 Remove the unused glow token and shadows
+  - [x] 3.5 Remove the unused glow token and shadows
     - After 3.3, delete the `glow` colour, `haunted-glow` and `haunted-card` box shadows (with the `rgba()` values) from `tailwind.config.ts`. Confirm with a search that no file uses them.
     - _Requirements: 3.2, 10.4_
 

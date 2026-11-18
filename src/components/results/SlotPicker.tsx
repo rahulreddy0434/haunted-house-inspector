@@ -17,7 +17,7 @@ export interface SlotPickerProps {
 }
 
 const RADIO =
-  'h-5 w-5 shrink-0 accent-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:accent-purple-400 haunted:focus-visible:ring-purple-300';
+  'h-5 w-5 shrink-0 accent-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:accent-haunted-accent haunted:focus-visible:ring-haunted-accent haunted:focus-visible:ring-offset-haunted-bg';
 
 export function SlotPicker({ slots, booking, onConfirm, error }: SlotPickerProps) {
   const name = useId();

@@ -67,7 +67,8 @@ describe('UrgencyBadge', () => {
         expect(haunted).toEqual([]);
       } else {
         expect(haunted.length).toBeGreaterThan(0);
-        expect(haunted.some((c) => hue.test(c))).toBe(true);
+        // Haunted colours are palette tokens, not raw hues (Requirement 3.4).
+        expect(haunted.every((c) => /^haunted:(bg|text|border)-haunted-[a-z-]+$/.test(c))).toBe(true);
       }
     });
   });

@@ -16,11 +16,11 @@ const URGENCY_CLASSES: Record<UrgencyLevel, string> = {
   emergency:
     "bg-red-100 text-red-900 border-red-600",
   urgent:
-    "bg-orange-100 text-orange-900 border-orange-600 haunted:bg-orange-950 haunted:text-orange-100 haunted:border-orange-400",
+    "bg-orange-100 text-orange-900 border-orange-600 haunted:bg-haunted-field haunted:text-haunted-text haunted:border-haunted-accent",
   soon:
-    "bg-yellow-100 text-yellow-900 border-yellow-600 haunted:bg-yellow-950 haunted:text-yellow-100 haunted:border-yellow-400",
+    "bg-yellow-100 text-yellow-900 border-yellow-600 haunted:bg-haunted-field haunted:text-haunted-text haunted:border-haunted-soon",
   monitor:
-    "bg-green-100 text-green-900 border-green-600 haunted:bg-green-950 haunted:text-green-100 haunted:border-green-400",
+    "bg-green-100 text-green-900 border-green-600 haunted:bg-haunted-field haunted:text-haunted-text haunted:border-haunted-ok",
 };
 
 /** Decorative symbol per level; hidden from assistive tech so the text label carries meaning. */

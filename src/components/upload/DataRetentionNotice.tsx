@@ -53,11 +53,11 @@ export function DataRetentionNotice({ onVisible }: DataRetentionNoticeProps) {
     <section
       ref={sectionRef}
       aria-labelledby="data-retention-heading"
-      className="rounded-lg border border-slate-300 bg-slate-50 p-4 text-base leading-relaxed text-slate-900 haunted:border-purple-700 haunted:bg-haunted-surface haunted:text-purple-50"
+      className="rounded-lg border border-slate-300 bg-slate-50 p-4 text-base leading-relaxed text-slate-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text"
     >
       <h2
         id="data-retention-heading"
-        className="mb-2 text-lg font-semibold text-slate-900 haunted:text-purple-100"
+        className="mb-2 text-lg font-semibold text-slate-900 haunted:text-haunted-accent"
       >
         What happens to your upload
       </h2>

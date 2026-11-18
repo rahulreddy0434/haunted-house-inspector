@@ -19,12 +19,27 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      aria-pressed={haunted}
-      aria-label="Haunted theme"
+      role="switch"
+      aria-checked={haunted}
       onClick={toggle}
-      className="rounded-full border border-gray-400 px-3 py-1 text-sm font-medium text-gray-800 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 haunted:border-haunted-border haunted:text-haunted-text haunted:hover:bg-haunted-surface haunted:focus-visible:ring-haunted-accent"
+      className="inline-flex min-h-11 min-w-11 items-center gap-2 rounded-full px-2 text-sm font-medium text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 haunted:text-haunted-text haunted:focus-visible:ring-haunted-accent haunted:focus-visible:ring-offset-haunted-bg"
     >
-      Haunted mode: {haunted ? 'On' : 'Off'}
+      <span>Haunted mode</span>
+      <span aria-hidden="true">{haunted ? 'On' : 'Off'}</span>
+      <span
+        aria-hidden="true"
+        className={`flex h-6 w-11 items-center rounded-full border px-0.5 ${
+          haunted
+            ? 'justify-end border-haunted-accent bg-haunted-accent'
+            : 'justify-start border-gray-500 bg-white haunted:border-haunted-border haunted:bg-haunted-field'
+        }`}
+      >
+        <span
+          className={`block h-4 w-4 rounded-full ${
+            haunted ? 'bg-haunted-on-accent' : 'bg-gray-500 haunted:bg-haunted-muted'
+          }`}
+        />
+      </span>
     </button>
   );
 }

@@ -41,7 +41,7 @@ import { HAUNTED_CLASS, THEME_STORAGE_KEY } from '@/lib/theme';
 
 const ID = '3f2b8c1e-5a47-4d9e-9b1a-2c7d8e6f0a11';
 const SLOT = '2030-01-01T10:00:00.000Z';
-const SWITCH_SELECTOR = '[role="switch"], button[aria-label="Haunted theme"]';
+const SWITCH_SELECTOR = '[role="switch"]';
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
