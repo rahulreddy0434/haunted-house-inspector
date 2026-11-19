@@ -308,6 +308,152 @@
         "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
         "timestamp": 1795053489802
       }
+    ],
+    "6.1 Build the art components": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795054490372
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795054566624
+      }
+    ],
+    "6.2 Add the `Card` component": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795054490533
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795054566790
+      }
+    ],
+    "6.3 Use cards on the Home page": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795054569757
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055594181
+      }
+    ],
+    "6.4 Use cards on the Results page": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795054570367
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055593871
+      }
+    ],
+    "6.5 Use cards on the Pro pages": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795054571106
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055594302
+      }
+    ],
+    "6.6 Place the header silhouette and fog layer": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795054571768
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055594455
+      }
+    ],
+    "6. Haunted art": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055594549
+      }
+    ],
+    "6.7 Write art and card tests": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055599509
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055747201
+      }
+    ],
+    "7.1 Add the Motion_Stylesheet": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055599659
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055747451
+      }
+    ],
+    "7.2 Remove old animation and transition definitions": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055599832
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055747693
+      }
+    ],
+    "7.3 Write motion tests": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055750425
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055810817
+      }
+    ],
+    "7. Motion": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055810923
+      }
+    ],
+    "8. Final checkpoint": [
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795055815667
+      },
+      {
+        "executionId": "183716d2-b1fe-4ce8-a05e-55ed3fb85541",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795056058710
+      }
     ]
   }
 }

@@ -84,7 +84,7 @@ export function UploadProgress({ files }: UploadProgressProps) {
                   className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200 haunted:bg-haunted-field"
                 >
                   <div
-                    className={`h-full rounded-full transition-[width] ${BAR_COLOUR[file.status]}`}
+                    className={`h-full rounded-full ${BAR_COLOUR[file.status]}`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ProJobListItem } from '@/types/job';
 import { UrgencyBadge } from '@/components/results/UrgencyBadge';
+import { Cobweb } from '@/components/ui/haunted/Cobweb';
 import { TradeText } from '@/components/ui/haunted/TradeText';
 import { TimeText } from '@/components/ui/TimeText';
 import { BODY, CARD, HEADING, MUTED } from '@/components/ui/styles';
@@ -15,9 +16,11 @@ export function JobListItem({ job }: JobListItemProps) {
   return (
     <li>
       <Link
+        data-card=""
         href={`/pro/jobs/${encodeURIComponent(job.id)}`}
         className={`${CARD} flex flex-col gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 haunted:focus-visible:ring-haunted-accent haunted:focus-visible:ring-offset-haunted-bg`}
       >
+        <Cobweb />
         <span className="flex flex-wrap items-center gap-2">
           <UrgencyBadge urgency={job.urgency} />
           {showTrade && job.trade !== null ? <TradeText trade={job.trade} className={HEADING} /> : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Card } from "@/components/ui/Card";
 import type { UrgencyLevel } from "@/types/inspection";
 
 export interface JobBriefProps {
@@ -70,7 +71,9 @@ export function JobBrief({ jobBrief, urgency }: JobBriefProps) {
   if (urgency === "emergency") return null;
 
   return (
-    <section
+    <Card
+      as="section"
+      tone="bare"
       aria-labelledby="job-brief-heading"
       className="rounded-lg border border-gray-300 bg-white p-4 text-gray-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text"
     >
@@ -112,6 +115,6 @@ export function JobBrief({ jobBrief, urgency }: JobBriefProps) {
           className="mt-2 w-full rounded-md border border-gray-500 bg-gray-50 p-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 haunted:border-haunted-border haunted:bg-haunted-field haunted:text-haunted-text haunted:focus-visible:ring-haunted-accent haunted:focus-visible:ring-offset-haunted-bg"
         />
       )}
-    </section>
+    </Card>
   );
 }

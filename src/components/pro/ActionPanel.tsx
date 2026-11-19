@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AcceptForm } from '@/components/pro/AcceptForm';
 import { AskInfoForm } from '@/components/pro/AskInfoForm';
 import { DeclineForm } from '@/components/pro/DeclineForm';
-import { CARD, ERROR_TEXT, HEADING } from '@/components/ui/styles';
+import { Card } from '@/components/ui/Card';
+import { ERROR_TEXT, HEADING } from '@/components/ui/styles';
 import { JOB_STATUSES } from '@/types/job';
 import type { JobStatus } from '@/types/job';
 
@@ -103,7 +104,7 @@ export function ActionPanel({ id, status, onDone, onConflict, onUnauthorized }: 
   if (status !== 'new' && status !== 'info_requested') return null;
 
   return (
-    <section aria-labelledby="pro-actions-heading" className={`${CARD} space-y-6`}>
+    <Card as="section" aria-labelledby="pro-actions-heading" className="space-y-6">
       <h2 id="pro-actions-heading" className={HEADING}>
         Your response
       </h2>
@@ -120,6 +121,6 @@ export function ActionPanel({ id, status, onDone, onConflict, onUnauthorized }: 
           {message}
         </p>
       ) : null}
-    </section>
+    </Card>
   );
 }

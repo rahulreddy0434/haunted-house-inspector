@@ -1,4 +1,5 @@
-import { CARD, HEADING } from '@/components/ui/styles';
+import { Card } from '@/components/ui/Card';
+import { HEADING } from '@/components/ui/styles';
 
 export interface PhotoGalleryProps {
   /** Pre-signed GET URLs. */
@@ -10,7 +11,7 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
   if (photos.length === 0) return null;
 
   return (
-    <section aria-label="Photos" className={CARD}>
+    <Card as="section" aria-label="Photos">
       <h2 className={HEADING}>Photos</h2>
       <ul className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {photos.map((url, i) => (
@@ -27,6 +28,6 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }

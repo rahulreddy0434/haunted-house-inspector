@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/Card";
 import { TradeText } from "@/components/ui/haunted/TradeText";
 import type { UrgencyLevel } from "@/types/inspection";
 
@@ -25,7 +26,9 @@ export function IssueSummary({
   const showDiy = !isEmergency && diySteps.length > 0;
 
   return (
-    <section
+    <Card
+      as="section"
+      tone="bare"
       aria-label="Issue summary"
       className="space-y-4 rounded-lg border border-slate-300 bg-white p-4 haunted:border-haunted-border haunted:bg-haunted-surface"
     >
@@ -64,6 +67,6 @@ export function IssueSummary({
           </ul>
         </div>
       )}
-    </section>
+    </Card>
   );
 }

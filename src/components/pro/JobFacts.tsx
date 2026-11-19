@@ -1,7 +1,8 @@
 import { CostRange } from '@/components/results/CostRange';
 import { JobBrief } from '@/components/results/JobBrief';
 import { TradeText } from '@/components/ui/haunted/TradeText';
-import { BODY, CARD, HEADING } from '@/components/ui/styles';
+import { Card } from '@/components/ui/Card';
+import { BODY, HEADING } from '@/components/ui/styles';
 import { formatConfidence } from '@/lib/utils/formatConfidence';
 import type { ProJobDetailActive } from '@/types/job';
 
@@ -37,7 +38,7 @@ export function JobFacts({ job }: JobFactsProps) {
 
   return (
     <div className="space-y-4">
-      <section aria-label="Job facts" className={`${CARD} space-y-4`}>
+      <Card as="section" aria-label="Job facts" className="space-y-4">
         <div>
           <h2 className={HEADING}>Likely issue</h2>
           <p className={`${BODY} whitespace-pre-wrap break-words`}>{likelyIssue}</p>
@@ -50,21 +51,21 @@ export function JobFacts({ job }: JobFactsProps) {
           <h2 className={HEADING}>AI confidence in this diagnosis</h2>
           <p className={BODY}>{formatConfidence(confidence)}</p>
         </div>
-      </section>
+      </Card>
 
       <CostRange costRangeLow={costRangeLow} costRangeHigh={costRangeHigh} urgency={urgency} />
       <JobBrief jobBrief={jobBrief} urgency={urgency} />
 
-      <section aria-label="Homeowner answers" className={`${CARD} space-y-4`}>
+      <Card as="section" aria-label="Homeowner answers" className="space-y-4">
         {answerRows.map(([label, value]) => (
           <div key={label}>
             <h2 className={HEADING}>{label}</h2>
             <p className={`${BODY} whitespace-pre-wrap break-words`}>{answerText(value)}</p>
           </div>
         ))}
-      </section>
+      </Card>
 
-      <section aria-label="Follow-up questions" className={CARD}>
+      <Card as="section" aria-label="Follow-up questions">
         <h2 className={HEADING}>Questions that could help</h2>
         <ul className={`mt-1 list-disc space-y-1 pl-5 ${BODY}`}>
           {followUpQuestions.map((q, i) => (
@@ -73,7 +74,7 @@ export function JobFacts({ job }: JobFactsProps) {
             </li>
           ))}
         </ul>
-      </section>
+      </Card>
     </div>
   );
 }

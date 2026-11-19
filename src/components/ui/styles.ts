@@ -3,8 +3,13 @@
  * Normal-theme colour has a `haunted:` partner. No animation or transition classes.
  */
 
+/** Cobweb positioning, plus a reset so space-y-* adds no top margin below the Cobweb svg (Haunted only). */
+export const CARD_SHELL = 'relative isolate overflow-hidden [&>svg+*]:!mt-0';
+/** Card look in the Haunted theme only. Normal keeps the element's own classes. */
+export const CARD_HAUNTED_ONLY =
+  'haunted:relative haunted:isolate haunted:overflow-hidden haunted:rounded-lg haunted:border haunted:border-haunted-border haunted:bg-haunted-surface haunted:p-4 haunted:text-haunted-text haunted:[&>svg+*]:!mt-0';
 export const CARD =
-  'rounded-lg border border-slate-300 bg-white p-4 text-slate-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text';
+  'relative isolate overflow-hidden [&>svg+*]:!mt-0 rounded-lg border border-slate-300 bg-white p-4 text-slate-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text';
 
 export const HEADING =
   'break-words text-sm font-semibold uppercase tracking-wide text-slate-600 haunted:text-haunted-muted';
@@ -27,7 +32,7 @@ export const SECONDARY_BUTTON =
 export const ERROR_TEXT = 'text-red-800 haunted:text-haunted-error';
 
 export const STATUS_BOX =
-  'rounded-lg border border-slate-300 bg-slate-50 p-4 text-slate-900 haunted:border-haunted-border haunted:bg-haunted-field haunted:text-haunted-text';
+  'relative isolate overflow-hidden [&>svg+*]:!mt-0 rounded-lg border border-slate-300 bg-slate-50 p-4 text-slate-900 haunted:border-haunted-border haunted:bg-haunted-field haunted:text-haunted-text';
 
 /** Fixed style for the Pro emergency note. No `haunted:` class, so it looks the same in every theme. */
 export const NOTE_BOX = 'rounded-lg border border-slate-300 bg-slate-50 p-4 text-slate-900';

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { TextField } from '@/components/ui/TextField';
 import { ERROR_MESSAGES } from '@/lib/jobs/copy';
 
@@ -86,6 +87,7 @@ export function AccessCodeForm({ onSuccess, onDisabled, notice }: AccessCodeForm
   }
 
   return (
+    <Card tone="haunted">
     <form onSubmit={submit} className="space-y-4" noValidate>
       {notice ? <p role="status">{notice}</p> : null}
       <div ref={wrapperRef}>
@@ -104,5 +106,6 @@ export function AccessCodeForm({ onSuccess, onDisabled, notice }: AccessCodeForm
         Enter
       </Button>
     </form>
+    </Card>
   );
 }

@@ -10,10 +10,11 @@ import { PhotoGallery } from '@/components/pro/PhotoGallery';
 import { ProEmergencyView } from '@/components/pro/ProEmergencyView';
 import { UrgencyBadge } from '@/components/results/UrgencyBadge';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
 import { StateText } from '@/components/ui/haunted/StateText';
 import { TimeText } from '@/components/ui/TimeText';
-import { BODY, CARD, ERROR_TEXT, HEADING, PAGE_TITLE, SECONDARY_BUTTON } from '@/components/ui/styles';
+import { BODY, ERROR_TEXT, HEADING, PAGE_TITLE, SECONDARY_BUTTON } from '@/components/ui/styles';
 import { useProJob } from '@/hooks/useProJob';
 import { PRO_STATUS_LABEL, SESSION_ENDED_NOTICE } from '@/lib/jobs/copy';
 import type { ProJobDetailActive } from '@/types/job';
@@ -41,12 +42,12 @@ function StatusBlock({ job }: { job: ProJobDetailActive }) {
     const latest = job.infoRequests.length > 0 ? job.infoRequests[job.infoRequests.length - 1] : null;
     if (!latest) return null;
     return (
-      <section aria-label="Your question" className={CARD}>
+      <Card as="section" aria-label="Your question">
         <h2 className={HEADING}>
           You asked · <TimeText iso={latest.askedAt} />
         </h2>
         <p className={`${BODY} whitespace-pre-wrap break-words`}>{latest.question}</p>
-      </section>
+      </Card>
     );
   }
 
@@ -54,7 +55,7 @@ function StatusBlock({ job }: { job: ProJobDetailActive }) {
     const slots = [...(job.offeredSlots ?? [])].sort((a, b) => Date.parse(a) - Date.parse(b));
     if (slots.length === 0) return null;
     return (
-      <section aria-label="Offered times" className={CARD}>
+      <Card as="section" aria-label="Offered times">
         <h2 className={HEADING}>Times you offered</h2>
         <ul className={`mt-1 list-disc space-y-1 pl-5 ${BODY}`}>
           {slots.map((slot) => (
@@ -63,29 +64,29 @@ function StatusBlock({ job }: { job: ProJobDetailActive }) {
             </li>
           ))}
         </ul>
-      </section>
+      </Card>
     );
   }
 
   if (job.status === 'booked') {
     if (!job.bookedSlot) return null;
     return (
-      <section aria-label="Booked time" className={CARD}>
+      <Card as="section" aria-label="Booked time">
         <h2 className={HEADING}>Booked time</h2>
         <p className={BODY}>
           <TimeText iso={job.bookedSlot} />
         </p>
-      </section>
+      </Card>
     );
   }
 
   if (job.status === 'declined') {
     if (!job.declineReason) return null;
     return (
-      <section aria-label="Decline reason" className={CARD}>
+      <Card as="section" aria-label="Decline reason">
         <h2 className={HEADING}>Reason you gave</h2>
         <p className={`${BODY} whitespace-pre-wrap break-words`}>{job.declineReason}</p>
-      </section>
+      </Card>
     );
   }
 

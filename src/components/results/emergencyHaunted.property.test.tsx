@@ -32,6 +32,9 @@ import { ResultsView } from '@/components/results/ResultsView';
 import { JobDetail } from '@/components/pro/JobDetail';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
+import { FogLayer } from '@/components/ui/haunted/FogLayer';
+import { HeaderSilhouette } from '@/components/ui/haunted/HeaderSilhouette';
 import { resetProSession } from '@/hooks/proSession';
 import { EMERGENCY_MESSAGE, PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
 import { HAUNTED_CLASS, THEME_STORAGE_KEY } from '@/lib/theme';
@@ -180,6 +183,29 @@ describe('Property 6: emergency pages never render Haunted styling', () => {
       ),
       { numRuns: 100 },
     );
+  }, 30000);
+
+  it('layout art renders nothing while an emergency scope is mounted and returns after unmount', () => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, 'haunted');
+    document.documentElement.classList.add(HAUNTED_CLASS);
+    const layout = (withScope: boolean) => (
+      <ThemeProvider>
+        <HeaderSilhouette />
+        <FogLayer />
+        {withScope ? <EmergencyScope /> : null}
+      </ThemeProvider>
+    );
+    const { rerender } = render(layout(false));
+    expect(document.querySelectorAll('[data-haunted-art]').length).toBeGreaterThan(0);
+
+    rerender(layout(true));
+    expect(document.querySelector('[data-haunted-art]')).toBeNull();
+    expect(document.documentElement.classList.contains(HAUNTED_CLASS)).toBe(false);
+
+    rerender(layout(false));
+    expect(document.querySelectorAll('[data-haunted-art]').length).toBeGreaterThan(0);
+    expect(document.documentElement.classList.contains(HAUNTED_CLASS)).toBe(true);
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('haunted');
   });
 
   it('uses the expected exact message constants', () => {

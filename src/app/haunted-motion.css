@@ -1,0 +1,29 @@
+/* Motion_Stylesheet: the only @keyframes and animation declarations in src/. */
+@keyframes hhi-flicker {
+  0%, 100% { opacity: 1; }
+  30%      { opacity: 0.9; }
+  55%      { opacity: 0.96; }
+  78%      { opacity: 0.86; }
+}
+
+@keyframes hhi-fog-drift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.theme-haunted .hhi-flicker   { animation: hhi-flicker 4s ease-in-out infinite; }
+.theme-haunted .hhi-fog-drift { animation: hhi-fog-drift 90s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-haunted .hhi-flicker {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* The fog SVG carries its own constant opacity-30, so opacity is left alone here. */
+  .theme-haunted .hhi-fog-drift {
+    animation: none !important;
+    transform: none !important;
+  }
+}

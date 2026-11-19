@@ -297,7 +297,7 @@ export function mapTrade(tradeText: string): GhostTrade | null;
 
 - Pure. No I/O, time or randomness.
 - Non-string input (a runtime guard for bad data) and blank input return `null`.
-- `tradeDisplayText` is the trimmed input with its first character upper-cased and the rest unchanged. The first character is changed only when its upper-case form has the same lower-case form as the original (so "ÃŸ" and "Ä±" are left alone). That keeps the label a case-insensitive superset of the trimmed trade for every input. Examples: "plumber" gives "Poltergeist (Plumber)", "hvac technician" gives "Banshee (Hvac technician)", "chimney sweep" gives "Restless spirit (Chimney sweep)".
+- `tradeDisplayText` is the trimmed input with its first character upper-cased and the rest unchanged. The first character is changed only when its upper-case form has the same lower-case form as the original (so "ÃŸ" and "Ä±" are left alone). That keeps the label a case-insensitive superset of the trimmed trade for every input. Examples: "plumber" gives "Poltergeist (Plumber)", "HVAC technician" gives "Banshee (HVAC technician)", "chimney sweep" gives "Restless spirit (Chimney sweep)".
 - Trim, then `toLowerCase()`. Rules run in this order and the first match wins: `plumb`; `electric`; `hvac`, `heating`, `cooling`, `furnace`, `boiler`, `air condition`; `mould`, `mold`, `damp`, `moisture`. No match gives `Other` and the ghost name "Restless spirit", so an unknown trade "chimney sweep" gives "Restless spirit (Chimney sweep)". The category only picks the ghost name; the label always carries the real trade.
 - The rules are one frozen array of `{ category, ghostName, needles }`, so adding a trade means adding one row.
 
@@ -405,8 +405,17 @@ One file, imported once in `layout.tsx`. It holds the only `@keyframes` and `ani
 .theme-haunted .hhi-fog-drift { animation: hhi-fog-drift 90s linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .theme-haunted .hhi-flicker,
-  .theme-haunted .hhi-fog-drift { animation: none; opacity: 1; transform: none; }
+  .theme-haunted .hhi-flicker {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* The fog SVG carries its own constant opacity-30, so opacity is left alone here. */
+  .theme-haunted .hhi-fog-drift {
+    animation: none !important;
+    transform: none !important;
+  }
 }
 ```
 
@@ -414,6 +423,7 @@ One file, imported once in `layout.tsx`. It holds the only `@keyframes` and `ani
 - Fog drift: translation only, 90 s per cycle (at least 40 s), no opacity change. The fog SVG is twice the viewport width with a repeating shape, so `-50%` loops without a jump.
 - `@keyframes` rules cannot be nested under a selector, so "scoped under `.theme-haunted`" means every `animation` declaration is. Keyframe names start with `hhi-`.
 - Flicker applies only to art (the lit window). It never touches text, so it cannot change a contrast pair.
+- Under reduced motion the fog stops moving but keeps its faint `opacity-30`, and the flicker shows at full opacity (1.0). Forcing the fog to opacity 1 would make it fully opaque and break the contrast rows computed at 0.30.
 - The media query reacts live to the browser setting (Req 10.12). The existing global reduced-motion rule in `globals.css` stays.
 - `tailwind.config.ts` loses `animation` (including `pulse-slow` and `flicker`) and `keyframes`. `transition-colors` in `DropZone` and `transition-[width]` in `UploadProgress` are removed. Emergency pages have no `.theme-haunted`, no art and no `hhi-*` classes, so they never animate.
 

@@ -23,8 +23,27 @@ const COLOUR_CLASS = new RegExp(
     `(?:(?:${COLOUR_NAMES})-\\d{2,3}|white|black|transparent|current|brand-\\d+|haunted-[a-z]+)(?:/\\d+)?$`,
 );
 
+/**
+ * Files whose Normal colours come from a shared recipe in `ui/styles.ts` through `<Card>`, not from
+ * their own classes. The recipe's non-haunted colour classes count as the file's effective Normal
+ * classes, so a change to the recipe still fails this test.
+ */
+const CARD_RECIPE_USERS: Record<string, 'CARD' | 'STATUS_BOX'> = {
+  'results/CostRange.tsx': 'CARD',
+};
+
+function recipeSource(name: string): string {
+  const styles = readFileSync(join(process.cwd(), 'src', 'components', 'ui', 'styles.ts'), 'utf8');
+  const match = new RegExp(`export const ${name} =\\s*'([^']*)'`).exec(styles);
+  if (!match) throw new Error(`Recipe ${name} not found in styles.ts`);
+  return match[1];
+}
+
 function normalColourClasses(relativePath: string): string[] {
-  const source = readFileSync(join(process.cwd(), 'src', 'components', relativePath), 'utf8');
+  const recipe = CARD_RECIPE_USERS[relativePath];
+  const source =
+    readFileSync(join(process.cwd(), 'src', 'components', relativePath), 'utf8') +
+    (recipe ? ' ' + recipeSource(recipe) : '');
   const tokens = source
     .split(/[\s'"`{}()<>=,;]+/)
     .filter((token) => !token.startsWith('haunted:') && COLOUR_CLASS.test(token));

@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { FogLayer } from "@/components/ui/haunted/FogLayer";
+import { HeaderSilhouette } from "@/components/ui/haunted/HeaderSilhouette";
 import { displayFont } from "./fonts";
 import "./globals.css";
+import "./haunted-motion.css";
 
 export const metadata: Metadata = {
   title: "Haunted House Inspector",
@@ -27,26 +30,28 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="flex min-h-screen flex-col bg-white text-gray-900 antialiased haunted:bg-haunted-bg haunted:text-haunted-text">
+      <body className="isolate flex min-h-screen flex-col bg-white text-gray-900 antialiased haunted:bg-haunted-bg haunted:text-haunted-text">
         <ThemeProvider>
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-gray-900 focus:shadow haunted:focus:bg-haunted-surface haunted:focus:text-haunted-text"
-        >
-          Skip to main content
-        </a>
-        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-4 py-3 haunted:border-haunted-border">
-          <Link href="/" className="text-lg font-semibold haunted:text-haunted-accent">
-            Haunted House Inspector
-          </Link>
-          <ThemeToggle />
-        </header>
-        <main id="main-content" className="flex-1">
-          {children}
-        </main>
-        <footer className="border-t border-gray-200 px-4 py-3 text-center text-sm text-gray-600 haunted:border-haunted-border haunted:text-haunted-muted">
-          Estimates only. Not a professional inspection.
-        </footer>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-gray-900 focus:shadow haunted:focus:bg-haunted-surface haunted:focus:text-haunted-text"
+          >
+            Skip to main content
+          </a>
+          <header className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-4 py-3 haunted:border-haunted-border">
+            <Link href="/" className="text-lg font-semibold haunted:text-haunted-accent">
+              Haunted House Inspector
+            </Link>
+            <HeaderSilhouette />
+            <ThemeToggle />
+          </header>
+          <main id="main-content" className="flex-1">
+            {children}
+          </main>
+          <FogLayer />
+          <footer className="border-t border-gray-200 px-4 py-3 text-center text-sm text-gray-600 haunted:border-haunted-border haunted:text-haunted-muted">
+            Estimates only. Not a professional inspection.
+          </footer>
         </ThemeProvider>
       </body>
     </html>

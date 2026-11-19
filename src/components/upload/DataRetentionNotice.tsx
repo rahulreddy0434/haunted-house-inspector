@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { Card } from '@/components/ui/Card';
 
 export const DATA_SHARING_NOTICE_TEXT =
   'Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days.';
@@ -11,7 +12,7 @@ interface DataRetentionNoticeProps {
 }
 
 export function DataRetentionNotice({ onVisible }: DataRetentionNoticeProps) {
-  const sectionRef = useRef<HTMLElement | null>(null);
+  const sectionRef = useRef<HTMLDivElement | null>(null);
   const onVisibleRef = useRef(onVisible);
   const hasFiredRef = useRef(false);
 
@@ -50,7 +51,9 @@ export function DataRetentionNotice({ onVisible }: DataRetentionNoticeProps) {
   }, []);
 
   return (
-    <section
+    <Card
+      as="section"
+      tone="bare"
       ref={sectionRef}
       aria-labelledby="data-retention-heading"
       className="rounded-lg border border-slate-300 bg-slate-50 p-4 text-base leading-relaxed text-slate-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text"
@@ -68,6 +71,6 @@ export function DataRetentionNotice({ onVisible }: DataRetentionNoticeProps) {
           a few still pictures taken from it.
         </li>
       </ul>
-    </section>
+    </Card>
   );
 }

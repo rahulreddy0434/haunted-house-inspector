@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/Card";
 import type { UrgencyLevel } from "@/types/inspection";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 
@@ -22,10 +23,7 @@ export function CostRange({ costRangeLow, costRangeHigh, urgency }: CostRangePro
       : `${formatCurrency(costRangeLow)} – ${formatCurrency(costRangeHigh)}`;
 
   return (
-    <section
-      aria-label="Rough cost"
-      className="rounded-lg border border-slate-300 bg-white p-4 text-slate-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text"
-    >
+    <Card as="section" aria-label="Rough cost">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-700 haunted:text-haunted-muted">
         Rough cost
       </h2>
@@ -38,6 +36,6 @@ export function CostRange({ costRangeLow, costRangeHigh, urgency }: CostRangePro
       >
         rough range, not a quote
       </p>
-    </section>
+    </Card>
   );
 }

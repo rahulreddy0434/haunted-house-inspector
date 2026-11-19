@@ -56,16 +56,6 @@ const config: Config = {
       borderRadius: {
         "4xl": "2rem",
       },
-      animation: {
-        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        flicker: "flicker 0.15s infinite",
-      },
-      keyframes: {
-        flicker: {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.85" },
-        },
-      },
     },
   },
   plugins: [

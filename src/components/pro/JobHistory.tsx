@@ -1,5 +1,6 @@
+import { Card } from '@/components/ui/Card';
 import { TimeText } from '@/components/ui/TimeText';
-import { BODY, CARD, HEADING } from '@/components/ui/styles';
+import { BODY, HEADING } from '@/components/ui/styles';
 import type { InfoRequest, ReplyEntry } from '@/types/job';
 
 export interface JobHistoryProps {
@@ -29,7 +30,7 @@ export function JobHistory({ infoRequests, replies }: JobHistoryProps) {
   if (entries.length === 0) return null;
 
   return (
-    <section aria-label="Conversation" className={CARD}>
+    <Card as="section" aria-label="Conversation">
       <h2 className={HEADING}>Conversation</h2>
       <ul className="mt-2 space-y-3">
         {entries.map((e, i) => (
@@ -41,6 +42,6 @@ export function JobHistory({ infoRequests, replies }: JobHistoryProps) {
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }

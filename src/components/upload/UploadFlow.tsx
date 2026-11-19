@@ -6,6 +6,7 @@ import { DropZone } from '@/components/upload/DropZone';
 import { ContextForm } from '@/components/upload/ContextForm';
 import { DataRetentionNotice } from '@/components/upload/DataRetentionNotice';
 import { UploadProgress } from '@/components/upload/UploadProgress';
+import { Card } from '@/components/ui/Card';
 import { StateText } from '@/components/ui/haunted/StateText';
 import { ANALYSIS_FAILED_SAFETY_LINE } from '@/lib/jobs/copy';
 
@@ -139,7 +140,8 @@ export function UploadFlow() {
       </div>
 
       {hasError && (
-        <div
+        <Card
+          tone="bare"
           ref={errorRef}
           role="alert"
           tabIndex={-1}
@@ -182,7 +184,7 @@ export function UploadFlow() {
               </button>
             </>
           )}
-        </div>
+        </Card>
       )}
 
       <div>

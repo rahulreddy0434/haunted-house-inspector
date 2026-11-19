@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
+import { Card } from '@/components/ui/Card';
 import { GhostIcon } from '@/components/ui/haunted/GhostIcon';
 import { StateText } from '@/components/ui/haunted/StateText';
 import { extractFrames } from '@/lib/frameExtractor';
@@ -253,14 +254,14 @@ export function DropZone({
     event.target.value = ''; // allow choosing the same file again
   };
 
-  const onDragOver = (event: DragEvent<HTMLDivElement>) => {
+  const onDragOver = (event: DragEvent<HTMLElement>) => {
     event.preventDefault();
     if (!preparing) setDragging(true);
   };
-  const onDragLeave = (event: DragEvent<HTMLDivElement>) => {
+  const onDragLeave = (event: DragEvent<HTMLElement>) => {
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
   };
-  const onDrop = (event: DragEvent<HTMLDivElement>) => {
+  const onDrop = (event: DragEvent<HTMLElement>) => {
     event.preventDefault();
     setDragging(false);
     if (preparing) return;
@@ -277,13 +278,14 @@ export function DropZone({
 
   return (
     <section aria-label="Upload photos or a video" className="w-full">
-      <div
+      <Card
+        tone="bare"
         onDragOver={onDragOver}
         onDragEnter={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         className={[
-          'flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed p-8 text-center transition-colors',
+          'flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed p-8 text-center',
           'border-brand-300 bg-brand-50 text-slate-900',
           'haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text',
           dragging
@@ -327,7 +329,7 @@ export function DropZone({
             </label>
           </>
         )}
-      </div>
+      </Card>
 
       <div role="status" aria-live="polite" className="mt-3 text-sm">
         {preparing && (

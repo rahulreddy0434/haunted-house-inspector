@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
 import { StateText } from '@/components/ui/haunted/StateText';
 import { TimeText } from '@/components/ui/TimeText';
-import { BODY, ERROR_TEXT, HEADING, MUTED, PRIMARY_BUTTON, STATUS_BOX } from '@/components/ui/styles';
+import { BODY, ERROR_TEXT, HEADING, MUTED, PRIMARY_BUTTON } from '@/components/ui/styles';
 import { ReplyBox } from '@/components/results/ReplyBox';
 import { SlotPicker } from '@/components/results/SlotPicker';
 import { useStatusPolling } from '@/hooks/useStatusPolling';
@@ -234,7 +235,7 @@ export function StatusPanel({ id, onEmergency }: StatusPanelProps) {
   }
 
   return (
-    <section aria-label="Job status" className={`${STATUS_BOX} space-y-3`}>
+    <Card as="section" tone="status" aria-label="Job status" className="space-y-3">
       {statusText !== null ? (
         <div
           key={view?.status ?? 'loading'}
@@ -327,6 +328,6 @@ export function StatusPanel({ id, onEmergency }: StatusPanelProps) {
           Refresh
         </Button>
       ) : null}
-    </section>
+    </Card>
   );
 }

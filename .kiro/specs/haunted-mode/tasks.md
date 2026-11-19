@@ -158,7 +158,7 @@ Fixed constraints for every task:
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5, 6.7, 6.12, 17.1**
     - **Property 2: Trade mapping is deterministic and case-insensitive** (including each category's ghost name and "Restless spirit" for unknown)
     - **Validates: Requirements 6.6, 6.11, 17.2**
-    - Examples: "plumber" gives "Poltergeist (Plumber)"; "electrician" gives "Wraith (Electrician)"; "hvac technician" gives "Banshee (Hvac technician)"; "damp specialist" gives "Ghoul (Damp specialist)"; "chimney sweep" gives "Restless spirit (Chimney sweep)"; blank gives `null`.
+    - Examples: "plumber" gives "Poltergeist (Plumber)"; "electrician" gives "Wraith (Electrician)"; "hvac technician" gives "Banshee (HVAC technician)"; "damp specialist" gives "Ghoul (Damp specialist)"; "chimney sweep" gives "Restless spirit (Chimney sweep)"; blank gives `null`.
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 17.15_
 
   - [ ]* 4.6 Write tests for the chips, state text and plain content
@@ -189,52 +189,52 @@ Fixed constraints for every task:
     - The font file and `OFL.txt` are in the same directory; `package.json` dependencies unchanged; `fonts.ts` uses `next/font/local` and never `next/font/google`; every display-font rule in `globals.css` starts with `.theme-haunted` and selects only `h1` and `[data-card] h2/h3`; the emergency banner contains no display-font rule.
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 11.3, 16.2, 17.16_
 
-- [ ] 6. Haunted art
-  - [ ] 6.1 Build the art components
+- [x] 6. Haunted art
+  - [x] 6.1 Build the art components
     - Create under `src/components/ui/haunted/`: `HeaderSilhouette` (house, tower, chimney, crescent moon; the lit window group has class `hhi-flicker`), `Cobweb` (`absolute right-0 top-0 -z-10 h-14 w-14 opacity-30`), `FogLayer` (`fixed inset-x-0 bottom-0 -z-10 h-[20vh] max-h-[25vh] overflow-hidden`, SVG `w-[200%]` with class `hhi-fog-drift`, `opacity-30`).
     - Each follows the art contract from task 4.2 (`null` unless Haunted, `aria-hidden`, `pointer-events-none`, `data-haunted-art`, `currentColor` with token text classes, wrapped in `ArtBoundary`, no hex, no `rgb()`, no `style` colour). The `hhi-*` classes have no effect until task 7.
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10_
 
-  - [ ] 6.2 Add the `Card` component
+  - [x] 6.2 Add the `Card` component
     - Create `src/components/ui/Card.tsx` (`as`: `section`, `div` or `article`; `tone`: `card` or `status`) that renders `data-card`, the recipe class and one `Cobweb` child.
     - Add `relative isolate overflow-hidden` to `CARD` and `STATUS_BOX` in `styles.ts`.
     - _Requirements: 5.2, 5.8, 9.4, 14.1, 14.2_
 
-  - [ ] 6.3 Use cards on the Home page
+  - [x] 6.3 Use cards on the Home page
     - Convert `DataRetentionNotice`, the `DropZone` drop panel and the `UploadFlow` status or error box to `Card`.
     - _Requirements: 5.2, 14.1_
 
-  - [ ] 6.4 Use cards on the Results page
+  - [x] 6.4 Use cards on the Results page
     - Convert `IssueSummary`, `CostRange`, `JobBrief` and `StatusPanel` (`tone="status"`) to `Card`. Keep the `StatusPanel` emergency branch that renders only `EmergencyScope`.
     - _Requirements: 5.2, 14.2, 14.3_
 
-  - [ ] 6.5 Use cards on the Pro pages
+  - [x] 6.5 Use cards on the Pro pages
     - Convert `AccessCodeForm` (wrapped), `JobFacts` (3 sections), `JobHistory`, `PhotoGallery`, `ActionPanel`, the four `JobDetail` status sections and the `ProEmergencyView` facts section to `Card`. Give `JobListItem` `data-card` and render `<Cobweb />` as its child.
     - _Requirements: 5.2, 13.2, 14.4_
 
-  - [ ] 6.6 Place the header silhouette and fog layer
+  - [x] 6.6 Place the header silhouette and fog layer
     - In `layout.tsx`, render `HeaderSilhouette` in the header flow between the site link and the switch, add one `FogLayer`, and add `isolate` to `body`.
     - _Requirements: 5.1, 5.3, 5.8, 14.1_
 
-  - [ ]* 6.7 Write art and card tests
+  - [x]* 6.7 Write art and card tests
     - Cobweb count equals `[data-card]` count on Home, Results and Pro fixtures; none outside a card; exactly one silhouette and one fog layer in Haunted and none in Normal; every art root has `aria-hidden="true"`, `pointer-events-none` and no `tabIndex` or `title`.
     - `ArtBoundary` hides a throwing child without hiding siblings.
     - Emergency fixtures (Results, reply, Pro job page) contain no `[data-haunted-art]`; extend Property 6 to assert this and no ghost label.
     - Heading levels and order are the same in both themes.
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6, 5.7, 5.10, 6.13, 12.8, 13.2, 15.2, 15.4, 17.3_
 
-- [ ] 7. Motion
-  - [ ] 7.1 Add the Motion_Stylesheet
-    - Create `src/app/haunted-motion.css` with only `hhi-flicker` (4 s, opacity 0.86 to 1.0) and `hhi-fog-drift` (90 s, `translateX(0)` to `translateX(-50%)`), every `animation` declaration under `.theme-haunted`, and a `prefers-reduced-motion: reduce` block that sets `animation: none`, `opacity: 1` and `transform: none` for both classes.
+- [x] 7. Motion
+  - [x] 7.1 Add the Motion_Stylesheet
+    - Create `src/app/haunted-motion.css` with only `hhi-flicker` (4 s, opacity 0.86 to 1.0) and `hhi-fog-drift` (90 s, `translateX(0)` to `translateX(-50%)`), every `animation` declaration under `.theme-haunted`, and a `prefers-reduced-motion: reduce` block that sets `animation: none`, `opacity: 1` and `transform: none` for the flicker, and `animation: none` and `transform: none` for the fog (the fog keeps its constant `opacity-30`).
     - Import it once in `layout.tsx`. Keep the existing reduced-motion rule in `globals.css`.
     - _Requirements: 10.1, 10.2, 10.5, 10.6, 10.7, 10.8, 10.9, 10.12, 15.6, 16.6_
 
-  - [ ] 7.2 Remove old animation and transition definitions
+  - [x] 7.2 Remove old animation and transition definitions
     - Delete `animation` (including `flicker` at 0.15 s and `pulse-slow`) and `keyframes` from `tailwind.config.ts`.
     - Remove `transition-colors` from `DropZone` and `transition-[width]` from `UploadProgress`. Normal computed colours stay the same.
     - _Requirements: 10.1, 10.3, 10.4, 16.8_
 
-  - [ ] 7.3 Write motion tests
+  - [x] 7.3 Write motion tests
     - Parse `haunted-motion.css`: exactly two keyframe names; opacity values within 0.85 to 1.0 with a spread of at most 0.15; every duration at least 2 s; fog duration at least 40 s and `transform` only; the reduced-motion block sets `animation: none`; every `animation` declaration starts with `.theme-haunted`.
     - No `@keyframes` or `animation:` in any other file under `src`; `tailwind.config.ts` has no `animation` or `keyframes` and no `flicker`.
     - Emergency fixtures contain no `hhi-flicker` or `hhi-fog-drift` class and no animation or transition class in the banner, badge or Pro note.
@@ -245,7 +245,7 @@ Fixed constraints for every task:
     - Confirm `sourceScan.test.ts` still passes unchanged.
     - _Requirements: 10.3, 10.11, 16.3, 17.8_
 
-- [ ] 8. Final checkpoint
+- [x] 8. Final checkpoint
   - Run `next lint`, `tsc --noEmit` and `vitest run`. Ensure all tests pass, ask the user if questions arise.
   - Confirm `src/lib/jobs/copy.ts`, `src/lib/emergency/messages.ts` text, `src/lib/safety/`, `package.json` dependency fields and `sourceScan.test.ts` have no changes beyond what the constraints allow.
 
