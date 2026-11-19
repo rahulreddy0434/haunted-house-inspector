@@ -363,3 +363,90 @@ Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, m
 - Then the Kiro features: MCP servers, a custom safety-reviewer agent, a power, and spec 3 (haunted-mode)
 - Weekly Reset site on weeklyresetwr.com and the LinkedIn Founder role, by Wed Nov 18
 - Keep booking calls with tradespeople and homeowners (target: 5 by Nov 18)
+---
+## Nov 17, 2026 (Spec 2 finish: live test and final checkpoint, tasks 35 and 36)
+
+**Done**
+- Task 35, the live check on Amplify: the IAM policy and GSI1 confirmed first, then the smoke test on the live site (login, accept, book, decline, ask and reply, the race, an emergency reply, the lockout from a second network, CloudWatch logs, TTL, the deleted diagnostic route). Every check passed except the 16-inspection rate-limit check, which was skipped on the live site
+- Task 35 hand checks: contrast of every new colour pair, grade-8 reading level of the homeowner copy and the notice, and a keyboard-only and screen reader pass
+- Task 36, the final checkpoint: Spec 2 (pro-dashboard-and-booking) is complete, all 36 tasks ticked, committed as 793a23a
+
+**Kiro features used**
+- Spec task list: the manual tasks were ticked in tasks.md, and the live-test result is written under task 35.2
+- Spec-driven development: the skipped rate-limit check is covered by tests written from the design (`route.ratelimit.spoof.test.ts`: 16 requests with different fake `x-forwarded-for` values end in 429 on the 16th, and Bedrock is not called)
+
+**Problems and fixes**
+- The 16-inspection live check was skipped, because it would run 16 real analyses. The unit and integration tests cover it, and this is recorded in tasks.md
+- `/pro` first showed "This page could not be found". The address had been added to the end of a result link; the dashboard lives at the main address plus `/pro`, and there is deliberately no button to it. The testing instructions must give the full `/pro` link
+
+**Next**
+- Nov 18: MCP servers (AWS docs and Playwright), the safety-reviewer agent, and spec 3 (haunted-mode)
+- Weekly Reset site on weeklyresetwr.com and the LinkedIn Founder role
+- Keep booking calls with tradespeople and homeowners (target: 5)
+
+---
+## Nov 18, 2026 (Kiro features: MCP, the safety-reviewer agent, and Haunted mode, spec 3, all 8 tasks)
+
+**Done**
+- MCP: the AWS docs and Playwright servers are set up in `.kiro/settings/mcp.json` (d679ac2)
+  - The AWS docs server checked GSI1 (INCLUDE projection), the index-only `JobsIndexQuery` permission, TTL and the presigned upload against the official docs. All four match
+  - The 30-day S3 lifecycle rule isn't visible from the repo, so it was checked in the S3 console: the rule is Enabled and bucket versioning is Disabled, so photos really are deleted
+  - Playwright opened the live site at 390 × 844 and took the home page and Pro access code screenshots
+  - The screenshots are in `docs/screenshots/`
+- Safety-reviewer agent: `.kiro/agents/safety-reviewer.md` reviews code against safety.md, with read-only tools (b38adfc). Its first review and the triage are in `docs/safety-review.md`
+- The review gave 18 findings: 5 High, 7 Medium and 6 Low. 11 were fixed now, 6 were not fixed (each with a written reason), and 1 moved to spec 3
+- The fixes (4cb6fb5, 20 files, with new tests), covering the 11 findings:
+  - an emergency now shows fixed text instead of the AI's issue text
+  - the no-DIY rule also covers heating, and gas or electrical wording in the AI text
+  - more trigger words (a burning smell from a dryer, water dripping from a light fixture, "carbon-monoxide"), plus text clean-up before matching, with tests that "switched off the water", "skylight" and "smoke alarm chirping" do not trigger
+  - a 409 emergency reply always shows the fixed 911 message
+  - the Pro emergency view shows the fixed note
+  - the rate limiter logs only the error name
+  - the prompt asks the AI to name danger signs plainly and treats homeowner text as information, not instructions
+  - a fixed safety line appears when the analysis fails
+- Not fixed, with reasons:
+  - validation before the safety check (the form checks fields first)
+  - waiting for the DynamoDB write (rare, and fast)
+  - the save-failure fallback (the browser keeps its own copy)
+  - per-field checking (deliberate, to avoid false alarms)
+  - tradesperson text (trusted users)
+  - emergencies skipping the rate limiter (safety.md requires it)
+- Also left out on purpose: French trigger words, and "smoke" on its own as a trigger (a chirping smoke alarm would send people to 911)
+- Haunted mode (spec 3): requirements, design and 8 parent tasks written (9371587), then built in four commits: task 1 (d8d0d95), tasks 2 and 3 (ee88c8d), tasks 4 and 5 (b2daf16), tasks 6 to 8 (520acad)
+- Task 1, emergency rules first: the emergency banner, the emergency badge and the Pro note have one fixed style with no `haunted:` classes. An emergency page drops the Haunted class in the same render, hides the switch, and puts the theme back when the user leaves. This closes finding 13 in `docs/safety-review.md`
+- Tasks 2 and 3:
+  - Haunted colours defined once as tokens
+  - 78 colour pairs checked against the contrast minimums
+  - raw palette colours replaced on the home, results and Pro pages
+  - the form-field border moved from gray-400 to gray-500 (2.54:1 failed the 3:1 minimum)
+  - a real "Haunted mode" switch
+- Tasks 4 and 5: ghost names shown with the real trade (for example "Poltergeist (Plumber)" and "Banshee (HVAC technician)"), haunted wording only in loading and empty states and always next to the plain line, and the Creepster font for headings, self-hosted with its OFL.txt
+- Tasks 6 to 8:
+  - original SVG house silhouette with a moon, cobwebs in cards, and a fog layer
+  - one motion stylesheet (4 s candle flicker, 90 s fog drift, all stopped by reduced motion)
+  - the old 0.15 s flicker (about 6.7 flashes a second) and the transition classes removed
+  - final checkpoint: lint, type-check, 1,574 tests in 135 files and a clean build
+  - no change to copy.ts, the emergency texts, `src/lib/safety/`, package.json or `sourceScan.test.ts`
+
+**Kiro features used**
+- MCP servers: AWS docs to check the AWS setup against the official documentation, and Playwright to screenshot the live site at phone size
+- Custom agent: safety-reviewer, run against steering/safety.md, which produced the 18 findings
+- Steering: safety.md drove the review and the emergency rules in Haunted mode
+- Specs: three documents for haunted-mode, run with sub-agents, with property tests for the ghost names, the effective theme, emergency pages and contrast
+- Spec updates: the requirements and design were changed after review (hide the switch on emergency pages, Creepster, the label format, the gray-500 exception, how the emergency view drops the theme)
+
+**Problems and fixes**
+- Writing the spec showed that the existing candle flicker ran at 0.15 s, about 6.7 flashes a second, over the 3-a-second limit. Replaced with a 4 s flicker
+- The first design said the Haunted class could be removed "before first paint". That's impossible on a results page that learns it's an emergency only after loading, so the guarantee moved to the fixed banner, badge and note, with tests that render them under the Haunted class
+- Turning cards into a shared Card changed the Normal look in places (the JobBrief border, a new card around the Pro access form) and loosened the baseline test. Caught in review and fixed with bare and haunted-only card modes; the baseline test is back to its original expectations
+- Kiro ran several parent tasks in one go (2 and 3, 4 and 5, 6 to 8) despite the one-at-a-time rule, so they were committed together
+- The emergency property test timed out at 5 seconds when the whole suite ran at once. It passes alone and now has a 30 second limit
+- Forcing the fog to full opacity under reduced motion would make it solid, so the fog keeps its faint opacity and only stops moving. The requirements and design say so
+- The task list tool failed to save some status updates during a run. Checked afterwards: all required tasks are ticked
+
+**Next**
+- Live check in both themes: phone and desktop, keyboard focus, reduced motion, an emergency in Haunted mode, and the Normal theme compared with earlier screenshots
+- Feature freeze: no code changes except fixes for real bugs. The seven optional test tasks wait until after judging
+- Nov 19: README rewrite, demo jobs and sample photos for judges, the Weekly Reset site and LinkedIn, and the demo video
+- Nov 20: the Devpost write-up, blog and social posts, then submit
+- If there's time: a Kiro power (Postman), and a safety-reviewer pass over Haunted mode
