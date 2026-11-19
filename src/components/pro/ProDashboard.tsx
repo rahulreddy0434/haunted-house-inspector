@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { BODY } from '@/components/ui/styles';
+import { BODY, PAGE_TITLE } from '@/components/ui/styles';
 import { AccessCodeForm } from '@/components/pro/AccessCodeForm';
 import { JobList } from '@/components/pro/JobList';
 import { useProJobs } from '@/hooks/useProJobs';
@@ -78,7 +78,7 @@ export function ProDashboard() {
   const [generation, setGeneration] = useState(0);
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold text-slate-900 haunted:text-haunted-accent">Tradesperson dashboard</h1>
+      <h1 className={`${PAGE_TITLE} break-words`}>Tradesperson dashboard</h1>
       <DashboardBody key={generation} onLoggedIn={() => setGeneration((g) => g + 1)} />
     </div>
   );

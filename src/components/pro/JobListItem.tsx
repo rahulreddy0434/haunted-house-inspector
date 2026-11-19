@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ProJobListItem } from '@/types/job';
 import { UrgencyBadge } from '@/components/results/UrgencyBadge';
+import { TradeText } from '@/components/ui/haunted/TradeText';
 import { TimeText } from '@/components/ui/TimeText';
 import { BODY, CARD, HEADING, MUTED } from '@/components/ui/styles';
 import { PRO_STATUS_LABEL } from '@/lib/jobs/copy';
@@ -19,7 +20,7 @@ export function JobListItem({ job }: JobListItemProps) {
       >
         <span className="flex flex-wrap items-center gap-2">
           <UrgencyBadge urgency={job.urgency} />
-          {showTrade ? <span className={HEADING}>{job.trade}</span> : null}
+          {showTrade && job.trade !== null ? <TradeText trade={job.trade} className={HEADING} /> : null}
         </span>
         <span className={`${BODY} whitespace-pre-wrap break-words`}>{job.location}</span>
         <span className={`${MUTED} flex flex-wrap items-center gap-x-3 gap-y-1`}>

@@ -7,7 +7,7 @@ export const CARD =
   'rounded-lg border border-slate-300 bg-white p-4 text-slate-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text';
 
 export const HEADING =
-  'text-sm font-semibold uppercase tracking-wide text-slate-600 haunted:text-haunted-muted';
+  'break-words text-sm font-semibold uppercase tracking-wide text-slate-600 haunted:text-haunted-muted';
 
 export const PAGE_TITLE = 'text-2xl font-bold text-slate-900 haunted:text-haunted-accent';
 

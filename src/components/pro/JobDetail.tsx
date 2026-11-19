@@ -11,8 +11,9 @@ import { ProEmergencyView } from '@/components/pro/ProEmergencyView';
 import { UrgencyBadge } from '@/components/results/UrgencyBadge';
 import { Button } from '@/components/ui/Button';
 import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
+import { StateText } from '@/components/ui/haunted/StateText';
 import { TimeText } from '@/components/ui/TimeText';
-import { BODY, CARD, ERROR_TEXT, HEADING, SECONDARY_BUTTON } from '@/components/ui/styles';
+import { BODY, CARD, ERROR_TEXT, HEADING, PAGE_TITLE, SECONDARY_BUTTON } from '@/components/ui/styles';
 import { useProJob } from '@/hooks/useProJob';
 import { PRO_STATUS_LABEL, SESSION_ENDED_NOTICE } from '@/lib/jobs/copy';
 import type { ProJobDetailActive } from '@/types/job';
@@ -178,9 +179,12 @@ export function JobDetail({ id }: JobDetailProps) {
     return (
       <div className={PAGE}>
         <BackLink />
-        <p role="status" className={BODY}>
-          Loading the job…
-        </p>
+        <StateText
+          plain="Loading the job…"
+          hauntedKey="jobLoading"
+          role="status"
+          className={BODY}
+        />
       </div>
     );
   }
@@ -190,7 +194,7 @@ export function JobDetail({ id }: JobDetailProps) {
       <div className={PAGE}>
         <EmergencyScope />
         <BackLink />
-        <h1 className={`text-2xl font-bold ${BODY}`}>Job details</h1>
+        <h1 className={`${PAGE_TITLE} break-words`}>Job details</h1>
         <div>
           <UrgencyBadge urgency="emergency" />
         </div>
@@ -202,7 +206,7 @@ export function JobDetail({ id }: JobDetailProps) {
   return (
     <div className={PAGE}>
       <BackLink />
-      <h1 className={`text-2xl font-bold ${BODY}`}>Job details</h1>
+      <h1 className={`${PAGE_TITLE} break-words`}>Job details</h1>
       <div>
         <UrgencyBadge urgency={job.urgency} />
       </div>

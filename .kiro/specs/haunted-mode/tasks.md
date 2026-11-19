@@ -133,27 +133,27 @@ Fixed constraints for every task:
     - Normal field border is `gray-500`; the baseline from 3.1 still passes.
     - _Requirements: 1.2, 1.3, 1.4, 1.9, 1.10, 2.5, 8.9, 16.5, 17.7_
 
-- [ ] 4. Ghost names and Haunted wording
-  - [ ] 4.1 Add the Trade_Mapper
+- [x] 4. Ghost names and Haunted wording
+  - [x] 4.1 Add the Trade_Mapper
     - Create `src/lib/haunted/tradeMapper.ts`: `mapTrade(tradeText): GhostTrade | null`, pure, with one frozen array of `{ category, ghostName, needles }` in the order plumb, electric, hvac group, mould group, else Other ("Restless spirit"). Return `null` for blank or non-string input. `tradeDisplayText` is the trimmed text with the first letter upper-cased only when that keeps the lower-case form the same. `label` is `"<ghostName> (<tradeDisplayText>)"`.
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.11, 6.12_
 
-  - [ ] 4.2 Add Haunted_Copy and the wording and ghost components
+  - [x] 4.2 Add Haunted_Copy and the wording and ghost components
     - Create `src/lib/haunted/hauntedCopy.ts` (`HAUNTED_COPY` with the seven strings from the design). Do not import from or edit `copy.ts`.
     - Create under `src/components/ui/haunted/`: `ArtBoundary` (renders `null` on error), `GhostIcon` (renders `null` unless effective theme is Haunted; `aria-hidden="true"`, `pointer-events-none`, `data-haunted-art="ghost"`, `currentColor`, no focus or title), `TradeText` (real trade in its own element, plus a `data-ghost` chip with the label only while Haunted), `StateText` (plain line in its own span, haunted line in a second span only while Haunted, optional `role` on the one wrapper).
     - _Requirements: 5.5, 5.6, 5.7, 5.9, 5.10, 6.8, 6.9, 6.10, 7.3, 7.4, 7.7, 15.2, 15.3_
 
-  - [ ] 4.3 Show ghost labels on the Results and Pro pages
+  - [x] 4.3 Show ghost labels on the Results and Pro pages
     - Use `TradeText` in `IssueSummary` ("Who to call"), in `JobFacts` ("Trade") and in `JobListItem`. Pass no trade on emergency views and emergency list rows.
     - _Requirements: 6.7, 6.8, 6.9, 6.13, 13.4, 14.2, 14.4_
 
-  - [ ] 4.4 Use `StateText` in the loading and empty states
+  - [x] 4.4 Use `StateText` in the loading and empty states
     - `UploadFlow` ("Inspecting your home…"), `ResultsView` ("Loading your result…"), `StatusPanel` ("Checking your job status…"), `JobDetail` ("Loading the job…"), `JobList` ("Loading jobs…" and "No jobs yet.").
     - Home empty file list in `DropZone`: add the plain line "No photos or video added yet." in both themes, with "No spirits caught yet." and the `GhostIcon` in Haunted. Keep `role="status"` on loading states in both themes.
     - Plain wording is unchanged everywhere else; errors, urgency labels, cost labels, confidence and the upload notice never use `StateText`.
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 8.1, 14.1_
 
-  - [ ] 4.5 Write property and example tests for the mapper
+  - [x] 4.5 Write property and example tests for the mapper
     - **Property 1: Ghost label carries the real trade** (`src/lib/haunted/tradeMapper.property.test.ts`; at least 100 runs)
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5, 6.7, 6.12, 17.1**
     - **Property 2: Trade mapping is deterministic and case-insensitive** (including each category's ghost name and "Restless spirit" for unknown)
@@ -171,13 +171,13 @@ Fixed constraints for every task:
     - Examples for the upload-analysis lines and the Home empty-state lines, with the plain line present whenever the haunted line is; the Haunted_Copy module shares no string with `copy.ts`.
     - _Requirements: 7.1, 7.2, 7.3, 7.7, 17.14_
 
-- [ ] 5. Display font
-  - [ ] 5.1 Add the font file, licence and loader
+- [x] 5. Display font
+  - [x] 5.1 Add the font file, licence and loader
     - Place `Creepster-Regular.ttf` and the unchanged `OFL.txt` from the Creepster download in `src/assets/fonts/creepster/`. If the files cannot be downloaded from the official Google Fonts source, stop and ask the user to supply them.
     - Create `src/app/fonts.ts` with `next/font/local` (`variable: '--font-display'`, `display: 'swap'`, `preload: false`, system fallback). Do not use `next/font/google` and add no npm package.
     - _Requirements: 9.1, 9.2, 9.3, 9.9, 16.2_
 
-  - [ ] 5.2 Apply the font to headings under `.theme-haunted`
+  - [x] 5.2 Apply the font to headings under `.theme-haunted`
     - Add `displayFont.variable` to the `<html>` class list in `layout.tsx`.
     - In `globals.css`, add the heading rule from the design, scoped under `.theme-haunted` and selecting only `h1`, `[data-card] h2` and `[data-card] h3`. The card selectors match nothing until task 6 adds `data-card`; that is expected.
     - Add `fontFamily.display` to `tailwind.config.ts`.

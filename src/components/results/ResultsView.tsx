@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useInspection } from "@/hooks/useInspection";
 import { formatConfidence } from "@/lib/utils/formatConfidence";
 import { EmergencyScope } from "@/components/ui/haunted/EmergencyScope";
+import { StateText } from "@/components/ui/haunted/StateText";
+import { PAGE_TITLE } from "@/components/ui/styles";
 import { EmergencyBanner } from "./EmergencyBanner";
 import { UrgencyBadge } from "./UrgencyBadge";
 import { IssueSummary } from "./IssueSummary";
@@ -56,9 +58,12 @@ export function ResultsView({ id }: ResultsViewProps) {
     void loading;
     return (
       <main className={PAGE}>
-        <p role="status" className={TEXT}>
-          Loading your result…
-        </p>
+        <StateText
+          plain="Loading your result…"
+          hauntedKey="resultLoading"
+          role="status"
+          className={TEXT}
+        />
       </main>
     );
   }
@@ -71,7 +76,7 @@ export function ResultsView({ id }: ResultsViewProps) {
       <main className={PAGE}>
         <EmergencyScope />
         <EmergencyBanner urgency="emergency" />
-        <h1 className={`text-2xl font-bold ${TEXT}`}>Your inspection result</h1>
+        <h1 className={`${PAGE_TITLE} break-words`}>Your inspection result</h1>
         <div>
           <UrgencyBadge urgency="emergency" />
         </div>
@@ -89,7 +94,7 @@ export function ResultsView({ id }: ResultsViewProps) {
 
   return (
     <main className={PAGE}>
-      <h1 className={`text-2xl font-bold ${TEXT}`}>Your inspection result</h1>
+      <h1 className={`${PAGE_TITLE} break-words`}>Your inspection result</h1>
       <div>
         <UrgencyBadge urgency={urgency} />
       </div>

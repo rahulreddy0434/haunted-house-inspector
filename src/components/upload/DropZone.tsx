@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
+import { GhostIcon } from '@/components/ui/haunted/GhostIcon';
+import { StateText } from '@/components/ui/haunted/StateText';
 import { extractFrames } from '@/lib/frameExtractor';
 import type { FrameExtractionError, FrameExtractionResult } from '@/lib/frameExtractor';
 import {
@@ -28,6 +30,7 @@ export interface DropZoneProps {
 
 const ACCEPT_ATTR = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES].join(',');
 const METADATA_TIMEOUT_MS = 15_000;
+const NO_FILES_TEXT = 'No photos or video added yet.';
 
 interface ExtractionFailure {
   file: File;
@@ -333,6 +336,13 @@ export function DropZone({
           </p>
         )}
       </div>
+
+      {!value && (
+        <div className="mt-3 flex items-center gap-2 text-sm text-slate-700 haunted:text-haunted-muted">
+          <GhostIcon />
+          <StateText plain={NO_FILES_TEXT} hauntedKey="noFiles" />
+        </div>
+      )}
 
       {value && (
         <div className="mt-3 rounded-lg border border-brand-200 bg-white p-4 text-slate-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text">

@@ -33,3 +33,13 @@ body {
   --background: theme('colors.haunted.bg');
   color-scheme: dark;
 }
+
+/* Display font: headings only. Card h2/h3 selectors match once cards carry data-card. */
+.theme-haunted h1,
+.theme-haunted [data-card] h2,
+.theme-haunted [data-card] h3 {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+}

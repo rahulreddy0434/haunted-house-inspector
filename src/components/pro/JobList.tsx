@@ -1,6 +1,7 @@
 import type { ProJobListItem } from '@/types/job';
 import { Button } from '@/components/ui/Button';
 import { JobListItem } from '@/components/pro/JobListItem';
+import { StateText } from '@/components/ui/haunted/StateText';
 import { BODY, ERROR_TEXT } from '@/components/ui/styles';
 
 export interface JobListProps {
@@ -29,11 +30,14 @@ export function JobList({ jobs, loading = false, error, refreshing, onRefresh }:
         </p>
       ) : null}
       {loading ? (
-        <p role="status" className={BODY}>
-          Loading jobs…
-        </p>
+        <StateText
+          plain="Loading jobs…"
+          hauntedKey="jobsLoading"
+          role="status"
+          className={BODY}
+        />
       ) : jobs.length === 0 ? (
-        <p className={BODY}>No jobs yet.</p>
+        <StateText plain="No jobs yet." hauntedKey="noJobs" className={BODY} />
       ) : (
         <ul className="flex flex-col gap-3">
           {jobs.map((job) => (

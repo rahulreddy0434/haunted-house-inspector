@@ -6,6 +6,7 @@ import { DropZone } from '@/components/upload/DropZone';
 import { ContextForm } from '@/components/upload/ContextForm';
 import { DataRetentionNotice } from '@/components/upload/DataRetentionNotice';
 import { UploadProgress } from '@/components/upload/UploadProgress';
+import { StateText } from '@/components/ui/haunted/StateText';
 import { ANALYSIS_FAILED_SAFETY_LINE } from '@/lib/jobs/copy';
 
 const NOTICE_PROMPT = 'Please read the notice below before sending.';
@@ -51,7 +52,7 @@ export function UploadFlow() {
   const [showErrors, setShowErrors] = useState(false);
   const [prompt, setPrompt] = useState<string | null>(null);
   const noticeRef = useRef<HTMLDivElement>(null);
-  const analysingRef = useRef<HTMLParagraphElement>(null);
+  const analysingRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
 
   const hasFiles = files !== null && files.files.length > 0;
@@ -127,13 +128,13 @@ export function UploadFlow() {
 
       <div role="status" aria-live="polite">
         {uploadStatus === 'analysing' && (
-          <p
-            ref={analysingRef}
-            tabIndex={-1}
-            className="text-lg font-medium text-brand-900 focus:outline-none haunted:text-haunted-text"
-          >
-            Inspecting your home…
-          </p>
+          <div ref={analysingRef} tabIndex={-1} className="focus:outline-none">
+            <StateText
+              plain="Inspecting your home…"
+              hauntedKey="inspecting"
+              className="text-lg font-medium text-brand-900 haunted:text-haunted-text"
+            />
+          </div>
         )}
       </div>
 

@@ -1,5 +1,6 @@
 import { CostRange } from '@/components/results/CostRange';
 import { JobBrief } from '@/components/results/JobBrief';
+import { TradeText } from '@/components/ui/haunted/TradeText';
 import { BODY, CARD, HEADING } from '@/components/ui/styles';
 import { formatConfidence } from '@/lib/utils/formatConfidence';
 import type { ProJobDetailActive } from '@/types/job';
@@ -43,7 +44,7 @@ export function JobFacts({ job }: JobFactsProps) {
         </div>
         <div>
           <h2 className={HEADING}>Trade</h2>
-          <p className={`${BODY} break-words`}>{trade}</p>
+          <p className={`${BODY} break-words`}><TradeText trade={trade} /></p>
         </div>
         <div>
           <h2 className={HEADING}>AI confidence in this diagnosis</h2>

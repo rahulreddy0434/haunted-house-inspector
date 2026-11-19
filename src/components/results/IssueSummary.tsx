@@ -1,3 +1,4 @@
+import { TradeText } from "@/components/ui/haunted/TradeText";
 import type { UrgencyLevel } from "@/types/inspection";
 
 export interface IssueSummaryProps {
@@ -36,7 +37,9 @@ export function IssueSummary({
       {!isEmergency && (
         <div>
           <h2 className={HEADING}>Who to call</h2>
-          <p className={BODY}>{trade}</p>
+          <p className={BODY}>
+            <TradeText trade={trade} />
+          </p>
         </div>
       )}
 

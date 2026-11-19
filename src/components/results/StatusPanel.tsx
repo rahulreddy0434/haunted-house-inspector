@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
+import { StateText } from '@/components/ui/haunted/StateText';
 import { TimeText } from '@/components/ui/TimeText';
 import { BODY, ERROR_TEXT, HEADING, MUTED, PRIMARY_BUTTON, STATUS_BOX } from '@/components/ui/styles';
 import { ReplyBox } from '@/components/results/ReplyBox';
@@ -242,7 +243,11 @@ export function StatusPanel({ id, onEmergency }: StatusPanelProps) {
           tabIndex={-1}
           className={`${BODY} font-medium focus:outline-none`}
         >
-          {statusText}
+          {view === null ? (
+            <StateText plain={statusText} hauntedKey="statusChecking" />
+          ) : (
+            statusText
+          )}
         </div>
       ) : null}
 

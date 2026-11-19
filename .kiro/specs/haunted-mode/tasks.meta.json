@@ -210,6 +210,104 @@
         "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
         "timestamp": 1795040271668
       }
+    ],
+    "4.1 Add the Trade_Mapper": [
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795052849056
+      },
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053039206
+      }
+    ],
+    "4.2 Add Haunted_Copy and the wording and ghost components": [
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053041743
+      },
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053104512
+      }
+    ],
+    "4.5 Write property and example tests for the mapper": [
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053042324
+      },
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053104343
+      }
+    ],
+    "4.3 Show ghost labels on the Results and Pro pages": [
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053107408
+      },
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053259150
+      }
+    ],
+    "4.4 Use `StateText` in the loading and empty states": [
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053108085
+      },
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053259400
+      }
+    ],
+    "4. Ghost names and Haunted wording": [
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053259479
+      }
+    ],
+    "5.1 Add the font file, licence and loader": [
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053262586
+      },
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053305762
+      }
+    ],
+    "5.2 Apply the font to headings under `.theme-haunted`": [
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053308145
+      },
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053489477
+      }
+    ],
+    "5. Display font": [
+      {
+        "executionId": "1fb533c2-63e8-4763-ac4e-acd148f71230",
+        "chatSessionId": "sess_05834160-363f-405f-821c-440ca8883936",
+        "timestamp": 1795053489802
+      }
     ]
   }
 }
