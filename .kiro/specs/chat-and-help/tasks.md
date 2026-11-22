@@ -90,8 +90,8 @@ Test rules for every task:
   - [x] 1.13 Checkpoint - Ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 2. Routes: chat read and send for both Sides
-  - [ ] 2.1 Implement the shared chat pipelines and booking data
+- [x] 2. Routes: chat read and send for both Sides
+  - [x] 2.1 Implement the shared chat pipelines and booking data
     - `src/lib/chat/chatRoute.ts` (`server-only`): `runChatSend` and `runChatRead` following the design pipelines (limits, one conditional transaction, one re-read then `conflictResponse`)
     - Homeowner send: `readJsonBody(request, 4096)`, then `replyTriggersEmergency` on the full untrimmed text before the id check and every DynamoDB call; on a Trigger call `applySafetyOverride(id, '', nowIso)` in a try block, swallow errors (log the error name only) and answer 200 with `EMERGENCY_MESSAGE`
     - Pro send: `requirePro` first; no import of `replyCheck` or `safetyLayer`
@@ -100,45 +100,45 @@ Test rules for every task:
     - Every response uses `noStoreJson`; the pipelines never import `@/lib/rateLimiter` or `@/lib/aws/bedrock`
     - _Requirements: 2.1, 2.2, 2.3, 2.6, 3.4, 3.5, 3.6, 3.9, 4.1, 4.2, 4.3, 4.6, 4.7, 4.8, 5.1, 5.2, 5.3, 5.11, 6.13, 7.1, 7.2, 7.6, 7.7, 7.8, 8.1, 8.4_
 
-  - [ ] 2.2 Add the Homeowner chat route
+  - [x] 2.2 Add the Homeowner chat route
     - `src/app/api/inspections/[id]/chat/route.ts` exporting `GET` and `POST`, `runtime = 'nodejs'`, Side fixed to `homeowner` on the server, authorised by the Job id only
     - _Requirements: 3.9, 8.3, 8.4, 7.7_
 
-  - [ ] 2.3 Add the Pro chat route
+  - [x] 2.3 Add the Pro chat route
     - `src/app/api/pro/jobs/[id]/chat/route.ts` exporting `GET` and `POST`, Side fixed to `tradesperson`, `requirePro` before parsing the body, validating the id or calling DynamoDB; the fail-closed rules of `pro-dashboard-and-booking` apply
     - _Requirements: 8.1, 8.2, 8.4, 8.5, 4.7_
 
-  - [ ] 2.4 Write property test for Homeowner chat safety
+  - [x] 2.4 Write property test for Homeowner chat safety
     - **Property 1: Homeowner chat is safety first (extends Property 3)**
     - File `src/app/api/inspections/[id]/chat/chat.safety.property.test.ts`: any Trigger, any target, thread size 0 to 100, any rate-limit state, any injected DynamoDB failure gives 200 `emergency` and exactly `EMERGENCY_MESSAGE`; the Safety_Layer check is logged before any DynamoDB command; no `CHAT#` item is written; the Trigger text appears in no stored attribute; the Job override fields are correct
     - Set a 30-second timeout on this route-level property test
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.6, 4.8, 21.1**
 
-  - [ ] 2.5 Write property test for Pro chat messages
+  - [x] 2.5 Write property test for Pro chat messages
     - **Property 3: Pro chat messages never touch safety state (extends Property 5)**
     - File `src/app/api/pro/jobs/[id]/chat/proChat.property.test.ts`: any text and any status never calls the Safety_Layer, never sets `emergency`, and ends as a saved message with the rule status or a 409 for `declined` and `emergency`
     - Set a 30-second timeout on this route-level property test
     - **Validates: Requirements 4.7, 21.2**
 
-  - [ ] 2.6 Write property test for chat status rules through the routes
+  - [x] 2.6 Write property test for chat status rules through the routes
     - **Property 4: Status rules for chat**
     - File `src/app/api/inspections/[id]/chat/chatStatus.route.property.test.ts`: sequences of sends from both Sides through the routes and the fake table; stored status equals the model and the stored thread length equals the number of accepted messages (status and message written in one transaction)
     - Set a 30-second timeout on this route-level property test
     - **Validates: Requirements 2.1, 2.2, 2.3, 2.7, 21.3**
 
-  - [ ] 2.7 Write property test for closed chats
+  - [x] 2.7 Write property test for closed chats
     - **Property 5: A closed chat stays closed**
     - File `src/app/api/chat.closed.property.test.ts`: `declined` gives 409 `ILLEGAL_TRANSITION` and `emergency` gives 409 `JOB_IS_EMERGENCY` for either Side and any non-Trigger text, nothing saved; reads of an emergency Job return 409 and no message; any sequence of sends, Trigger sends and Pro actions leaves an emergency Job in `emergency`
     - Set a 30-second timeout on this route-level property test
     - **Validates: Requirements 3.1, 3.2, 3.4, 3.5, 3.6, 4.4, 21.6**
 
-  - [ ] 2.8 Write property test for chat limits through the routes
+  - [x] 2.8 Write property test for chat limits through the routes
     - **Property 7: Chat limits hold for every sequence**
     - File `src/app/api/inspections/[id]/chat/chatLimits.route.property.test.ts`: sequences of sends with injected clock never exceed 100 stored messages or 10 per Side per 60 s; the `Retry-After` header equals the model; the thread limit response wins when both apply
     - Set a 30-second timeout on this route-level property test
     - **Validates: Requirements 7.1, 7.2, 7.3, 7.9, 7.10, 21.5**
 
-  - [ ] 2.9 Write property test for the Pro cookie requirement
+  - [x] 2.9 Write property test for the Pro cookie requirement
     - **Property 10 (Pro cookie part only): The Pro routes need the cookie**
     - Add a cookie case to `src/app/api/pro/jobs/[id]/chat/proChat.property.test.ts`: missing or invalid `hhi_pro` gives 401 `UNAUTHORIZED` and zero DynamoDB calls, for GET and POST. The Side-from-route part (`chat.side.property.test.ts`) is skipped
     - Set a 30-second timeout on each route-level property test
@@ -155,7 +155,7 @@ Test rules for every task:
     - `src/app/api/chatNoRateLimiter.test.ts` (modelled on `noRateLimiter.test.ts`): chat routes never import the rate limiter and never write `RATELIMIT#` items
     - _Requirements: 2.6, 3.9, 5.11, 7.7, 7.8, 21.3_
 
-  - [ ] 2.12 Checkpoint - Ensure all tests pass
+  - [x] 2.12 Checkpoint - Ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 3. Chat screens: hook and components, not mounted

@@ -11,6 +11,26 @@
     "1.11 Write property test for chat storage": {
       "status": "passed",
       "lastRunTimestamp": 1795385040498
+    },
+    "2.4 Write property test for Homeowner chat safety": {
+      "status": "passed",
+      "lastRunTimestamp": 1795385705640
+    },
+    "2.6 Write property test for chat status rules through the routes": {
+      "status": "passed",
+      "lastRunTimestamp": 1795385730556
+    },
+    "2.5 Write property test for Pro chat messages": {
+      "status": "passed",
+      "lastRunTimestamp": 1795385765093
+    },
+    "2.7 Write property test for closed chats": {
+      "status": "passed",
+      "lastRunTimestamp": 1795385780316
+    },
+    "2.8 Write property test for chat limits through the routes": {
+      "status": "passed",
+      "lastRunTimestamp": 1795385785281
     }
   },
   "executionHistory": {
@@ -154,6 +174,138 @@
         "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
         "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
         "timestamp": 1795385244062
+      }
+    ],
+    "2.1 Implement the shared chat pipelines and booking data": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385476203
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385478158
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385610938
+      }
+    ],
+    "2.2 Add the Homeowner chat route": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385613127
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385643491
+      }
+    ],
+    "2.3 Add the Pro chat route": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385613658
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385644280
+      }
+    ],
+    "2.4 Write property test for Homeowner chat safety": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385648040
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385805454
+      }
+    ],
+    "2.5 Write property test for Pro chat messages": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385648199
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385806221
+      }
+    ],
+    "2.6 Write property test for chat status rules through the routes": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385648855
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385807014
+      }
+    ],
+    "2.7 Write property test for closed chats": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385649414
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385807824
+      }
+    ],
+    "2.8 Write property test for chat limits through the routes": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385649986
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385808608
+      }
+    ],
+    "2.9 Write property test for the Pro cookie requirement": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385809223
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385909554
+      }
+    ],
+    "2.12 Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385911685
+      },
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386130129
+      }
+    ],
+    "2. Routes: chat read and send for both Sides": [
+      {
+        "executionId": "51065219-80f7-4ec1-9034-0eb9ad017dc6",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386130242
       }
     ]
   }

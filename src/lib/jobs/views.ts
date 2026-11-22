@@ -1,4 +1,5 @@
 import { EMERGENCY_MESSAGE, PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
+import type { BookingData } from '@/types/chat';
 import type { ContextAnswers } from '@/types/inspection';
 import type {
   HomeownerStatusView,
@@ -72,6 +73,24 @@ export function toProDetail(job: JobRecord, photos: string[]): ProJobDetail {
   if (job.bookedSlot !== undefined) detail.bookedSlot = job.bookedSlot;
   if (job.declineReason !== undefined) detail.declineReason = job.declineReason;
   return detail;
+}
+
+/** Only the booking facts that exist for the Job's effective status (Chat Req 6.13). */
+export function toBookingData(
+  job: Pick<JobRecord, 'status' | 'urgency' | 'isEmergency' | 'offeredSlots' | 'bookedSlot' | 'declineReason'>,
+  statusOverride?: JobStatus,
+): BookingData {
+  const status = statusOverride ?? effectiveStatus(job);
+  switch (status) {
+    case 'accepted':
+      return { offeredSlots: [...(job.offeredSlots ?? [])].sort() };
+    case 'booked':
+      return job.bookedSlot !== undefined ? { bookedSlot: job.bookedSlot } : {};
+    case 'declined':
+      return job.declineReason !== undefined ? { declineReason: job.declineReason } : {};
+    default:
+      return {};
+  }
 }
 
 export function toHomeownerStatusView(job: JobRecord): HomeownerStatusView {
