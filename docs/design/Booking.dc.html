@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pick a time</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FA8}a:hover{color:#174A84}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #1F5FA8;outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+</style>
+</helmet>
+<div style="width: 390px; height: 1040px; box-sizing: border-box; background: #F6F7F9; font-family: Inter, system-ui, sans-serif; color: #18212B; display: flex; flex-direction: column">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; background: #FFFFFF; border-bottom: 1px solid #D9DEE5">
+    <span style="font-size: 17px; font-weight: 700; color: #1F5FA8; letter-spacing: -0.2px">Haunted House Inspector</span>
+    <button type="button" role="switch" aria-checked="false" style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 4px; border: none; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: #55606E; cursor: pointer">
+      <span style="width: 36px; height: 20px; border-radius: 10px; background: #C5CCD6; display: flex; align-items: center; padding: 2px; box-sizing: border-box">
+        <span style="width: 16px; height: 16px; border-radius: 8px; background: #FFFFFF"></span>
+      </span>
+      Haunted mode
+    </button>
+  </header>
+
+  <main style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px; padding: 20px">
+    <section aria-label="Your result" style="background: #FFFFFF; border: 1px solid #D9DEE5; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+      <span style="align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #FEF0C7; color: #7A4F01; font-size: 13px; font-weight: 700">
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+        Soon
+      </span>
+      <h1 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 700">Slow leak at the P-trap under the kitchen sink</h1>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: #55606E">Plumber · CA$180–CA$350, rough range, not a quote</p>
+      <p style="margin: 0; font-size: 13px; line-height: 19px; color: #55606E">This is a likely diagnosis, not a certain one.</p>
+    </section>
+
+    <sc-if value="{{ notBooked }}" hint-placeholder-val="{{ true }}">
+      <section aria-labelledby="pick-h" style="background: #EEF4FB; border: 1px solid #C9DAEE; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+        <p id="pick-h" role="status" style="margin: 0; font-size: 17px; line-height: 24px; font-weight: 700">A tradesperson can take your job. Pick a time that suits you.</p>
+        <fieldset style="margin: 0; padding: 0; border: none; display: flex; flex-direction: column; gap: 10px">
+          <legend style="padding: 0; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: #2C3744">Offered start times</legend>
+          <sc-for list="{{ slots }}" as="s" hint-placeholder-count="3">
+            <label for="{{ s.id }}" style="{{ s.cardStyle }}">
+              <input type="radio" name="slot" id="{{ s.id }}" checked="{{ s.checked }}" onChange="{{ s.pick }}" style="width: 20px; height: 20px; margin: 0; accent-color: #1F5FA8">
+              <span style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 15px; font-weight: 600">{{ s.day }}</span>
+                <time datetime="{{ s.iso }}" style="font-size: 14px; color: #2C3744">{{ s.time }}</time>
+              </span>
+            </label>
+          </sc-for>
+        </fieldset>
+        <button type="button" disabled="{{ noPick }}" onClick="{{ confirm }}" style="height: 52px; border: none; border-radius: 12px; background: #1F5FA8; font-family: inherit; font-size: 16px; font-weight: 600; color: #FFFFFF; cursor: pointer">Confirm this time</button>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ booked }}" hint-placeholder-val="{{ false }}">
+      <section aria-labelledby="booked-h" style="background: #E7F6EC; border: 1px solid #A6DDB8; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+        <p id="booked-h" role="status" style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; color: #14532D">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg>
+          Your booking is confirmed
+        </p>
+        <p style="margin: 0; font-size: 15px; line-height: 22px; color: #18212B">The tradesperson will arrive <time datetime="{{ bookedIso }}" style="font-weight: 700">{{ bookedLabel }}</time>.</p>
+        <p style="margin: 0; font-size: 13px; line-height: 19px; color: #2C3744">If something changes, start a new inspection. If you smell gas, see sparks or hear a CO alarm, leave the home and call 911.</p>
+      </section>
+    </sc-if>
+  </main>
+
+  <footer style="padding: 16px 20px 24px; font-size: 12px; color: #55606E; text-align: center; border-top: 1px solid #D9DEE5; background: #FFFFFF">Estimates only. Not a professional inspection.</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { picked: null, booked: false };
+  }
+  renderVals() {
+    const base = [
+      { id: 'slot-1', day: 'Monday, November 16', time: '9:00 AM EST', iso: '2026-11-16T14:00:00Z' },
+      { id: 'slot-2', day: 'Tuesday, November 17', time: '1:00 PM EST', iso: '2026-11-17T18:00:00Z' },
+      { id: 'slot-3', day: 'Wednesday, November 18', time: '4:30 PM EST', iso: '2026-11-18T21:30:00Z' }
+    ];
+    const picked = this.state.picked;
+    const slots = base.map((s) => {
+      const on = picked === s.id;
+      return {
+        ...s,
+        checked: on,
+        pick: () => this.setState({ picked: s.id }),
+        cardStyle: 'display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 10px 14px; box-sizing: border-box; border-radius: 12px; cursor: pointer; background: #FFFFFF; border: ' + (on ? '2px solid #1F5FA8' : '1px solid #A9B4C2')
+      };
+    });
+    const chosen = base.find((s) => s.id === picked);
+    return {
+      slots,
+      noPick: !picked,
+      notBooked: !this.state.booked,
+      booked: this.state.booked,
+      confirm: () => { if (picked) this.setState({ booked: true }); },
+      bookedIso: chosen ? chosen.iso : '',
+      bookedLabel: chosen ? chosen.day + ' at ' + chosen.time : ''
+    };
+  }
+}
+</script>
+</body>
+</html>

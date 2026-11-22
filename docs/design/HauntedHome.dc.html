@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Haunted mode – home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Creepster&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F5A524}a:hover{color:#FFC75A}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #F5A524;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 1240px; box-sizing: border-box; background: #0E0B14; font-family: Inter, system-ui, sans-serif; color: #EDE6F5; display: flex; flex-direction: column; position: relative; overflow: hidden">
+
+  <header style="position: relative; height: 170px; background: #1B1230; border-bottom: 1px solid #3A2D4F; overflow: hidden">
+    <svg aria-hidden="true" width="390" height="170" viewBox="0 0 390 170" style="position: absolute; left: 0; top: 0">
+      <circle cx="318" cy="52" r="26" fill="#F3E3B5"></circle>
+      <circle cx="330" cy="46" r="24" fill="#1B1230"></circle>
+      <circle cx="40" cy="30" r="1.4" fill="#EDE6F5"></circle>
+      <circle cx="96" cy="18" r="1.1" fill="#EDE6F5"></circle>
+      <circle cx="150" cy="40" r="1.3" fill="#EDE6F5"></circle>
+      <circle cx="226" cy="22" r="1.2" fill="#EDE6F5"></circle>
+      <circle cx="268" cy="70" r="1" fill="#EDE6F5"></circle>
+      <circle cx="360" cy="96" r="1.2" fill="#EDE6F5"></circle>
+      <path d="M0 170 L0 150 Q60 138 120 148 Q200 160 260 146 Q330 132 390 146 L390 170 Z" fill="#07050B"></path>
+      <path d="M150 150 L150 104 L172 104 L172 86 L184 86 L184 104 L196 104 L196 92 L222 70 L248 92 L248 150 Z" fill="#07050B"></path>
+      <path d="M196 92 L222 70 L248 92" fill="none" stroke="#07050B" stroke-width="3"></path>
+      <rect x="208" y="104" width="9" height="12" fill="#F5A524"></rect>
+      <rect x="227" y="104" width="9" height="12" fill="#3A2D4F"></rect>
+      <rect x="158" y="114" width="8" height="10" fill="#F5A524"></rect>
+      <path d="M218 150 L218 130 Q222 124 226 130 L226 150 Z" fill="#2A1B3D"></path>
+      <path d="M70 152 L72 110 M72 124 L56 108 M72 118 L88 100 M72 132 L60 126" fill="none" stroke="#07050B" stroke-width="4" stroke-linecap="round"></path>
+      <path d="M100 58 q6 -6 12 0 q6 -6 12 0" fill="none" stroke="#07050B" stroke-width="2.4" stroke-linecap="round"></path>
+      <path d="M262 92 q4 -4 8 0 q4 -4 8 0" fill="none" stroke="#07050B" stroke-width="2" stroke-linecap="round"></path>
+    </svg>
+    <div style="position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 14px 16px 0 20px">
+      <span style="font-family: Creepster, Inter, sans-serif; font-size: 26px; line-height: 30px; color: #F5A524; letter-spacing: 0.5px; max-width: 200px">Haunted House Inspector</span>
+      <button type="button" role="switch" aria-checked="true" style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 4px; border: none; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: #EDE6F5; cursor: pointer">
+        <span style="width: 36px; height: 20px; border-radius: 10px; background: #F5A524; display: flex; align-items: center; justify-content: flex-end; padding: 2px; box-sizing: border-box">
+          <span style="width: 16px; height: 16px; border-radius: 8px; background: #1A1206"></span>
+        </span>
+        Haunted mode
+      </button>
+    </div>
+  </header>
+
+  <main style="flex-grow: 1; display: flex; flex-direction: column; gap: 20px; padding: 24px 20px; position: relative">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <h1 style="margin: 0; font-size: 26px; line-height: 32px; font-weight: 700; letter-spacing: -0.4px">Upload a photo or video of your problem.</h1>
+      <p style="margin: 0; font-size: 15px; line-height: 22px; color: #B8AECB">Add up to 5 photos, or one video up to 30 seconds.</p>
+    </div>
+
+    <section aria-labelledby="files-h" style="position: relative; background: #1A1424; border: 1px solid #3A2D4F; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+      <svg aria-hidden="true" width="64" height="64" viewBox="0 0 64 64" style="position: absolute; right: 0; top: 0">
+        <path d="M64 0 L20 0 M64 0 L64 44 M64 0 L30 30 M64 0 L44 10 M64 0 L54 22" fill="none" stroke="#6E5C8A" stroke-width="1" opacity="0.6"></path>
+        <path d="M44 0 Q50 10 64 14 M34 0 Q42 18 64 26 M26 0 Q34 26 64 38" fill="none" stroke="#6E5C8A" stroke-width="1" opacity="0.5"></path>
+      </svg>
+      <h2 id="files-h" style="margin: 0; font-family: Creepster, Inter, sans-serif; font-size: 22px; font-weight: 400; letter-spacing: 0.6px; color: #F5A524">Your photos</h2>
+      <div style="border: 2px dashed #5A4A73; border-radius: 12px; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+        <svg aria-hidden="true" width="56" height="56" viewBox="0 0 56 56" fill="none">
+          <path d="M14 48 V24 a14 14 0 0 1 28 0 V48 l-5 -4 -5 4 -4 -4 -4 4 -5 -4 Z" fill="#EDE6F5" opacity="0.92"></path>
+          <circle cx="23" cy="25" r="2.6" fill="#0E0B14"></circle>
+          <circle cx="33" cy="25" r="2.6" fill="#0E0B14"></circle>
+          <ellipse cx="28" cy="33" rx="3" ry="4" fill="#0E0B14"></ellipse>
+        </svg>
+        <span style="font-size: 17px; font-weight: 700; color: #EDE6F5">No spirits caught yet.</span>
+        <span style="font-size: 14px; line-height: 20px; color: #B8AECB">Drag photos or a short video here, or</span>
+        <button type="button" style="min-height: 46px; padding: 0 18px; border: none; border-radius: 10px; background: #F5A524; font-family: inherit; font-size: 15px; font-weight: 700; color: #1A1206; cursor: pointer">Choose photos or a video</button>
+      </div>
+      <span style="font-size: 12px; color: #B8AECB">JPEG, PNG or WebP, up to 10 MB each</span>
+    </section>
+
+    <section aria-labelledby="q-h" style="background: #1A1424; border: 1px solid #3A2D4F; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 16px">
+      <h2 id="q-h" style="margin: 0; font-family: Creepster, Inter, sans-serif; font-size: 22px; font-weight: 400; letter-spacing: 0.6px; color: #F5A524">Tell us a little more</h2>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="hq-a" style="font-size: 14px; font-weight: 600">Where in the home is it?</label>
+        <input id="hq-a" type="text" readonly aria-describedby="hq-a-count" style="height: 46px; padding: 0 12px; border: 1px solid #6E5C8A; border-radius: 10px; font-family: inherit; font-size: 15px; color: #EDE6F5; background: #120E1A">
+        <span id="hq-a-count" style="font-size: 12px; color: #B8AECB; align-self: flex-end">0 / 500</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="hq-b" style="font-size: 14px; font-weight: 600">How long has it been happening?</label>
+        <input id="hq-b" type="text" readonly aria-describedby="hq-b-count" style="height: 46px; padding: 0 12px; border: 1px solid #6E5C8A; border-radius: 10px; font-family: inherit; font-size: 15px; color: #EDE6F5; background: #120E1A">
+        <span id="hq-b-count" style="font-size: 12px; color: #B8AECB; align-self: flex-end">0 / 500</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="hq-c" style="font-size: 14px; font-weight: 600; line-height: 20px">Anything else we should know? For example smells, sounds, sparks or recent changes.</label>
+        <textarea id="hq-c" rows="3" readonly aria-describedby="hq-c-count" style="padding: 10px 12px; border: 1px solid #6E5C8A; border-radius: 10px; font-family: inherit; font-size: 15px; color: #EDE6F5; background: #120E1A; resize: none"></textarea>
+        <span id="hq-c-count" style="font-size: 12px; color: #B8AECB; align-self: flex-end">0 / 500</span>
+      </div>
+    </section>
+
+    <section aria-labelledby="hnotice-h" style="background: #221A33; border: 1px solid #4A3B63; border-radius: 14px; padding: 16px; display: flex; gap: 12px">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F5A524" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h2 id="hnotice-h" style="margin: 0; font-size: 15px; font-weight: 600">Before you send</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 21px; color: #D6CDE4">Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days.</p>
+      </div>
+    </section>
+
+    <button type="button" style="height: 54px; border: none; border-radius: 12px; background: #F5A524; font-family: inherit; font-size: 17px; font-weight: 700; color: #1A1206; cursor: pointer">Inspect my home</button>
+  </main>
+
+  <svg aria-hidden="true" width="390" height="90" viewBox="0 0 390 90" style="position: absolute; left: 0; bottom: 52px; pointer-events: none">
+    <ellipse cx="60" cy="70" rx="120" ry="26" fill="#B8AECB" opacity="0.07"></ellipse>
+    <ellipse cx="220" cy="78" rx="150" ry="24" fill="#B8AECB" opacity="0.06"></ellipse>
+    <ellipse cx="350" cy="66" rx="110" ry="22" fill="#B8AECB" opacity="0.07"></ellipse>
+  </svg>
+
+  <footer style="position: relative; padding: 16px 20px 24px; font-size: 12px; color: #B8AECB; text-align: center; border-top: 1px solid #3A2D4F; background: #120E1A">Estimates only. Not a professional inspection.</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pro – job list</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FA8}a:hover{color:#174A84}
+button:focus-visible,a:focus-visible{outline:3px solid #1F5FA8;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 820px; box-sizing: border-box; background: #F6F7F9; font-family: Inter, system-ui, sans-serif; color: #18212B">
+
+  <header style="background: #FFFFFF; border-bottom: 1px solid #D9DEE5">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="font-size: 17px; font-weight: 700; color: #1F5FA8; letter-spacing: -0.2px">Haunted House Inspector</span>
+        <span style="padding: 3px 8px; border-radius: 6px; background: #18212B; color: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.4px">PRO</span>
+      </div>
+      <button type="button" style="min-height: 44px; padding: 0 16px; border: 1px solid #A9B4C2; border-radius: 10px; background: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; color: #18212B; cursor: pointer">Log out</button>
+    </div>
+  </header>
+
+  <main style="max-width: 1120px; margin: 0 auto; padding: 28px 24px 40px; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.4px">Jobs</h1>
+        <p style="margin: 0; font-size: 14px; color: #55606E">The newest 50 jobs from the last 30 days.</p>
+      </div>
+      <button type="button" style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid #1F5FA8; border-radius: 10px; background: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; color: #1F5FA8; cursor: pointer">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg>
+        Refresh
+      </button>
+    </div>
+
+    <div style="overflow-x: auto; background: #FFFFFF; border: 1px solid #D9DEE5; border-radius: 14px">
+      <table style="width: 100%; min-width: 760px; border-collapse: collapse; font-size: 14px">
+        <thead>
+          <tr style="text-align: left; background: #EEF1F5">
+            <th scope="col" style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #2C3744; text-transform: uppercase; letter-spacing: 0.4px">Urgency</th>
+            <th scope="col" style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #2C3744; text-transform: uppercase; letter-spacing: 0.4px">Where in the home</th>
+            <th scope="col" style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #2C3744; text-transform: uppercase; letter-spacing: 0.4px">Trade</th>
+            <th scope="col" style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #2C3744; text-transform: uppercase; letter-spacing: 0.4px">Received</th>
+            <th scope="col" style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #2C3744; text-transform: uppercase; letter-spacing: 0.4px">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{ jobs }}" as="j" hint-placeholder-count="6">
+            <tr style="{{ j.rowStyle }}">
+              <td style="padding: 14px 16px; vertical-align: middle">
+                <span style="{{ j.badgeStyle }}">{{ j.urgency }}</span>
+              </td>
+              <td style="padding: 14px 16px; vertical-align: middle">
+                <a href="ProJob.dc.html" aria-label="{{ j.linkLabel }}" style="font-weight: 600; text-decoration: underline; text-underline-offset: 3px">{{ j.where }}</a>
+              </td>
+              <td style="padding: 14px 16px; vertical-align: middle; color: #2C3744">{{ j.trade }}</td>
+              <td style="padding: 14px 16px; vertical-align: middle; color: #2C3744">
+                <time datetime="{{ j.iso }}">{{ j.when }}</time>
+              </td>
+              <td style="padding: 14px 16px; vertical-align: middle; font-weight: 500">{{ j.status }}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin: 0; font-size: 13px; color: #55606E">Emergency jobs show no trade and no actions. The homeowner was told to call 911.</p>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const badge = {
+      Emergency: 'background: #B42318; color: #FFFFFF',
+      Urgent: 'background: #FCE3D3; color: #9A3412',
+      Soon: 'background: #FEF0C7; color: #7A4F01',
+      Monitor: 'background: #DCF5E6; color: #14532D'
+    };
+    const rows = [
+      { urgency: 'Emergency', where: 'Basement, near the furnace', trade: '—', when: 'Today, 9:12 AM EST', iso: '2026-11-13T14:12:00Z', status: 'Emergency' },
+      { urgency: 'Soon', where: 'Under the kitchen sink', trade: 'Plumber', when: 'Today, 8:47 AM EST', iso: '2026-11-13T13:47:00Z', status: 'New' },
+      { urgency: 'Urgent', where: 'Hallway light switch', trade: 'Electrician', when: 'Yesterday, 6:30 PM EST', iso: '2026-11-12T23:30:00Z', status: "Waiting for the homeowner's reply" },
+      { urgency: 'Monitor', where: 'Bathroom window frame', trade: 'Handyman', when: 'Yesterday, 2:05 PM EST', iso: '2026-11-12T19:05:00Z', status: 'Accepted, waiting for the homeowner to pick a time' },
+      { urgency: 'Soon', where: 'Upstairs bedroom vent', trade: 'HVAC technician', when: 'Nov 11, 7:40 PM EST', iso: '2026-11-12T00:40:00Z', status: 'Booked' },
+      { urgency: 'Monitor', where: 'Attic, above the garage', trade: 'Roofer', when: 'Nov 11, 10:15 AM EST', iso: '2026-11-11T15:15:00Z', status: 'Declined' }
+    ];
+    const jobs = rows.map((r, i) => ({
+      ...r,
+      linkLabel: r.where + ', ' + r.status,
+      badgeStyle: 'display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; ' + badge[r.urgency],
+      rowStyle: 'border-top: 1px solid #E3E8EF; ' + (r.urgency === 'Emergency' ? 'background: #FEF3F2' : 'background: #FFFFFF')
+    }));
+    return { jobs };
+  }
+}
+</script>
+</body>
+</html>
