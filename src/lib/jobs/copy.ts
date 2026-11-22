@@ -30,6 +30,10 @@ export const STATUS_SAFETY_LINE =
 /** Retention note for replies (Requirements 9, 14). */
 export const REPLY_RETENTION_NOTE = "Your replies are deleted after 30 days, like your photos.";
 
+/** Results_Page_Notice: shown only on the Results_Page (Requirements 9.8, 9.9). */
+export const RESULTS_PAGE_NOTICE =
+  "Anyone with this page's link can see it and send messages in the chat. Your photos and messages are deleted after 30 days.";
+
 /** Shown when a status refresh fails. */
 export const STATUS_REFRESH_FAILED = "We couldn't update the status. We'll try again.";
 

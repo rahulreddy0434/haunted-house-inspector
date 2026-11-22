@@ -307,6 +307,186 @@
         "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
         "timestamp": 1795386130242
       }
+    ],
+    "3.1 Add the view helpers": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386561299
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386627512
+      }
+    ],
+    "3.2 Implement `src/hooks/useChatThread.ts`": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386628196
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386710126
+      }
+    ],
+    "3.3 Implement the Chat_Panel components": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386714629
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386864721
+      }
+    ],
+    "3.4 Add Contrast_Registry rows for the chat colour pairs": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386867403
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386961307
+      }
+    ],
+    "3.5 Write hook tests with fake timers": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386867748
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386961579
+      }
+    ],
+    "3.9 Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795386962002
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387159167
+      }
+    ],
+    "3. Chat screens: hook and components, not mounted": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387159350
+      }
+    ],
+    "4.1 Move the Results_Page_Notice into `copy.ts` and use it from there": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387163330
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387227994
+      }
+    ],
+    "4.2 Update the Privacy_Notice text": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387163578
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387228786
+      }
+    ],
+    "4.3 Switch the Results page to the Chat_Panel": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387237082
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387666348
+      }
+    ],
+    "4.4 Switch the Pro job page to the Chat_Panel": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387237282
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387666601
+      }
+    ],
+    "4.5 Replace only the tests of the removed screens": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795387666907
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795388471419
+      }
+    ],
+    "4.6 Write integration tests for the live page updates": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795388471687
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795388588760
+      },
+      {
+        "executionId": "3bd545e6-370b-479b-910b-62654a317325",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795389488328
+      },
+      {
+        "executionId": "3bd545e6-370b-479b-910b-62654a317325",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795389725752
+      }
+    ],
+    "4.7 Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795388589564
+      },
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795388812047
+      }
+    ],
+    "4. Switch-over: replace the question form and reply box with the chat": [
+      {
+        "executionId": "594e9361-a02b-43d3-a221-f3b4a2581b3a",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795388812129
+      }
     ]
   }
 }

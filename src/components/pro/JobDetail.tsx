@@ -5,12 +5,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessCodeForm } from '@/components/pro/AccessCodeForm';
 import { ActionPanel } from '@/components/pro/ActionPanel';
 import { JobFacts } from '@/components/pro/JobFacts';
-import { JobHistory } from '@/components/pro/JobHistory';
 import { PhotoGallery } from '@/components/pro/PhotoGallery';
 import { ProEmergencyView } from '@/components/pro/ProEmergencyView';
 import { UrgencyBadge } from '@/components/results/UrgencyBadge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ChatPanel } from '@/components/ui/chat/ChatPanel';
 import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
 import { StateText } from '@/components/ui/haunted/StateText';
 import { TimeText } from '@/components/ui/TimeText';
@@ -38,19 +38,6 @@ function BackLink() {
 }
 
 function StatusBlock({ job }: { job: ProJobDetailActive }) {
-  if (job.status === 'info_requested') {
-    const latest = job.infoRequests.length > 0 ? job.infoRequests[job.infoRequests.length - 1] : null;
-    if (!latest) return null;
-    return (
-      <Card as="section" aria-label="Your question">
-        <h2 className={HEADING}>
-          You asked · <TimeText iso={latest.askedAt} />
-        </h2>
-        <p className={`${BODY} whitespace-pre-wrap break-words`}>{latest.question}</p>
-      </Card>
-    );
-  }
-
   if (job.status === 'accepted') {
     const slots = [...(job.offeredSlots ?? [])].sort((a, b) => Date.parse(a) - Date.parse(b));
     if (slots.length === 0) return null;
@@ -94,7 +81,7 @@ function StatusBlock({ job }: { job: ProJobDetailActive }) {
 }
 
 export function JobDetail({ id }: JobDetailProps) {
-  const { phase, job, error, sessionLost, reload } = useProJob(id);
+  const { phase, job, error, sessionLost, reload, applyLive } = useProJob(id);
   const [forceForm, setForceForm] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const statusRef = useRef<HTMLParagraphElement>(null);
@@ -115,6 +102,10 @@ export function JobDetail({ id }: JobDetailProps) {
   const handleUnauthorized = useCallback((): void => {
     setForceForm(true);
   }, []);
+
+  const handleEmergency = useCallback((): void => {
+    applyLive({ status: 'emergency', booking: {} });
+  }, [applyLive]);
 
   const handleLoginSuccess = useCallback((): void => {
     setForceForm(false);
@@ -216,13 +207,20 @@ export function JobDetail({ id }: JobDetailProps) {
       </p>
       <JobFacts job={job} />
       <PhotoGallery photos={job.photos} />
-      <JobHistory infoRequests={job.infoRequests} replies={job.replies} />
       <StatusBlock job={job} />
       <ActionPanel
         id={job.id}
         status={job.status}
         onDone={handleActionDone}
         onConflict={handleActionDone}
+        onUnauthorized={handleUnauthorized}
+      />
+      <ChatPanel
+        side="tradesperson"
+        jobId={job.id}
+        status={job.status}
+        onJobChange={applyLive}
+        onEmergency={handleEmergency}
         onUnauthorized={handleUnauthorized}
       />
     </div>

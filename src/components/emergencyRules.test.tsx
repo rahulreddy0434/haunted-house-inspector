@@ -6,7 +6,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react';
 import type { UseInspectionReturn } from '@/hooks/useInspection';
 import type { UseProJobReturn } from '@/hooks/useProJob';
-import { emergencyResult } from '@/test/inspectionFixtures';
+import { emergencyResult, normalResult } from '@/test/inspectionFixtures';
 
 const hooks = vi.hoisted(() => ({
   inspection: null as unknown as UseInspectionReturn,
@@ -193,25 +193,50 @@ describe('Emergency views remove theme-haunted in the same render', () => {
     expect(window.localStorage.getItem('hhi_theme')).toBe('haunted');
   });
 
-  it('reply returning JOB_IS_EMERGENCY', async () => {
+  it('chat send returning JOB_IS_EMERGENCY (409)', async () => {
+    setInspection({ result: normalResult });
     vi.stubGlobal(
       'fetch',
-      vi.fn(async (url: string) =>
-        String(url).endsWith('/reply')
-          ? json(409, { error: 'JOB_IS_EMERGENCY', message: 'x' })
-          : json(200, { status: 'info_requested', question: 'Where is the leak?' }),
-      ),
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (String(url).endsWith('/chat')) {
+          return init?.method === 'POST'
+            ? json(409, { error: 'JOB_IS_EMERGENCY', message: 'x' })
+            : json(200, { status: 'info_requested', booking: {}, chatState: 'open', messages: [], lastSeq: 0 });
+        }
+        return json(200, { status: 'info_requested', question: 'Where is the leak?' });
+      }),
     );
-    mountHaunted(<StatusPanel id={ID} onEmergency={() => {}} />);
+    mountHaunted(<ResultsView id={ID} />);
     await flush();
     expect(hasClass()).toBe(true);
-    fireEvent.change(screen.getByLabelText('Your reply'), { target: { value: 'Under the sink' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send reply' }));
+    fireEvent.change(screen.getByLabelText('Your message'), { target: { value: 'Under the sink' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await flush();
+    expect(hasClass()).toBe(false);
+  });
+
+  it('chat send returning a 200 emergency body', async () => {
+    setInspection({ result: normalResult });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (String(url).endsWith('/chat')) {
+          return init?.method === 'POST'
+            ? json(200, { status: 'emergency', message: EMERGENCY_MESSAGE })
+            : json(200, { status: 'info_requested', booking: {}, chatState: 'open', messages: [], lastSeq: 0 });
+        }
+        return json(200, { status: 'info_requested', question: 'Where is the leak?' });
+      }),
+    );
+    mountHaunted(<ResultsView id={ID} />);
+    await flush();
+    expect(hasClass()).toBe(true);
+    fireEvent.change(screen.getByLabelText('Your message'), { target: { value: 'I smell gas' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
     await flush();
     expect(hasClass()).toBe(false);
   });
 });
-
 describe('Leaving an emergency page restores Haunted', () => {
   it('brings back the class and the switch (on) with hhi_theme unchanged', () => {
     setInspection();

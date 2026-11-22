@@ -7,6 +7,7 @@ import type {
   JobStatus,
   ProJobDetail,
   ProJobDetailActive,
+  ProJobDetailEmergency,
   ProJobListItem,
 } from '@/types/job';
 
@@ -39,18 +40,25 @@ function copyAnswers(a: ContextAnswers): ContextAnswers {
   return { location: a.location, duration: a.duration, recentChanges: a.recentChanges };
 }
 
+/** The Pro view of an emergency Job: no trade, cost, brief, photos, slots or chat. */
+export function toProEmergencyDetail(
+  job: Pick<JobRecord, 'id' | 'createdAt' | 'likelyIssue' | 'answers'>,
+): ProJobDetailEmergency {
+  return {
+    id: job.id,
+    createdAt: job.createdAt,
+    status: 'emergency',
+    urgency: 'emergency',
+    likelyIssue: job.likelyIssue,
+    answers: copyAnswers(job.answers),
+    emergencyNote: PRO_EMERGENCY_NOTE,
+  };
+}
+
 export function toProDetail(job: JobRecord, photos: string[]): ProJobDetail {
   const status = effectiveStatus(job);
   if (status === 'emergency' || job.urgency === 'emergency') {
-    return {
-      id: job.id,
-      createdAt: job.createdAt,
-      status: 'emergency',
-      urgency: 'emergency',
-      likelyIssue: job.likelyIssue,
-      answers: copyAnswers(job.answers),
-      emergencyNote: PRO_EMERGENCY_NOTE,
-    };
+    return toProEmergencyDetail(job);
   }
   const detail: ProJobDetailActive = {
     id: job.id,
@@ -90,6 +98,28 @@ export function toBookingData(
       return job.declineReason !== undefined ? { declineReason: job.declineReason } : {};
     default:
       return {};
+  }
+}
+
+/** Builds the Homeowner status view from a chat response's status and booking data. */
+export function viewFromChat(
+  status: Exclude<JobStatus, 'emergency'>,
+  booking: BookingData,
+): HomeownerStatusView {
+  switch (status) {
+    case 'info_requested':
+      return { status: 'info_requested', question: '' };
+    case 'accepted':
+      return { status: 'accepted', offeredSlots: [...(booking.offeredSlots ?? [])].sort() };
+    case 'declined':
+      return booking.declineReason !== undefined
+        ? { status: 'declined', reason: booking.declineReason }
+        : { status: 'declined' };
+    case 'booked':
+      return { status: 'booked', bookedSlot: booking.bookedSlot ?? '' };
+    case 'new':
+    default:
+      return { status: 'new' };
   }
 }
 

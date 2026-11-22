@@ -5,7 +5,6 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import { ActionPanel } from '@/components/pro/ActionPanel';
 import { AcceptForm } from '@/components/pro/AcceptForm';
 import { DeclineForm } from '@/components/pro/DeclineForm';
-import { AskInfoForm } from '@/components/pro/AskInfoForm';
 import type { JobStatus } from '@/types/job';
 
 const ID = 'job-123';
@@ -40,9 +39,6 @@ function first(): HTMLInputElement {
 function declineBox(): HTMLTextAreaElement {
   return screen.getByLabelText('Reason (optional)') as HTMLTextAreaElement;
 }
-function askBox(): HTMLTextAreaElement {
-  return screen.getByLabelText('Your question for the homeowner') as HTMLTextAreaElement;
-}
 function lastBody(): unknown {
   const init = fetchMock.mock.calls[fetchMock.mock.calls.length - 1][1];
   return JSON.parse(String(init?.body));
@@ -64,11 +60,11 @@ afterEach(() => {
 });
 
 describe('ActionPanel controls per status', () => {
-  it('new shows accept, decline and ask-info', () => {
+  it('new shows accept and decline only (questions go through the chat)', () => {
     renderPanel('new');
     expect(screen.getByRole('button', { name: 'Accept job' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Decline job' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Send question' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Send question' })).toBeNull();
   });
 
   it('info_requested shows accept and decline only', () => {
@@ -107,7 +103,7 @@ describe('AcceptForm', () => {
   });
 });
 
-describe('DeclineForm and AskInfoForm counts', () => {
+describe('DeclineForm counts', () => {
   it('shows a live decline count linked by aria-describedby', () => {
     render(<DeclineForm pending={false} onSubmit={vi.fn()} />);
     fireEvent.change(declineBox(), { target: { value: 'abc' } });
@@ -116,13 +112,6 @@ describe('DeclineForm and AskInfoForm counts', () => {
     expect(text).toContain('3 / 200');
   });
 
-  it('shows a live ask-info count linked by aria-describedby', () => {
-    render(<AskInfoForm pending={false} onSubmit={vi.fn()} />);
-    fireEvent.change(askBox(), { target: { value: 'hello' } });
-    const ids = (askBox().getAttribute('aria-describedby') ?? '').split(' ');
-    const text = ids.map((i) => document.getElementById(i)?.textContent);
-    expect(text).toContain('5 / 300');
-  });
 
   it('over the decline limit shows an error and disables the button', () => {
     const onSubmit = vi.fn();
@@ -135,12 +124,6 @@ describe('DeclineForm and AskInfoForm counts', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('over the ask-info limit shows an error and disables the button', () => {
-    render(<AskInfoForm pending={false} onSubmit={vi.fn()} />);
-    fireEvent.change(askBox(), { target: { value: 'x'.repeat(301) } });
-    expect(screen.getByRole('alert')).toBeTruthy();
-    expect((screen.getByRole('button', { name: 'Send question' }) as HTMLButtonElement).disabled).toBe(true);
-  });
 });
 
 describe('ActionPanel requests', () => {
@@ -156,7 +139,7 @@ describe('ActionPanel requests', () => {
     const controls = document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLButtonElement>(
       'input, textarea, button',
     );
-    expect(controls.length).toBe(8);
+    expect(controls.length).toBe(6);
     controls.forEach((c) => expect(c.disabled).toBe(true));
     release(json(200, { status: 'accepted' }));
     await waitFor(() => expect(onDone).toHaveBeenCalledWith('accepted'));
@@ -180,28 +163,16 @@ describe('ActionPanel requests', () => {
     expect(lastBody()).toEqual({});
   });
 
-  it('ask-info success posts the question and reports the status', async () => {
-    fetchMock.mockResolvedValueOnce(json(200, { status: 'info_requested' }));
-    renderPanel('new');
-    fireEvent.change(askBox(), { target: { value: 'Where is the leak?' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send question' }));
-    await waitFor(() => expect(onDone).toHaveBeenCalledWith('info_requested'));
-    expect(fetchMock.mock.calls[0][0]).toBe(`/api/pro/jobs/${ID}/ask-info`);
-    expect(lastBody()).toEqual({ question: 'Where is the leak?' });
-  });
-
   it('500 shows the message, keeps typed text and slots, and re-enables controls', async () => {
     fetchMock.mockResolvedValueOnce(json(500, { message: 'Boom from server' }));
     renderPanel('new');
     fireEvent.change(first(), { target: { value: '2026-11-20T09:00' } });
     fireEvent.change(declineBox(), { target: { value: 'keep me' } });
-    fireEvent.change(askBox(), { target: { value: 'keep question' } });
     fireEvent.click(screen.getByRole('button', { name: 'Accept job' }));
     const alert = await screen.findByRole('alert');
     expect(alert.textContent).toBe('Boom from server');
     expect(first().value).toBe('2026-11-20T09:00');
     expect(declineBox().value).toBe('keep me');
-    expect(askBox().value).toBe('keep question');
     await waitFor(() => expect(first().disabled).toBe(false));
     expect((screen.getByRole('button', { name: 'Accept job' }) as HTMLButtonElement).disabled).toBe(false);
     expect(onDone).not.toHaveBeenCalled();

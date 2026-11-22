@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/Card';
 
 export const DATA_SHARING_NOTICE_TEXT =
-  'Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days.';
+  'Your photos, answers and messages are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days.';
 
 interface DataRetentionNoticeProps {
   /** Called once, the first time at least 90% of the notice is visible. */

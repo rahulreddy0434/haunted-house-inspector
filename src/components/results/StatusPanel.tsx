@@ -7,16 +7,15 @@ import { Card } from '@/components/ui/Card';
 import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
 import { StateText } from '@/components/ui/haunted/StateText';
 import { TimeText } from '@/components/ui/TimeText';
-import { BODY, ERROR_TEXT, HEADING, MUTED, PRIMARY_BUTTON } from '@/components/ui/styles';
-import { ReplyBox } from '@/components/results/ReplyBox';
+import { BODY, ERROR_TEXT, MUTED, PRIMARY_BUTTON } from '@/components/ui/styles';
 import { SlotPicker } from '@/components/results/SlotPicker';
 import { useStatusPolling } from '@/hooks/useStatusPolling';
+import type { UseStatusPollingReturn } from '@/hooks/useStatusPolling';
 import { EMERGENCY_MESSAGE } from '@/lib/emergency/messages';
 import {
   ERROR_MESSAGES,
   HOMEOWNER_STATUS_TEXT,
   JOB_CHANGED_NOTICE,
-  REPLY_TOO_LARGE_MESSAGE,
   STATUS_REFRESH_FAILED,
   STATUS_SAFETY_LINE,
 } from '@/lib/jobs/copy';
@@ -26,6 +25,13 @@ import type { HomeownerStatusView } from '@/types/job';
 export interface StatusPanelProps {
   id: string;
   onEmergency: () => void;
+  /** When given, the panel reads this instead of polling by itself. */
+  polling?: UseStatusPollingReturn;
+}
+
+export interface StatusPanelBodyProps {
+  id: string;
+  polling: UseStatusPollingReturn;
 }
 
 const FIRST_LOAD_TEXT = 'Checking your job status…';
@@ -99,17 +105,22 @@ async function post(url: string, payload: unknown, signal: AbortSignal): Promise
   }
 }
 
-export function StatusPanel({ id, onEmergency }: StatusPanelProps) {
-  const { view, loaded, updateFailed, refreshing, gone, refresh, refreshNow, applyView } =
-    useStatusPolling(id, { onEmergency });
+function StatusPanelWithHook({ id, onEmergency }: { id: string; onEmergency: () => void }) {
+  const polling = useStatusPolling(id, { onEmergency });
+  return <StatusPanelBody id={id} polling={polling} />;
+}
 
-  const [replyText, setReplyText] = useState('');
-  const [sending, setSending] = useState(false);
-  const [replyError, setReplyError] = useState<string | null>(null);
+export function StatusPanel({ id, onEmergency, polling }: StatusPanelProps) {
+  if (polling) return <StatusPanelBody id={id} polling={polling} />;
+  return <StatusPanelWithHook id={id} onEmergency={onEmergency} />;
+}
+
+export function StatusPanelBody({ id, polling }: StatusPanelBodyProps) {
+  const { view, loaded, updateFailed, refreshing, gone, refresh, refreshNow, applyView } = polling;
+
   const [booking, setBooking] = useState(false);
   const [bookError, setBookError] = useState<string | null>(null);
   const [changed, setChanged] = useState(false);
-  const [unsentReply, setUnsentReply] = useState<string | null>(null);
   const [removedSlots, setRemovedSlots] = useState<readonly string[]>([]);
 
   const statusRef = useRef<HTMLDivElement | null>(null);
@@ -149,7 +160,7 @@ export function StatusPanel({ id, onEmergency }: StatusPanelProps) {
   );
 
   const handleEmergencyOrChanged = useCallback(
-    (outcome: Outcome, unsent: string | null): boolean => {
+    (outcome: Outcome): boolean => {
       if (outcome.kind === 'emergency') {
         // applyView re-evaluates the stop rules and calls onEmergency once.
         applyView(outcome.view);
@@ -157,7 +168,6 @@ export function StatusPanel({ id, onEmergency }: StatusPanelProps) {
       }
       if (outcome.kind === 'changed') {
         setChanged(true);
-        setUnsentReply(unsent);
         refreshNow();
         return true;
       }
@@ -166,41 +176,14 @@ export function StatusPanel({ id, onEmergency }: StatusPanelProps) {
     [applyView, refreshNow],
   );
 
-  async function sendReply(): Promise<void> {
-    const text = replyText;
-    setSending(true);
-    setReplyError(null);
-    setChanged(false);
-    setUnsentReply(null);
-    const outcome = await run(`/api/inspections/${encodeURIComponent(id)}/reply`, { text });
-    if (outcome.kind === 'aborted') return;
-    setSending(false);
-    if (handleEmergencyOrChanged(outcome, text)) {
-      if (outcome.kind === 'changed') setReplyText('');
-      return;
-    }
-    if (outcome.kind === 'view' && outcome.view.status === 'new') {
-      setReplyText('');
-      pendingFocus.current = 'status';
-      applyView(outcome.view);
-    } else if (outcome.kind === 'too-large') {
-      setReplyError(REPLY_TOO_LARGE_MESSAGE);
-    } else if (outcome.kind === 'error') {
-      setReplyError(outcome.message);
-    } else {
-      setReplyError(ERROR_MESSAGES.ACTION_FAILED);
-    }
-  }
-
   async function confirmSlot(slot: string): Promise<void> {
     setBooking(true);
     setBookError(null);
     setChanged(false);
-    setUnsentReply(null);
     const outcome = await run(`/api/inspections/${encodeURIComponent(id)}/book`, { slot });
     if (outcome.kind === 'aborted') return;
     setBooking(false);
-    if (handleEmergencyOrChanged(outcome, null)) return;
+    if (handleEmergencyOrChanged(outcome)) return;
     if (outcome.kind === 'view' && outcome.view.status === 'booked') {
       pendingFocus.current = 'confirmation';
       applyView(outcome.view);
@@ -256,29 +239,6 @@ export function StatusPanel({ id, onEmergency }: StatusPanelProps) {
         <p role="status" className={BODY}>
           {JOB_CHANGED_NOTICE}
         </p>
-      ) : null}
-
-      {changed && unsentReply !== null ? (
-        <div className="space-y-1">
-          <p className={HEADING}>Your unsent reply</p>
-          <p className={`${BODY} ${PLAIN_TEXT}`}>{unsentReply}</p>
-        </div>
-      ) : null}
-
-      {view?.status === 'info_requested' ? (
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <p className={HEADING}>The tradesperson asks</p>
-            <p className={`${BODY} ${PLAIN_TEXT}`}>{view.question}</p>
-          </div>
-          <ReplyBox
-            value={replyText}
-            onChange={setReplyText}
-            onSubmit={() => void sendReply()}
-            sending={sending}
-            error={replyError}
-          />
-        </div>
       ) : null}
 
       {view?.status === 'accepted' ? (

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AcceptForm } from '@/components/pro/AcceptForm';
-import { AskInfoForm } from '@/components/pro/AskInfoForm';
 import { DeclineForm } from '@/components/pro/DeclineForm';
 import { Card } from '@/components/ui/Card';
 import { ERROR_TEXT, HEADING } from '@/components/ui/styles';
@@ -20,7 +19,7 @@ export interface ActionPanelProps {
   onUnauthorized: () => void;
 }
 
-type ActionPath = 'accept' | 'decline' | 'ask-info';
+type ActionPath = 'accept' | 'decline';
 
 const GENERIC_ERROR = 'Something went wrong. Please try again.';
 const NETWORK_ERROR = "We couldn't reach the server. Please try again.";
@@ -113,9 +112,6 @@ export function ActionPanel({ id, status, onDone, onConflict, onUnauthorized }: 
         pending={pending}
         onSubmit={(reason) => void send('decline', reason.trim() ? { reason } : {})}
       />
-      {status === 'new' ? (
-        <AskInfoForm pending={pending} onSubmit={(question) => void send('ask-info', { question })} />
-      ) : null}
       {message ? (
         <p role="alert" className={`text-sm ${ERROR_TEXT}`}>
           {message}

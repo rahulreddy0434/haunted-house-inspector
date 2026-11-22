@@ -9,16 +9,26 @@ const hook = vi.hoisted(() => ({ value: null as unknown as UseInspectionReturn }
 vi.mock("@/hooks/useInspection", () => ({ useInspection: () => hook.value }));
 
 const panel = vi.hoisted(() => ({
-  calls: [] as { id: string; onEmergency: () => void }[],
+  calls: [] as { id: string }[],
+  pollingOptions: [] as { onEmergency?: () => void }[],
+}));
+vi.mock("@/hooks/useStatusPolling", () => ({
+  useStatusPolling: (_id: string, options: { onEmergency?: () => void }) => {
+    panel.pollingOptions.push(options);
+    return { view: null, gone: false, applyView: () => {} };
+  },
 }));
 vi.mock("./StatusPanel", () => ({
-  StatusPanel: (props: { id: string; onEmergency: () => void }) => {
+  StatusPanelBody: (props: { id: string }) => {
     panel.calls.push(props);
     return <div data-testid="status-panel-mock" />;
   },
 }));
-
+vi.mock("@/components/ui/chat/ChatPanel", () => ({
+  ChatPanel: () => <div data-testid="chat-panel-mock" />,
+}));
 import { ResultsView } from "./ResultsView";
+import { RESULTS_PAGE_NOTICE } from "@/lib/jobs/copy";
 
 function setHook(v: Partial<UseInspectionReturn>) {
   hook.value = { result: null, loading: false, error: null, notFound: false, markEmergency: () => {}, ...v };
@@ -27,6 +37,7 @@ function setHook(v: Partial<UseInspectionReturn>) {
 beforeEach(() => {
   cleanup();
   panel.calls.length = 0;
+  panel.pollingOptions.length = 0;
 });
 
 describe("ResultsView", () => {
@@ -107,7 +118,7 @@ describe("ResultsView", () => {
     const markEmergency = vi.fn();
     setHook({ result: normalResult, markEmergency });
     render(<ResultsView id="x" />);
-    expect(panel.calls.at(-1)?.onEmergency).toBe(markEmergency);
+    expect(panel.pollingOptions.at(-1)?.onEmergency).toBe(markEmergency);
   });
 
   it.each([
@@ -128,6 +139,25 @@ describe("ResultsView", () => {
     render(<ResultsView id="x" />);
     expect(screen.getByText("This is a likely diagnosis, not a certain one.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Start a new inspection" }).getAttribute("href")).toBe("/");
+  });
+
+  it("shows the Results_Page_Notice with the exact text, once (9.8, 21.16)", () => {
+    setHook({ result: normalResult });
+    render(<ResultsView id="x" />);
+    const expected =
+      "Anyone with this page's link can see it and send messages in the chat. Your photos and messages are deleted after 30 days.";
+    expect(RESULTS_PAGE_NOTICE).toBe(expected);
+    expect(screen.getAllByText(expected)).toHaveLength(1);
+    expect(screen.getByText(expected).textContent).toBe(expected);
+  });
+
+  it("shows no Results_Page_Notice on the loading, not-found and error views (9.9)", () => {
+    for (const v of [{ loading: true }, { notFound: true }, { error: "boom" }]) {
+      cleanup();
+      setHook(v);
+      render(<ResultsView id="x" />);
+      expect(screen.queryByText(RESULTS_PAGE_NOTICE)).toBeNull();
+    }
   });
 
   it("shows not found with a new-inspection link", () => {

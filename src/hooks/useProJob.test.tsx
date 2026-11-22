@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useProJob } from '@/hooks/useProJob';
+import { useProJob, patchLive } from '@/hooks/useProJob';
+import type { ProJobDetail } from '@/types/job';
 import { hadProSession, markProSession, resetProSession } from '@/hooks/proSession';
 import { proJobDetailSchema } from '@/lib/validation/jobSchema';
 import { ERROR_MESSAGES } from '@/lib/jobs/copy';
@@ -208,5 +209,40 @@ describe('useProJob', () => {
       await Promise.resolve();
     });
     expect(errorSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('patchLive', () => {
+  const base = {
+    id: ID,
+    createdAt: '2030-01-01T10:00:00.000Z',
+    status: 'new',
+    urgency: 'soon',
+    likelyIssue: 'Dripping pipe',
+    trade: 'Plumber',
+    confidence: 0.7,
+    costRangeLow: 100,
+    costRangeHigh: 300,
+    jobBrief: 'Brief',
+    followUpQuestions: ['a?', 'b?'],
+    answers: { location: 'Kitchen', duration: '', recentChanges: '' },
+    infoRequests: [],
+    replies: [],
+    photos: [],
+  } as unknown as ProJobDetail;
+
+  it('patches status and booking, dropping facts of the old status', () => {
+    const accepted = patchLive(base, { status: 'accepted', booking: { offeredSlots: ['2030-03-01T09:00:00.000Z'] } });
+    expect(accepted.status).toBe('accepted');
+    const booked = patchLive(accepted, { status: 'booked', booking: { bookedSlot: '2030-03-01T09:00:00.000Z' } });
+    expect(booked).toMatchObject({ status: 'booked', bookedSlot: '2030-03-01T09:00:00.000Z' });
+    expect('offeredSlots' in booked).toBe(false);
+  });
+
+  it('emergency replaces the job with the emergency detail', () => {
+    const next = patchLive(base, { status: 'emergency', booking: {} });
+    expect(next.status).toBe('emergency');
+    expect('trade' in next).toBe(false);
+    expect('jobBrief' in next).toBe(false);
   });
 });

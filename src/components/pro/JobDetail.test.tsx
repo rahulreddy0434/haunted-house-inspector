@@ -69,7 +69,19 @@ function valid(body: Record<string, unknown>): Record<string, unknown> {
 
 function serveJob(body: Record<string, unknown>): void {
   const checked = valid(body);
-  handler = (call) => (call.method === 'GET' && call.url === JOB_URL ? json(200, checked) : json(500, {}));
+  handler = (call) => {
+    if (call.method === 'GET' && call.url === JOB_URL) return json(200, checked);
+    if (call.method === 'GET' && call.url.startsWith(`${JOB_URL}/chat`)) {
+      return json(200, {
+        status: checked.status,
+        booking: {},
+        chatState: 'open',
+        messages: [],
+        lastSeq: 0,
+      });
+    }
+    return json(500, {});
+  };
 }
 
 beforeEach(() => {
@@ -109,21 +121,18 @@ describe('JobDetail active jobs', () => {
     expect(container.querySelectorAll('img')).toHaveLength(1);
   });
 
-  it('info_requested shows the latest question under "You asked"', async () => {
+  it('info_requested shows the waiting text and no question screens', async () => {
     serveJob(
       activeJob({
         status: 'info_requested',
-        infoRequests: [
-          { question: 'First old question?', askedAt: '2030-01-01T11:00:00.000Z' },
-          { question: 'Latest question?', askedAt: '2030-01-02T11:00:00.000Z' },
-        ],
+        infoRequests: [{ question: 'Latest question?', askedAt: '2030-01-02T11:00:00.000Z' }],
       }),
     );
     render(<JobDetail id={ID} />);
-    const section = (await screen.findByRole('region', { name: 'Your question' })) as HTMLElement;
-    expect(within(section).getByText(/You asked/)).toBeTruthy();
-    expect(within(section).getByText('Latest question?')).toBeTruthy();
-    expect(within(section).queryByText('First old question?')).toBeNull();
+    const status = await screen.findByText("Waiting for the homeowner's reply");
+    expect(status.getAttribute('role')).toBe('status');
+    expect(screen.queryByRole('region', { name: 'Your question' })).toBeNull();
+    expect(screen.queryByLabelText('Your question for the homeowner')).toBeNull();
   });
 
   it('accepted shows the offered slots in ascending order as <time>', async () => {

@@ -158,29 +158,29 @@ Test rules for every task:
   - [x] 2.12 Checkpoint - Ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 3. Chat screens: hook and components, not mounted
-  - [ ] 3.1 Add the view helpers
+- [x] 3. Chat screens: hook and components, not mounted
+  - [x] 3.1 Add the view helpers
     - In `src/lib/jobs/views.ts` add `viewFromChat(status, booking)` and `toProEmergencyDetail(job)` as pure functions
     - _Requirements: 3.8, 6.14, 6.15_
 
-  - [ ] 3.2 Implement `src/hooks/useChatThread.ts`
+  - [x] 3.2 Implement `src/hooks/useChatThread.ts`
     - One initial GET without `after` (none when access is `closed`), then a timer chain using `pollDelayMs`; one in-flight check at a time; one immediate check when the tab becomes visible; cursor moves only with GET `lastSeq`
     - After a successful send, merge the saved message and run one poll at once
     - Call `onJobChange` only when status or booking differ; call `onEmergency` once on 409 `JOB_IS_EMERGENCY` or a 200 emergency body and clear the messages; call `onUnauthorized` on 401; a 409 `ILLEGAL_TRANSITION` on send passes the current status to `onJobChange`
     - Status-only changes do not reset the interval or the Quiet_Period; cancel every timer and request on unmount; no `WebSocket` or `EventSource`
     - _Requirements: 3.7, 3.8, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10, 6.11, 6.14, 6.15, 6.18, 6.19_
 
-  - [ ] 3.3 Implement the Chat_Panel components
+  - [x] 3.3 Implement the Chat_Panel components
     - `src/components/ui/chat/ChatPanel.tsx`, `ChatMessageList.tsx`, `ChatBubble.tsx`, `ChatComposer.tsx`
     - Loading line, open, read-only (history and one text line, no box or button), closed (renders `null`), empty text, error and limit text in `role="alert"`; labelled `<ol>`; sender labels ("You", "Homeowner", "Tradesperson"); `<time>` through `TimeText`; text in one `whitespace-pre-wrap break-words` element; polite live region silent on first load
     - Textarea never disabled while sending; button disabled instead; clear text and refocus only after success; keep text and focus after a refusal; `min-h-11` controls; colours only from `styles.ts`; no `transition`, `animate` or `duration` classes; avoid string literals that are exactly CSS colour names (Source_Scan_Test)
     - _Requirements: 3.1, 3.2, 3.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 7.4, 18.1, 18.2, 18.5, 18.6, 19.1, 19.2, 19.3, 19.4, 19.5, 19.6, 20.1, 20.2, 20.3_
 
-  - [ ] 3.4 Add Contrast_Registry rows for the chat colour pairs
+  - [x] 3.4 Add Contrast_Registry rows for the chat colour pairs
     - Add any pair the chat components use that is not already listed; add a registry test that lists the pairs used by the chat components and asserts each row exists and passes
     - _Requirements: 18.3, 19.7_
 
-  - [ ] 3.5 Write hook tests with fake timers
+  - [x] 3.5 Write hook tests with fake timers
     - 5 s polling; 30 s after 2 minutes; back to 5 s on a new message or a send; stopped for a hidden tab, `read_only` and `emergency`; one immediate check on visible; no overlapping checks; a failed check keeps messages; unmount cancels timers and requests; a status-only change keeps the interval
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.9, 6.10, 6.11, 6.18, 21.8_
 
@@ -198,47 +198,47 @@ Test rules for every task:
     - Until task 4, no non-test file imports `ChatPanel`; `useChatThread` source contains no `WebSocket` or `EventSource`; `sourceScan.test.ts` and `src/lib/safety/` tests pass unchanged and the scan covers the new files in `src/components/ui/`
     - _Requirements: 6.8, 9.2, 18.7, 21.15_
 
-  - [ ] 3.9 Checkpoint - Ensure all tests pass
+  - [x] 3.9 Checkpoint - Ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Switch-over: replace the question form and reply box with the chat
-  - [ ] 4.1 Move the Results_Page_Notice into `copy.ts` and use it from there
+- [x] 4. Switch-over: replace the question form and reply box with the chat
+  - [x] 4.1 Move the Results_Page_Notice into `copy.ts` and use it from there
     - The line exists today as inline text in `src/components/results/ResultsView.tsx`: "Anyone with this page's link can view it. Your photos are deleted after 30 days." It stays unchanged until this task
     - In this task add the new text to `src/lib/jobs/copy.ts` as an exported constant: "Anyone with this page's link can see it and send messages in the chat. Your photos and messages are deleted after 30 days."
     - Replace the inline text in `ResultsView.tsx` with the constant from `copy.ts`
     - Add the exact-text test (the rendered Results_Page_Notice equals the string above, and appears only on the Results_Page); update the existing assertions that expect the old inline text
     - _Requirements: 9.8, 9.9, 21.16_
 
-  - [ ] 4.2 Update the Privacy_Notice text
+  - [x] 4.2 Update the Privacy_Notice text
     - Change `DATA_SHARING_NOTICE_TEXT` in `src/components/upload/DataRetentionNotice.tsx` to: "Your photos, answers and messages are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days."
     - Add the exact-text test; update the existing assertions on the old text; the text appears only where `DataRetentionNotice` is shown
     - _Requirements: 9.5, 9.9, 21.11, 21.16_
 
-  - [ ] 4.3 Switch the Results page to the Chat_Panel
+  - [x] 4.3 Switch the Results page to the Chat_Panel
     - Lift `useStatusPolling` into `ResultsView`; split `StatusPanel` into `StatusPanelBody` (props: `polling`) and a thin wrapper that still calls the hook itself when no `polling` prop is given, so its existing tests pass unchanged
     - Mount `ChatPanel` (`side="homeowner"`) with `onJobChange` calling `polling.applyView(viewFromChat(...))` and `onEmergency` applying the emergency view; remove the `ReplyBox` block, its state and the "unsent reply" notice
     - Status text, booking controls and chat panel read the same `polling.view`, so they update in one render; the Chat_Panel is removed in the same render as the emergency view
     - _Requirements: 1.2, 1.5, 3.3, 3.8, 4.5, 6.14, 6.16, 9.3, 9.4, 9.6_
 
-  - [ ] 4.4 Switch the Pro job page to the Chat_Panel
+  - [x] 4.4 Switch the Pro job page to the Chat_Panel
     - Add `applyLive(next)` to `useProJob` (one `setState`; patches status and booking; `emergency` replaces the job with `toProEmergencyDetail(job)` in the same update)
     - In `JobDetail` mount `ChatPanel` (`side="tradesperson"`) with `onJobChange={applyLive}`, an `onEmergency` that applies the emergency detail, and the existing `handleUnauthorized` for 401; remove `AskInfoForm`, `JobHistory` and the `info_requested` case of `StatusBlock`
     - While the status is `info_requested`, show the text "Waiting for the homeowner's reply"
     - The ask-info and reply routes, `applyReply`, `applyTransition` for `ask_info` and all their tests stay in place
     - _Requirements: 1.2, 1.5, 2.4, 3.3, 3.8, 4.5, 6.15, 6.17, 9.3, 9.6_
 
-  - [ ] 4.5 Replace only the tests of the removed screens
+  - [x] 4.5 Replace only the tests of the removed screens
     - Remove the tests of `ReplyBox`, `AskInfoForm` and `JobHistory`, each replaced by the equivalent Chat_Panel or page test from tasks 3 and 4
     - Remove the "no non-test file imports `ChatPanel`" smoke test from task 3.8, which no longer holds
     - Do not edit any test of the ask-info and reply routes; confirm they still pass
     - _Requirements: 9.6, 9.7, 21.19_
 
-  - [ ] 4.6 Write integration tests for the live page updates
+  - [x] 4.6 Write integration tests for the live page updates
     - Results page: accept shows "Pick a time" within one chat poll; status text, booking controls and chat panel change in the same render; a 409 `JOB_IS_EMERGENCY` removes the panel in the same render as the emergency view
     - Pro page: booking shows the booked Time_Slot within one chat poll; old questions and replies appear as the first messages of the thread
     - _Requirements: 3.7, 3.8, 6.14, 6.15, 6.16, 6.17, 9.4, 21.17_
 
-  - [ ] 4.7 Checkpoint - Ensure all tests pass
+  - [x] 4.7 Checkpoint - Ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 5. Help form: contact section, safety, saving and email

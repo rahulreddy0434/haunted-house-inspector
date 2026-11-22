@@ -114,7 +114,7 @@ describe('DataRetentionNotice', () => {
   });
 
   const EXPECTED_SHARING_TEXT =
-    'Your photos and answers are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days.';
+    'Your photos, answers and messages are stored privately and shared only with tradespeople using this app, so they can look at your job. Everything is deleted after 30 days.';
 
   it('exports the sharing notice constant with the exact wording', () => {
     expect(DATA_SHARING_NOTICE_TEXT).toBe(EXPECTED_SHARING_TEXT);

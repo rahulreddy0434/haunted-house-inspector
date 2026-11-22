@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StatusPanel } from './StatusPanel';
+import { ChatPanel } from '@/components/ui/chat/ChatPanel';
 import { EMERGENCY_MESSAGE } from '@/lib/emergency/messages';
 import {
   ERROR_MESSAGES,
   HOMEOWNER_STATUS_TEXT,
   JOB_CHANGED_NOTICE,
-  REPLY_TOO_LARGE_MESSAGE,
   STATUS_REFRESH_FAILED,
   STATUS_SAFETY_LINE,
 } from '@/lib/jobs/copy';
@@ -18,7 +18,7 @@ process.env.TZ = 'America/Toronto';
 
 const ID = 'job-123';
 const STATUS_URL = `/api/inspections/${ID}/status`;
-const REPLY_URL = `/api/inspections/${ID}/reply`;
+const CHAT_URL = `/api/inspections/${ID}/chat`;
 const BOOK_URL = `/api/inspections/${ID}/book`;
 
 const NOW = '2026-03-01T12:00:00.000Z';
@@ -82,14 +82,7 @@ function setup() {
   return { onEmergency, user, ...utils };
 }
 
-const replyBox = () => screen.getByLabelText('Your reply') as HTMLTextAreaElement;
-const sendButton = () => screen.getByRole('button', { name: 'Send reply' });
 const confirmButton = () => screen.getByRole('button', { name: 'Confirm this time' });
-
-async function typeAndSend(user: ReturnType<typeof userEvent.setup>, text: string) {
-  await user.type(replyBox(), text);
-  await user.click(sendButton());
-}
 
 describe('StatusPanel states', () => {
   it('shows the first-load text before any response, with no Refresh', async () => {
@@ -108,12 +101,12 @@ describe('StatusPanel states', () => {
     expect(screen.queryByLabelText('Your reply')).toBeNull();
   });
 
-  it('info_requested: shows the text, the question and the reply box', async () => {
+  it('info_requested: shows the text and Refresh, no question or reply box', async () => {
     status({ status: 'info_requested', question: 'Is the leak constant?' });
     setup();
     expect(await screen.findByText(HOMEOWNER_STATUS_TEXT.info_requested)).toBeTruthy();
-    expect(screen.getByText('Is the leak constant?')).toBeTruthy();
-    expect(replyBox()).toBeTruthy();
+    expect(screen.queryByText('Is the leak constant?')).toBeNull();
+    expect(screen.queryByLabelText('Your reply')).toBeNull();
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeTruthy();
     expect(screen.queryByText(STATUS_SAFETY_LINE)).toBeNull();
   });
@@ -169,9 +162,20 @@ describe('StatusPanel states', () => {
     expect(screen.queryByText(/likely diagnosis/i)).toBeNull();
   });
 
-  it('renders free text as text, not markup', async () => {
-    status({ status: 'info_requested', question: 'Is it <b>wet</b>?' });
-    setup();
+  it('renders free text as text, not markup, in the chat bubble', async () => {
+    route('GET', CHAT_URL, {
+      status: 200,
+      body: {
+        status: 'info_requested',
+        booking: {},
+        chatState: 'open',
+        lastSeq: 1,
+        messages: [
+          { id: 'c-1', side: 'tradesperson', text: 'Is it <b>wet</b>?', sentAt: NOW, legacy: false },
+        ],
+      },
+    });
+    render(<ChatPanel side="homeowner" jobId={ID} status="info_requested" onJobChange={vi.fn()} onEmergency={vi.fn()} />);
     expect(await screen.findByText('Is it <b>wet</b>?')).toBeTruthy();
     expect(document.querySelector('b')).toBeNull();
   });
@@ -221,101 +225,6 @@ describe('StatusPanel loading problems', () => {
     await waitFor(() =>
       expect((screen.getByRole('button', { name: 'Refresh' }) as HTMLButtonElement).disabled).toBe(false),
     );
-  });
-});
-
-describe('StatusPanel reply flow', () => {
-  beforeEach(() => status({ status: 'info_requested', question: 'Is the leak constant?' }));
-
-  it('200: moves to new, clears the text and focuses the status element', async () => {
-    route('POST', REPLY_URL, { status: 200, body: { status: 'new' } });
-    const { user } = setup();
-    await screen.findByLabelText('Your reply');
-    await typeAndSend(user, 'It drips all day');
-    const el = await screen.findByText(HOMEOWNER_STATUS_TEXT.new);
-    expect(screen.queryByLabelText('Your reply')).toBeNull();
-    await waitFor(() => expect(document.activeElement).toBe(el));
-    expect(el.getAttribute('role')).toBe('status');
-    expect(JSON.parse(String(fetchStub.mock.calls.find((c) => c[1]?.method === 'POST')?.[1]?.body))).toEqual({
-      text: 'It drips all day',
-    });
-  });
-
-  it('400 keeps the text and shows the server message', async () => {
-    route('POST', REPLY_URL, {
-      status: 400,
-      body: { error: 'INVALID_REQUEST', message: 'Your reply is too long. Shorten it.' },
-    });
-    const { user } = setup();
-    await screen.findByLabelText('Your reply');
-    await typeAndSend(user, 'abc');
-    expect((await screen.findByRole('alert')).textContent).toContain('Your reply is too long. Shorten it.');
-    expect(replyBox().value).toBe('abc');
-  });
-
-  it('413 shows "Please shorten your reply." and keeps the text', async () => {
-    route('POST', REPLY_URL, { status: 413, body: { error: 'PAYLOAD_TOO_LARGE', message: 'ignored' } });
-    const { user } = setup();
-    await screen.findByLabelText('Your reply');
-    await typeAndSend(user, 'abc');
-    expect((await screen.findByRole('alert')).textContent).toContain(REPLY_TOO_LARGE_MESSAGE);
-    expect(replyBox().value).toBe('abc');
-  });
-
-  it('429 shows the server message and keeps the text', async () => {
-    route('POST', REPLY_URL, {
-      status: 429,
-      body: { error: 'REPLY_LIMIT_REACHED', message: ERROR_MESSAGES.REPLY_LIMIT_REACHED },
-    });
-    const { user } = setup();
-    await screen.findByLabelText('Your reply');
-    await typeAndSend(user, 'abc');
-    expect((await screen.findByRole('alert')).textContent).toContain(ERROR_MESSAGES.REPLY_LIMIT_REACHED);
-    expect(replyBox().value).toBe('abc');
-  });
-
-  it('500 shows a failure message and keeps the text', async () => {
-    route('POST', REPLY_URL, { status: 500, body: {} });
-    const { user } = setup();
-    await screen.findByLabelText('Your reply');
-    await typeAndSend(user, 'abc');
-    expect((await screen.findByRole('alert')).textContent).toContain(ERROR_MESSAGES.ACTION_FAILED);
-    expect(replyBox().value).toBe('abc');
-  });
-
-  it('network error shows a failure message and keeps the text', async () => {
-    route('POST', REPLY_URL, () => Promise.reject(new TypeError('network down')));
-    const { user } = setup();
-    await screen.findByLabelText('Your reply');
-    await typeAndSend(user, 'abc');
-    expect((await screen.findByRole('alert')).textContent).toContain(ERROR_MESSAGES.ACTION_FAILED);
-    expect(replyBox().value).toBe('abc');
-  });
-
-  it('409 ILLEGAL_TRANSITION refreshes at once and shows the notice with "Your unsent reply"', async () => {
-    route('POST', REPLY_URL, { status: 409, body: { error: 'ILLEGAL_TRANSITION', message: 'x' } });
-    const { user } = setup();
-    await screen.findByLabelText('Your reply');
-    status({ status: 'declined' });
-    await typeAndSend(user, 'my <b>reply</b>');
-    expect(await screen.findByText(JOB_CHANGED_NOTICE)).toBeTruthy();
-    expect(screen.getByText('Your unsent reply')).toBeTruthy();
-    expect(screen.getByText('my <b>reply</b>')).toBeTruthy();
-    await waitFor(() => expect(count('GET', STATUS_URL)).toBe(2));
-    expect(await screen.findByText(HOMEOWNER_STATUS_TEXT.declined)).toBeTruthy();
-  });
-
-  it('409 JOB_IS_EMERGENCY calls onEmergency once and renders nothing', async () => {
-    route('POST', REPLY_URL, {
-      status: 409,
-      body: { error: 'JOB_IS_EMERGENCY', message: EMERGENCY_MESSAGE },
-    });
-    const { user, onEmergency, container } = setup();
-    await screen.findByLabelText('Your reply');
-    await typeAndSend(user, 'abc');
-    await waitFor(() => expect(onEmergency).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(container.innerHTML).toBe(''));
-    expect(onEmergency).toHaveBeenCalledTimes(1);
   });
 });
 

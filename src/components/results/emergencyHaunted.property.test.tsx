@@ -5,7 +5,7 @@ import fc from 'fast-check';
 import type { UseInspectionReturn } from '@/hooks/useInspection';
 import { emergencyResult, normalResult } from '@/test/inspectionFixtures';
 
-type Scenario = 'direct' | 'reply409' | 'book409' | 'poll' | 'pro';
+type Scenario = 'direct' | 'chat409' | 'chat200' | 'book409' | 'poll' | 'pro';
 
 const hook = vi.hoisted(() => ({
   initial: null as unknown as UseInspectionReturn['result'],
@@ -60,15 +60,29 @@ async function settle(): Promise<void> {
 function installFetch(scenario: Scenario, message: string, pro: Record<string, unknown>): void {
   vi.stubGlobal(
     'fetch',
-    vi.fn(async (input: unknown) => {
+    vi.fn(async (input: unknown, init?: RequestInit) => {
       const url = String(input);
       if (url.startsWith('/api/pro/jobs/')) return json(200, pro);
-      if (url.endsWith('/reply') || url.endsWith('/book')) {
+      if (url.endsWith('/chat')) {
+        if (init?.method === 'POST') {
+          return scenario === 'chat200'
+            ? json(200, { status: 'emergency', message })
+            : json(409, { error: 'JOB_IS_EMERGENCY', message });
+        }
+        if (scenario === 'poll') return json(409, { error: 'JOB_IS_EMERGENCY', message });
+        if (scenario === 'chat409' || scenario === 'chat200') {
+          return json(200, { status: 'info_requested', booking: {}, chatState: 'open', messages: [], lastSeq: 0 });
+        }
+        return json(500, {});
+      }
+      if (url.endsWith('/book')) {
         return json(409, { error: 'JOB_IS_EMERGENCY', message });
       }
       if (url.endsWith('/status')) {
         if (scenario === 'poll') return json(200, { status: 'emergency', message });
-        if (scenario === 'reply409') return json(200, { status: 'info_requested', question: 'Where is the leak?' });
+        if (scenario === 'chat409' || scenario === 'chat200') {
+          return json(200, { status: 'info_requested', question: 'Where is the leak?' });
+        }
         if (scenario === 'book409') return json(200, { status: 'accepted', offeredSlots: [SLOT] });
       }
       return json(500, {});
@@ -101,7 +115,7 @@ describe('Property 6: emergency pages never render Haunted styling', () => {
   it('holds for every scenario, stored setting and emergency content', async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc.constantFrom<Scenario>('direct', 'reply409', 'book409', 'poll', 'pro'),
+        fc.constantFrom<Scenario>('direct', 'chat409', 'chat200', 'book409', 'poll', 'pro'),
         fc.constantFrom<'normal' | 'haunted'>('normal', 'haunted'),
         text,
         fc.record({ location: text, duration: text, recentChanges: text }),
@@ -137,9 +151,9 @@ describe('Property 6: emergency pages never render Haunted styling', () => {
           );
           try {
             await settle();
-            if (scenario === 'reply409') {
-              fireEvent.change(screen.getByLabelText('Your reply'), { target: { value: 'Under the sink' } });
-              fireEvent.click(screen.getByRole('button', { name: 'Send reply' }));
+            if (scenario === 'chat409' || scenario === 'chat200') {
+              fireEvent.change(screen.getByLabelText('Your message'), { target: { value: 'Under the sink' } });
+              fireEvent.click(screen.getByRole('button', { name: 'Send' }));
               await settle();
             } else if (scenario === 'book409') {
               fireEvent.click(screen.getByRole('radio'));

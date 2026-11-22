@@ -101,11 +101,9 @@ const BASELINE: Record<string, string[]> = {
   'pro/JobListItem.tsx': ['focus-visible:ring-blue-600'],
   'pro/PhotoGallery.tsx': ['focus-visible:ring-blue-600'],
   'pro/JobFacts.tsx': [],
-  'pro/JobHistory.tsx': [],
   'pro/ActionPanel.tsx': [],
   'pro/AcceptForm.tsx': [],
   'pro/DeclineForm.tsx': [],
-  'pro/AskInfoForm.tsx': [],
 };
 
 describe('Normal theme baseline (non-haunted colour classes)', () => {
