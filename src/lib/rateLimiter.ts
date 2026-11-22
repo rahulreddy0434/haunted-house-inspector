@@ -104,19 +104,27 @@ function ipVisitorId(request: NextRequest): string {
 }
 
 /**
+ * Identify the requesting visitor: the visitor id from a validly signed session
+ * cookie when SESSION_SECRET is set, otherwise a hash of the trusted client IP.
+ */
+export function resolveVisitorId(request: NextRequest): string {
+  const secret = getSecret();
+  let visitorId: string | undefined;
+  if (secret) {
+    const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    visitorId = token ? verifySessionToken(token, secret)?.visitorId : undefined;
+  }
+  return visitorId ?? ipVisitorId(request);
+}
+
+/**
  * Check and count one inspection for the requesting visitor.
  * Fails open (allows the request) if the counter store is unavailable.
  */
 export async function checkRateLimit(request: NextRequest): Promise<RateLimitResult> {
   const secret = getSecret();
   const now = Date.now();
-
-  let visitorId: string | undefined;
-  if (secret) {
-    const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    visitorId = token ? verifySessionToken(token, secret)?.visitorId : undefined;
-  }
-  visitorId ??= ipVisitorId(request);
+  const visitorId = resolveVisitorId(request);
 
   try {
     const counter = await incrementRateLimitCounter(

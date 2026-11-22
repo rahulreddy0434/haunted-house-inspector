@@ -1,0 +1,160 @@
+{
+  "pbtResults": {
+    "1.7 Write property test for the chat status rules (pure model)": {
+      "status": "passed",
+      "lastRunTimestamp": 1795384900607
+    },
+    "1.8 Write property test for the chat limits (pure model)": {
+      "status": "passed",
+      "lastRunTimestamp": 1795384908446
+    },
+    "1.11 Write property test for chat storage": {
+      "status": "passed",
+      "lastRunTimestamp": 1795385040498
+    }
+  },
+  "executionHistory": {
+    "1.1 Add chat types, schema fields and error codes": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384546332
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384550354
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384830377
+      }
+    ],
+    "1.4 Extract `resolveVisitorId` from the rate limiter without changing it": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384546551
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384550555
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384830599
+      }
+    ],
+    "1.5 Extend the fake DynamoDB table and job fixtures": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384546846
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384550751
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384830892
+      }
+    ],
+    "1.2 Implement the pure chat rules, limits, keys and TTL helpers": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384833804
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384874598
+      }
+    ],
+    "1.3 Implement the pure thread, poll schedule and validation modules": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384834023
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384875379
+      }
+    ],
+    "1.6 Implement `src/lib/aws/chat.ts`": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384877586
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384964450
+      }
+    ],
+    "1.7 Write property test for the chat status rules (pure model)": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384878344
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384965217
+      }
+    ],
+    "1.8 Write property test for the chat limits (pure model)": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384878843
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384965815
+      }
+    ],
+    "1.11 Write property test for chat storage": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795384967887
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385047667
+      }
+    ],
+    "1.13 Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385051282
+      },
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385243990
+      }
+    ],
+    "1. Data and safety: types, schema, pure rules, storage": [
+      {
+        "executionId": "262aebe5-4678-48c0-8b82-16642ede6a58",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795385244062
+      }
+    ]
+  }
+}

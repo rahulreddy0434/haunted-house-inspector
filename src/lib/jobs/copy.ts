@@ -72,6 +72,9 @@ export const ERROR_MESSAGES = {
   SLOT_NOT_OFFERED: "That time isn't one of the times offered.",
   SLOT_EXPIRED: "That time has passed. Please pick another.",
   ACTION_FAILED: "Something went wrong. Please try again.",
+  THREAD_LIMIT_REACHED: "This conversation has reached the limit of 100 messages.",
+  MESSAGE_RATE_LIMITED: "You're sending messages too quickly. Please wait a moment and try again.",
+  HELP_LIMIT_REACHED: "You've sent the most help messages we accept today. Please try again tomorrow.",
 } as const satisfies Record<ApiErrorCode, string | Readonly<Record<string, string>>>;
 
 /** Shown under the error on the home page when the analysis fails or times out. Not the emergency message. */

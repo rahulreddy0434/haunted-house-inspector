@@ -18,6 +18,42 @@ export interface StoredJobItem extends JobRecord {
   ttl: number;
   GSI1PK: 'JOBS';
   GSI1SK: string;
+  /** Chat attributes (design D2). Declared here so the fixtures do not depend on the JobRecord type. */
+  chatSeq?: number;
+  chatLastAt?: string;
+  /** Epoch ms of the most recent sends in the last minute, per Side (max 10). */
+  chatSentHomeowner?: number[];
+  chatSentTradesperson?: number[];
+}
+
+/** A stored chat message item: `PK = JOB#<id>`, `SK = CHAT#<6-digit seq>`, no GSI1 attributes. */
+export interface StoredChatItem {
+  PK: string;
+  SK: string;
+  side: 'homeowner' | 'tradesperson';
+  text: string;
+  sentAt: string;
+  seq: number;
+  ttl: number;
+}
+
+/** Builds a stored chat message for a Job. Overrides are applied last; PK/SK follow `jobId` and `seq`. */
+export function makeChatItem(
+  jobId: string,
+  seq: number,
+  overrides: Partial<StoredChatItem> = {},
+): StoredChatItem {
+  const sentAt = iso(FIXTURE_NOW_MS - HOUR_MS + seq * 1000);
+  return {
+    PK: `JOB#${jobId}`,
+    SK: `CHAT#${String(seq).padStart(6, '0')}`,
+    side: seq % 2 === 1 ? 'homeowner' : 'tradesperson',
+    text: `Message ${seq}`,
+    sentAt,
+    seq,
+    ttl: ttlFor(iso(FIXTURE_NOW_MS - HOUR_MS)),
+    ...overrides,
+  };
 }
 
 const iso = (ms: number): string => new Date(ms).toISOString();

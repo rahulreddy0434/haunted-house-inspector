@@ -7,12 +7,18 @@
  *   vi.mock('@aws-sdk/lib-dynamodb', fakeDynamoMockFactory(() => holder.fake));
  *   beforeEach(() => { holder.fake = createFakeDynamoTable(); });
  *
- * Supported: GetCommand, PutCommand, UpdateCommand, QueryCommand (IndexName GSI1 only).
+ * Supported: GetCommand, PutCommand, UpdateCommand, TransactWriteCommand (Put, Update,
+ * ConditionCheck; all-or-nothing), QueryCommand (IndexName GSI1, or the main table with
+ * `PK = :pk AND SK BETWEEN :lo AND :hi`).
  * Any other command class, and any write to a RATELIMIT# item (unless
  * `allowRateLimitWrites`), throws so the test fails.
  */
 import { isDeepStrictEqual } from 'node:util';
-import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
+import {
+  ConditionalCheckFailedException,
+  TransactionCanceledException,
+  type CancellationReason,
+} from '@aws-sdk/client-dynamodb';
 
 export type FakeItem = Record<string, unknown>;
 
@@ -33,7 +39,7 @@ export interface FakeDynamoTable {
   /** Every command received, in order (including ones the guard rejected). */
   calls: RecordedCall[];
   /** Make the next commands of this class wait until `release()`. */
-  hold: (commandName: 'GetCommand' | 'PutCommand' | 'UpdateCommand' | 'QueryCommand') => void;
+  hold: (commandName: 'GetCommand' | 'PutCommand' | 'UpdateCommand' | 'QueryCommand' | 'TransactWriteCommand') => void;
   /** Release every held command and stop holding. */
   release: () => void;
   /** Number of commands currently waiting because of `hold`. */
@@ -95,7 +101,6 @@ const GUARDED_COMMANDS = new Set([
   'DeleteCommand',
   'BatchWriteCommand',
   'BatchGetCommand',
-  'TransactWriteCommand',
   'TransactGetCommand',
 ]);
 
@@ -389,17 +394,30 @@ export function createFakeDynamoTable(options: FakeDynamoOptions = {}): FakeDyna
     return item ? { Item: structuredClone(item) } : {};
   };
 
-  const runPut = (input: Record<string, unknown>): Record<string, unknown> => {
+  interface Plan {
+    k: string;
+    next: FakeItem;
+    old: FakeItem | undefined;
+  }
+
+  /** Checks the condition and returns the item to store; nothing is written. */
+  const planPut = (input: Record<string, unknown>): Plan => {
     const item = input.Item as FakeItem;
     assertWritable(item.PK);
     const k = storageKey(item.PK, item.SK);
     const old = items.get(k);
     if (!conditionHolds(input, old)) throw conditionFailed();
-    items.set(k, structuredClone(item));
+    return { k, next: structuredClone(item), old };
+  };
+
+  const runPut = (input: Record<string, unknown>): Record<string, unknown> => {
+    const { k, next, old } = planPut(input);
+    items.set(k, next);
     return input.ReturnValues === 'ALL_OLD' && old ? { Attributes: structuredClone(old) } : {};
   };
 
-  const runUpdate = (input: Record<string, unknown>): Record<string, unknown> => {
+  /** Checks the condition and returns the updated item; nothing is written. */
+  const planUpdate = (input: Record<string, unknown>): Plan => {
     const key = input.Key as Record<string, unknown>;
     assertWritable(key.PK);
     const k = storageKey(key.PK, key.SK);
@@ -416,6 +434,11 @@ export function createFakeDynamoTable(options: FakeDynamoOptions = {}): FakeDyna
     const actions = parseUpdate(expression, ctx);
     const copy: FakeItem = old ? structuredClone(old) : { PK: key.PK, SK: key.SK };
     for (const action of actions) action(copy);
+    return { k, next: copy, old };
+  };
+
+  const runUpdate = (input: Record<string, unknown>): Record<string, unknown> => {
+    const { k, next: copy, old } = planUpdate(input);
     items.set(k, copy);
     const rv = input.ReturnValues ?? 'NONE';
     if (rv === 'ALL_NEW') return { Attributes: structuredClone(copy) };
@@ -424,9 +447,93 @@ export function createFakeDynamoTable(options: FakeDynamoOptions = {}): FakeDyna
     throw new Error(`fakeDynamoTable: unsupported ReturnValues ${String(rv)}`);
   };
 
+  const runTransactWrite = (input: Record<string, unknown>): Record<string, unknown> => {
+    const entries = input.TransactItems;
+    if (!Array.isArray(entries) || entries.length === 0) {
+      throw new Error('fakeDynamoTable: TransactItems must be a non-empty array');
+    }
+    // Every condition is checked against the state before the transaction; writes are staged.
+    const writes = new Map<string, FakeItem>();
+    const seen = new Set<string>();
+    const reasons: CancellationReason[] = [];
+    let cancelled = false;
+    for (const entry of entries as Array<Record<string, Record<string, unknown> | undefined>>) {
+      const kinds = ['Put', 'Update', 'ConditionCheck'].filter((kind) => entry[kind] !== undefined);
+      if (kinds.length !== 1) {
+        throw new Error('fakeDynamoTable: each TransactItem needs exactly one of Put, Update, ConditionCheck');
+      }
+      const kind = kinds[0];
+      const sub = entry[kind] as Record<string, unknown>;
+      const target = (kind === 'Put' ? sub.Item : sub.Key) as Record<string, unknown>;
+      const k = storageKey(target.PK, target.SK);
+      if (seen.has(k)) {
+        throw new Error(`fakeDynamoTable: a transaction cannot target the same item twice (${k})`);
+      }
+      seen.add(k);
+      try {
+        if (kind === 'Put') {
+          writes.set(k, planPut(sub).next);
+        } else if (kind === 'Update') {
+          writes.set(k, planUpdate(sub).next);
+        } else {
+          assertWritable(target.PK);
+          if (!conditionHolds(sub, items.get(k))) throw conditionFailed();
+        }
+        reasons.push({ Code: 'None' });
+      } catch (error) {
+        if (!(error instanceof ConditionalCheckFailedException)) throw error;
+        cancelled = true;
+        reasons.push({ Code: 'ConditionalCheckFailed', Message: 'The conditional request failed' });
+      }
+    }
+    if (cancelled) {
+      throw new TransactionCanceledException({
+        message: 'Transaction cancelled, please refer cancellation reasons for specific reasons',
+        CancellationReasons: reasons,
+        $metadata: {},
+      });
+    }
+    for (const [k, next] of writes) items.set(k, next);
+    return {};
+  };
+
+  const runMainTableQuery = (input: Record<string, unknown>): Record<string, unknown> => {
+    for (const unsupported of ['FilterExpression', 'ProjectionExpression', 'ExclusiveStartKey']) {
+      if (input[unsupported] !== undefined) throw new Error(`fakeDynamoTable: ${unsupported} is not supported`);
+    }
+    if (input.ConsistentRead !== undefined && typeof input.ConsistentRead !== 'boolean') {
+      throw new Error('fakeDynamoTable: ConsistentRead must be a boolean');
+    }
+    const kce = input.KeyConditionExpression;
+    if (typeof kce !== 'string') throw new Error('fakeDynamoTable: KeyConditionExpression is required');
+    const shape = tokenize(kce)
+      .map((t) => (t.toUpperCase() === 'AND' || t.toUpperCase() === 'BETWEEN' ? t.toUpperCase() : t))
+      .join(' ');
+    if (shape !== 'PK = :pk AND SK BETWEEN :lo AND :hi') {
+      throw new Error(
+        `fakeDynamoTable: unsupported key condition: ${kce} (main table: PK = :pk AND SK BETWEEN :lo AND :hi; or use IndexName GSI1)`,
+      );
+    }
+    const values = (input.ExpressionAttributeValues ?? {}) as Record<string, unknown>;
+    const pk = values[':pk'];
+    const lo = values[':lo'];
+    const hi = values[':hi'];
+    if (typeof pk !== 'string' || typeof lo !== 'string' || typeof hi !== 'string') {
+      throw new Error('fakeDynamoTable: :pk, :lo and :hi must be strings');
+    }
+    const matches = [...items.values()]
+      .filter((it) => it.PK === pk && typeof it.SK === 'string' && it.SK >= lo && it.SK <= hi)
+      .sort((a, b) => ((a.SK as string) < (b.SK as string) ? -1 : (a.SK as string) > (b.SK as string) ? 1 : 0));
+    if (input.ScanIndexForward === false) matches.reverse();
+    const limited = typeof input.Limit === 'number' ? matches.slice(0, input.Limit) : matches;
+    const out = limited.map((it) => structuredClone(it));
+    return { Items: out, Count: out.length };
+  };
+
   const runQuery = (input: Record<string, unknown>): Record<string, unknown> => {
+    if (input.IndexName === undefined) return runMainTableQuery(input);
     if (input.IndexName !== 'GSI1') {
-      throw new Error(`fakeDynamoTable: only IndexName "GSI1" is supported (got ${String(input.IndexName)})`);
+      throw new Error(`fakeDynamoTable: only the main table or IndexName "GSI1" is supported (got ${String(input.IndexName)})`);
     }
     for (const unsupported of ['FilterExpression', 'ProjectionExpression', 'ExclusiveStartKey']) {
       if (input[unsupported] !== undefined) throw new Error(`fakeDynamoTable: ${unsupported} is not supported`);
@@ -473,7 +580,7 @@ export function createFakeDynamoTable(options: FakeDynamoOptions = {}): FakeDyna
     if (GUARDED_COMMANDS.has(name)) {
       throw new Error(`fakeDynamoTable guard: ${name} must never be sent by this feature`);
     }
-    if (!['GetCommand', 'PutCommand', 'UpdateCommand', 'QueryCommand'].includes(name)) {
+    if (!['GetCommand', 'PutCommand', 'UpdateCommand', 'QueryCommand', 'TransactWriteCommand'].includes(name)) {
       throw new Error(`fakeDynamoTable: unsupported command ${name}`);
     }
 
@@ -488,6 +595,8 @@ export function createFakeDynamoTable(options: FakeDynamoOptions = {}): FakeDyna
         return runPut(input);
       case 'UpdateCommand':
         return runUpdate(input);
+      case 'TransactWriteCommand':
+        return runTransactWrite(input);
       default:
         return runQuery(input);
     }

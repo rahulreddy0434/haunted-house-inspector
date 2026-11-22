@@ -77,6 +77,10 @@ export const storedJobSchema = z
       .max(5)
       .default([]),
     replyCount: z.number().int().min(0).max(5).default(0),
+    chatSeq: z.number().int().min(0).max(100).optional(),
+    chatLastAt: isoUtc.optional(),
+    chatSentHomeowner: z.array(z.number()).max(10).optional(),
+    chatSentTradesperson: z.array(z.number()).max(10).optional(),
   })
   .superRefine((j, ctx) => {
     // An emergency Job must stay readable whatever else is wrong.
@@ -84,7 +88,8 @@ export const storedJobSchema = z
     if (j.replyCount !== j.replies.length) {
       ctx.addIssue({ code: 'custom', path: ['replyCount'], message: 'replyCount' });
     }
-    if (j.status === 'info_requested' && j.infoRequests.length === 0) {
+    // A Pro chat message sets info_requested without an infoRequests entry (design D11).
+    if (j.status === 'info_requested' && (j.chatSeq ?? 0) === 0 && j.infoRequests.length === 0) {
       ctx.addIssue({ code: 'custom', path: ['infoRequests'], message: 'question' });
     }
     if (j.status === 'accepted' && !j.offeredSlots) {

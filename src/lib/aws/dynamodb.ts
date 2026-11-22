@@ -26,6 +26,10 @@ const STORAGE_ONLY_ATTRIBUTES = [
   'infoRequests',
   'replies',
   'replyCount',
+  'chatSeq',
+  'chatLastAt',
+  'chatSentHomeowner',
+  'chatSentTradesperson',
 ] as const;
 
 let docClient: DynamoDBDocumentClient | undefined;

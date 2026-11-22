@@ -101,6 +101,9 @@ describe("copy: ERROR_MESSAGES (design error table)", () => {
       SLOT_NOT_OFFERED: "That time isn't one of the times offered.",
       SLOT_EXPIRED: "That time has passed. Please pick another.",
       ACTION_FAILED: "Something went wrong. Please try again.",
+      THREAD_LIMIT_REACHED: "This conversation has reached the limit of 100 messages.",
+      MESSAGE_RATE_LIMITED: "You're sending messages too quickly. Please wait a moment and try again.",
+      HELP_LIMIT_REACHED: "You've sent the most help messages we accept today. Please try again tomorrow.",
     });
   });
 
@@ -110,6 +113,7 @@ describe("copy: ERROR_MESSAGES (design error table)", () => {
       "PRO_DISABLED", "LOGIN_FAILED", "NOT_FOUND", "LOAD_FAILED", "RESULT_INVALID",
       "ILLEGAL_TRANSITION", "JOB_IS_EMERGENCY", "REPLY_LIMIT_REACHED",
       "SLOT_NOT_OFFERED", "SLOT_EXPIRED", "ACTION_FAILED",
+      "THREAD_LIMIT_REACHED", "MESSAGE_RATE_LIMITED", "HELP_LIMIT_REACHED",
     ];
     expect(Object.keys(copy.ERROR_MESSAGES).sort()).toEqual([...codes].sort());
     for (const code of codes) {

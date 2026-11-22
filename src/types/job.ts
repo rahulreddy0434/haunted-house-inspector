@@ -23,6 +23,10 @@ export interface JobRecord extends InspectionResult {
   infoRequests: InfoRequest[];       // 0..5
   replies: ReplyEntry[];             // 0..5
   replyCount: number;                // 0..5, equals replies.length
+  chatSeq?: number;                  // 0..100, thread size and optimistic version
+  chatLastAt?: string;               // ISO time of the last chat message
+  chatSentHomeowner?: number[];      // epoch ms of the last 10 homeowner sends
+  chatSentTradesperson?: number[];   // epoch ms of the last 10 tradesperson sends
 }
 
 /** Payload of a pro action write (accept, decline, ask-info). */
@@ -73,6 +77,12 @@ export type ApiErrorCode =
   | 'INVALID_REQUEST' | 'PAYLOAD_TOO_LARGE' | 'UNAUTHORIZED' | 'INVALID_CODE' | 'TOO_MANY_ATTEMPTS'
   | 'PRO_DISABLED' | 'LOGIN_FAILED' | 'NOT_FOUND' | 'LOAD_FAILED' | 'RESULT_INVALID'
   | 'ILLEGAL_TRANSITION' | 'JOB_IS_EMERGENCY' | 'REPLY_LIMIT_REACHED'
-  | 'SLOT_NOT_OFFERED' | 'SLOT_EXPIRED' | 'ACTION_FAILED';
+  | 'SLOT_NOT_OFFERED' | 'SLOT_EXPIRED' | 'ACTION_FAILED'
+  | 'THREAD_LIMIT_REACHED' | 'MESSAGE_RATE_LIMITED' | 'HELP_LIMIT_REACHED';
 
-export interface ApiErrorBody { error: ApiErrorCode; message: string; status?: JobStatus }
+export interface ApiErrorBody {
+  error: ApiErrorCode;
+  message: string;
+  status?: JobStatus;
+  fields?: Partial<Record<'name' | 'email' | 'message', string>>;
+}
