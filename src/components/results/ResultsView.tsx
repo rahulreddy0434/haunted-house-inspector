@@ -20,6 +20,7 @@ import { IssueSummary } from "./IssueSummary";
 import { CostRange } from "./CostRange";
 import { JobBrief } from "./JobBrief";
 import { StatusPanelBody } from "./StatusPanel";
+import { BookingControls } from "./BookingControls";
 import { HelpSection } from "@/components/ui/help/HelpSection";
 export interface ResultsViewProps {
   id: string;
@@ -88,7 +89,7 @@ function NormalResult({ id, result, urgency, markEmergency }: NormalResultProps)
         urgency={urgency}
       />
       <JobBrief jobBrief={result.jobBrief} urgency={urgency} />
-      <StatusPanelBody id={id} polling={polling} />
+      <StatusPanelBody id={id} polling={polling} hideBooking />
       {polling.gone ? null : (
         <ChatPanel
           side="homeowner"
@@ -98,6 +99,7 @@ function NormalResult({ id, result, urgency, markEmergency }: NormalResultProps)
           onEmergency={handleChatEmergency}
         />
       )}
+      <BookingControls id={id} polling={polling} />
       <p className="text-sm text-slate-700 haunted:text-haunted-muted">
         This is a likely diagnosis, not a certain one.
       </p>

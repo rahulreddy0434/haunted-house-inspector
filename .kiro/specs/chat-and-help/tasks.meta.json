@@ -632,6 +632,95 @@
         "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
         "timestamp": 1795394792267
       }
+    ],
+    "6.1 Extract `BookingControls` on the Results page": [
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795396922382
+      },
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397030772
+      }
+    ],
+    "6.2 Extract `useProActions`": [
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795396922745
+      },
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397031613
+      }
+    ],
+    "6.3 Reorder the Results page": [
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397034135
+      },
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397202151
+      }
+    ],
+    "6.4 Reorder the Pro job page": [
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397034980
+      },
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397202432
+      },
+      {
+        "executionId": "44516d2f-1d5c-48f9-82d5-702ce885a172",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795408442469
+      },
+      {
+        "executionId": "44516d2f-1d5c-48f9-82d5-702ce885a172",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795408942948
+      }
+    ],
+    "6.5 Write page order tests": [
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397204066
+      },
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397405329
+      }
+    ],
+    "6.6 Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397405738
+      },
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397616547
+      }
+    ],
+    "6. Page order: booking controls below the chat": [
+      {
+        "executionId": "e93c6141-b783-43e0-adc8-e6c81c7f4c72",
+        "chatSessionId": "sess_ad679010-534e-499d-8a9b-79137f0bd61b",
+        "timestamp": 1795397616668
+      }
     ]
   }
 }

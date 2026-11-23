@@ -317,31 +317,31 @@ Test rules for every task:
   - [x] 5.13 Checkpoint - Ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Page order: booking controls below the chat
-  - [ ] 6.1 Extract `BookingControls` on the Results page
+- [x] 6. Page order: booking controls below the chat
+  - [x] 6.1 Extract `BookingControls` on the Results page
     - Create `src/components/results/BookingControls.tsx` holding the slot picker, the booking request and the confirmation moved out of `StatusPanel`
     - `StatusPanel` renders it itself unless `hideBooking` is set, so its existing tests pass unchanged
     - _Requirements: 17.2, 17.3_
 
-  - [ ] 6.2 Extract `useProActions`
+  - [x] 6.2 Extract `useProActions`
     - Create `src/hooks/useProActions.ts` returning `{ pending, message, send }` with the request logic moved out of `ActionPanel`; `ActionPanel` stays as a thin wrapper so its tests pass unchanged
     - _Requirements: 16.1_
 
-  - [ ] 6.3 Reorder the Results page
+  - [x] 6.3 Reorder the Results page
     - `ResultsView` order: heading and urgency, issue, cost, job brief, `StatusPanel` (with `hideBooking`), `ChatPanel`, `BookingControls`, the two notes, "Start a new inspection", `HelpSection`
     - "Pick a time" only for `accepted`, the confirmation only for `booked`, no controls for `new`, `info_requested` and `declined`; the emergency view stays as it is
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 20.4_
 
-  - [ ] 6.4 Reorder the Pro job page
+  - [x] 6.4 Reorder the Pro job page
     - `JobDetail` order: job facts, photos, `ChatPanel`, decline control (or the decline reason when declined), booking controls (accept form for `new` and `info_requested`, offered or booked slots for `accepted` and `booked`, none for `declined`), `HelpSection`
     - The emergency view stays as it is
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 20.4_
 
-  - [ ] 6.5 Write page order tests
+  - [x] 6.5 Write page order tests
     - Results page order and Pro page order for each of the six statuses; accept shows "Pick a time" within one poll; booking shows the booked Time_Slot on the Pro page within one poll
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 17.1, 17.2, 17.3, 17.4, 21.12, 21.17_
 
-  - [ ] 6.6 Checkpoint - Ensure all tests pass
+  - [x] 6.6 Checkpoint - Ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Final checkpoint - Ensure all tests pass

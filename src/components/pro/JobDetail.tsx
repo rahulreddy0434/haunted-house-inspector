@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessCodeForm } from '@/components/pro/AccessCodeForm';
-import { ActionPanel } from '@/components/pro/ActionPanel';
+import { AcceptSection, DeclineSection } from '@/components/pro/ActionPanel';
 import { JobFacts } from '@/components/pro/JobFacts';
 import { PhotoGallery } from '@/components/pro/PhotoGallery';
 import { ProEmergencyView } from '@/components/pro/ProEmergencyView';
@@ -16,6 +16,8 @@ import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
 import { StateText } from '@/components/ui/haunted/StateText';
 import { TimeText } from '@/components/ui/TimeText';
 import { BODY, ERROR_TEXT, HEADING, PAGE_TITLE, SECONDARY_BUTTON } from '@/components/ui/styles';
+import { useProActions } from '@/hooks/useProActions';
+import type { UseProActionsResult } from '@/hooks/useProActions';
 import { useProJob } from '@/hooks/useProJob';
 import { PRO_STATUS_LABEL, SESSION_ENDED_NOTICE } from '@/lib/jobs/copy';
 import type { ProJobDetailActive } from '@/types/job';
@@ -38,7 +40,27 @@ function BackLink() {
   );
 }
 
-function StatusBlock({ job }: { job: ProJobDetailActive }) {
+function DeclineReason({ job }: { job: ProJobDetailActive }) {
+  if (job.status !== 'declined' || !job.declineReason) return null;
+  return (
+    <Card as="section" aria-label="Decline reason">
+      <h2 className={HEADING}>Reason you gave</h2>
+      <p className={`${BODY} whitespace-pre-wrap break-words`}>{job.declineReason}</p>
+    </Card>
+  );
+}
+
+function BookingControls({
+  job,
+  actions,
+}: {
+  job: ProJobDetailActive;
+  actions: UseProActionsResult;
+}) {
+  if (job.status === 'new' || job.status === 'info_requested') {
+    return <AcceptSection actions={actions} />;
+  }
+
   if (job.status === 'accepted') {
     const slots = [...(job.offeredSlots ?? [])].sort((a, b) => Date.parse(a) - Date.parse(b));
     if (slots.length === 0) return null;
@@ -68,16 +90,6 @@ function StatusBlock({ job }: { job: ProJobDetailActive }) {
     );
   }
 
-  if (job.status === 'declined') {
-    if (!job.declineReason) return null;
-    return (
-      <Card as="section" aria-label="Decline reason">
-        <h2 className={HEADING}>Reason you gave</h2>
-        <p className={`${BODY} whitespace-pre-wrap break-words`}>{job.declineReason}</p>
-      </Card>
-    );
-  }
-
   return null;
 }
 
@@ -103,6 +115,12 @@ export function JobDetail({ id }: JobDetailProps) {
   const handleUnauthorized = useCallback((): void => {
     setForceForm(true);
   }, []);
+
+  const actions = useProActions(id, {
+    onDone: handleActionDone,
+    onConflict: handleActionDone,
+    onUnauthorized: handleUnauthorized,
+  });
 
   const handleEmergency = useCallback((): void => {
     applyLive({ status: 'emergency', booking: {} });
@@ -212,14 +230,6 @@ export function JobDetail({ id }: JobDetailProps) {
       </p>
       <JobFacts job={job} />
       <PhotoGallery photos={job.photos} />
-      <StatusBlock job={job} />
-      <ActionPanel
-        id={job.id}
-        status={job.status}
-        onDone={handleActionDone}
-        onConflict={handleActionDone}
-        onUnauthorized={handleUnauthorized}
-      />
       <ChatPanel
         side="tradesperson"
         jobId={job.id}
@@ -228,6 +238,12 @@ export function JobDetail({ id }: JobDetailProps) {
         onEmergency={handleEmergency}
         onUnauthorized={handleUnauthorized}
       />
+      {job.status === 'new' || job.status === 'info_requested' ? (
+        <DeclineSection actions={actions} />
+      ) : (
+        <DeclineReason job={job} />
+      )}
+      <BookingControls job={job} actions={actions} />
       <HelpSection page="/pro/jobs" jobId={id} />
     </div>
   );

@@ -1,11 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { AcceptForm } from '@/components/pro/AcceptForm';
 import { DeclineForm } from '@/components/pro/DeclineForm';
 import { Card } from '@/components/ui/Card';
 import { ERROR_TEXT, HEADING } from '@/components/ui/styles';
-import { JOB_STATUSES } from '@/types/job';
+import { useProActions } from '@/hooks/useProActions';
+import type { UseProActionsResult } from '@/hooks/useProActions';
 import type { JobStatus } from '@/types/job';
 
 export interface ActionPanelProps {
@@ -19,86 +19,47 @@ export interface ActionPanelProps {
   onUnauthorized: () => void;
 }
 
-type ActionPath = 'accept' | 'decline';
-
-const GENERIC_ERROR = 'Something went wrong. Please try again.';
-const NETWORK_ERROR = "We couldn't reach the server. Please try again.";
-
-function isJobStatus(value: unknown): value is JobStatus {
-  return typeof value === 'string' && (JOB_STATUSES as readonly string[]).includes(value);
+/** Decline control for the Pro job page (rendered before the booking controls). */
+export function DeclineSection({ actions }: { actions: UseProActionsResult }) {
+  const { pending, message, failedPath, send } = actions;
+  return (
+    <Card as="section" aria-labelledby="pro-decline-heading" className="space-y-6">
+      <h2 id="pro-decline-heading" className={HEADING}>
+        Can&apos;t take this job?
+      </h2>
+      <DeclineForm
+        pending={pending}
+        onSubmit={(reason) => void send('decline', reason.trim() ? { reason } : {})}
+      />
+      {message && failedPath === 'decline' ? (
+        <p role="alert" className={`text-sm ${ERROR_TEXT}`}>
+          {message}
+        </p>
+      ) : null}
+    </Card>
+  );
 }
 
-async function readJson(response: Response): Promise<unknown> {
-  try {
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-function field(value: unknown, key: string): unknown {
-  return typeof value === 'object' && value !== null ? (value as Record<string, unknown>)[key] : undefined;
+/** Accept form for the Pro job page; shows the error when accept fails. */
+export function AcceptSection({ actions }: { actions: UseProActionsResult }) {
+  const { pending, message, failedPath, send } = actions;
+  return (
+    <Card as="section" aria-labelledby="pro-accept-heading" className="space-y-6">
+      <h2 id="pro-accept-heading" className={HEADING}>
+        Accept and offer times
+      </h2>
+      <AcceptForm pending={pending} onSubmit={(slots) => void send('accept', { slots })} />
+      {message && failedPath !== 'decline' ? (
+        <p role="alert" className={`text-sm ${ERROR_TEXT}`}>
+          {message}
+        </p>
+      ) : null}
+    </Card>
+  );
 }
 
 export function ActionPanel({ id, status, onDone, onConflict, onUnauthorized }: ActionPanelProps) {
-  const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const controllerRef = useRef<AbortController | null>(null);
-  const pendingRef = useRef(false);
-
-  useEffect(() => {
-    return () => {
-      controllerRef.current?.abort();
-    };
-  }, []);
-
-  const send = useCallback(
-    async (path: ActionPath, body: Record<string, unknown>) => {
-      if (pendingRef.current) return;
-      pendingRef.current = true;
-      setPending(true);
-      setMessage(null);
-      const controller = new AbortController();
-      controllerRef.current = controller;
-      try {
-        const response = await fetch(`/api/pro/jobs/${encodeURIComponent(id)}/${path}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          signal: controller.signal,
-        });
-        const data = await readJson(response);
-        if (controller.signal.aborted) return;
-        if (response.ok) {
-          const next = field(data, 'status');
-          if (isJobStatus(next)) {
-            onDone(next);
-            return;
-          }
-          setMessage(GENERIC_ERROR);
-          return;
-        }
-        const serverMessage = field(data, 'message');
-        const text = typeof serverMessage === 'string' && serverMessage ? serverMessage : GENERIC_ERROR;
-        if (response.status === 401) {
-          onUnauthorized();
-          return;
-        }
-        setMessage(text);
-        if (response.status === 409) onConflict();
-      } catch {
-        if (controller.signal.aborted) return;
-        setMessage(NETWORK_ERROR);
-      } finally {
-        if (controllerRef.current === controller) controllerRef.current = null;
-        if (!controller.signal.aborted) {
-          pendingRef.current = false;
-          setPending(false);
-        }
-      }
-    },
-    [id, onDone, onConflict, onUnauthorized],
-  );
+  const { pending, message, send } = useProActions(id, { onDone, onConflict, onUnauthorized });
 
   if (status !== 'new' && status !== 'info_requested') return null;
 
