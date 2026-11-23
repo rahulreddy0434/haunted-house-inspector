@@ -203,7 +203,7 @@ sequenceDiagram
 | `src/lib/help/schema.ts` | pure | `HELP_PAGES`, `HelpPage`, `helpLooseBodySchema`, `helpBodySchema`, `HELP_FIELD_MESSAGES` |
 | `src/lib/help/email.ts` | pure | `buildHelpEmail`, `stripLineBreaks`, `HELP_SUBJECT`, `HELP_SUBJECT_EMERGENCY` |
 | `src/lib/help/record.ts` | pure | `toHelpRecord`, `helpKey`, `HelpRecord` |
-| `src/lib/help/copy.ts` | pure | `HELP_CONFIRMATION`, `HELP_PRIVACY_LINE`, `HELP_HEADING`, field labels |
+| `src/lib/help/copy.ts` | pure | `helpConfirmation(email)`, `HELP_PRIVACY_LINE`, `HELP_HEADING`, field labels |
 | `src/lib/help/handleHelp.ts` | server-only | `handleHelp` (the pipeline) |
 | `src/lib/aws/help.ts` | server-only | `saveHelpRecord` |
 | `src/lib/aws/ses.ts` | server-only | `getSesClient`, `sendHelpEmail` |
@@ -512,7 +512,7 @@ export interface HelpSectionProps {
 `HelpSection` renders the heading "Need help? Contact us", `HelpForm` and the line "We use your email only to reply to you." directly under the form. The Side is derived from `page`: `homeowner` for `/` and `/inspect`, `tradesperson` for `/pro` and `/pro/jobs`. `useHelpForm` owns values, field errors, the phase (`idle`, `sending`, `sent`, `emergency`, `error`) and the first-invalid-field focus.
 
 - On `emergency`, the form shows `<EmergencyBanner urgency="emergency" />` (fixed red style, no `haunted:` classes), no confirmation and no `EmergencyScope`, because the Help_Form is not an Emergency_View.
-- On `sent`, it shows "Thanks, we got your message. We'll reply by email." in `role="status"` and clears the fields.
+- On `sent`, it shows "Thank you, we got your message. We'll reply to <email> within the next 24 hours." (built by `helpConfirmation(email)`, plain text, `break-words`) in `role="status"` and clears the fields. The hook stores the trimmed submitted email as `sentEmail` before clearing, so the confirmation keeps showing it.
 - While sending, the submit button is disabled and a text status says so (Req 15.4).
 - The Honeypot is an `<input name="website" tabIndex={-1} autoComplete="off" aria-label="Leave this field empty">` inside a wrapper with `aria-hidden="true"` and classes that move it off screen (`absolute left-[-9999px] h-0 w-0 overflow-hidden`). It carries a `focus-visible:` class so the Source_Scan_Test accepts it.
 - Reuse `TextField`, `TextAreaField` and `Button` from `src/components/ui/`.

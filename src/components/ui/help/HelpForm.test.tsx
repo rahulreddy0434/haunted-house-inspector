@@ -5,7 +5,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HelpForm } from '@/components/ui/help/HelpForm';
 import { EMERGENCY_MESSAGE } from '@/lib/emergency/messages';
-import { HELP_CONFIRMATION, HELP_FIELD_LABELS, HELP_PRIVACY_LINE } from '@/lib/help/copy';
+import { helpConfirmation, HELP_FIELD_LABELS, HELP_PRIVACY_LINE } from '@/lib/help/copy';
 import { HELP_FIELD_MESSAGES } from '@/lib/help/schema';
 
 afterEach(() => {
@@ -88,12 +88,27 @@ describe('HelpForm', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     release(json(200, { status: 'sent' }));
-    const confirmation = await screen.findByText(HELP_CONFIRMATION);
+    const confirmation = await screen.findByText(helpConfirmation('sam@example.com'));
     expect(confirmation.getAttribute('role')).toBe('status');
     expect((screen.getByRole('button', { name: 'Send message' }) as HTMLButtonElement).disabled).toBe(false);
     expect((screen.getByLabelText(HELP_FIELD_LABELS.message) as HTMLTextAreaElement).value).toBe('');
   });
 
+  it('shows the typed email as plain text in the confirmation after the form clears', async () => {
+    stubFetch(() => json(200, { status: 'sent' }));
+    const user = userEvent.setup();
+    const typed = 'a'.repeat(50) + '+tag.o_k@example.com';
+    render(<HelpForm page="/" side="homeowner" />);
+    await fill(user, '  ' + typed + '  ', 'The boiler is noisy');
+    await user.click(screen.getByRole('button', { name: 'Send message' }));
+
+    const status = await screen.findByRole('status');
+    expect(status.textContent).toBe(helpConfirmation(typed));
+    expect(status.children.length).toBe(0);
+    expect((screen.getByLabelText(HELP_FIELD_LABELS.email) as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText(HELP_FIELD_LABELS.message) as HTMLTextAreaElement).value).toBe('');
+    expect(status.className).toContain('break-words');
+  });
   it('shows the Emergency_Banner and no confirmation for an emergency answer', async () => {
     stubFetch(() => json(200, { status: 'emergency', message: EMERGENCY_MESSAGE }));
     const user = userEvent.setup();
@@ -103,7 +118,7 @@ describe('HelpForm', () => {
 
     const alert = await screen.findByRole('alert');
     expect(alert.textContent).toContain(EMERGENCY_MESSAGE);
-    expect(screen.queryByText(HELP_CONFIRMATION)).toBeNull();
+    expect(screen.queryByText(helpConfirmation('sam@example.com'))).toBeNull();
     expect(container.querySelector('[role="alert"][class*="haunted:"]')).toBeNull();
     expect(alert.className).not.toContain('haunted:');
   });
@@ -123,7 +138,7 @@ describe('HelpForm', () => {
     expect((screen.getByLabelText(HELP_FIELD_LABELS.message) as HTMLTextAreaElement).value).toBe(
       'The boiler is noisy',
     );
-    expect(screen.queryByText(HELP_CONFIRMATION)).toBeNull();
+    expect(screen.queryByText(helpConfirmation('sam@example.com'))).toBeNull();
   });
 
   it('keeps the typed values when the network fails', async () => {

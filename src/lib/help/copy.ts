@@ -1,5 +1,10 @@
 export const HELP_HEADING = 'Need help? Contact us';
-export const HELP_CONFIRMATION = "Thanks, we got your message. We'll reply by email.";
+
+/** Confirmation text. Same wording in both themes and for every success case. */
+export function helpConfirmation(email: string): string {
+  return `Thank you, we got your message. We'll reply to ${email} within the next 24 hours.`;
+}
+
 export const HELP_PRIVACY_LINE = 'We use your email only to reply to you.';
 
 export const HELP_SENDING_TEXT = 'Sending your message…';

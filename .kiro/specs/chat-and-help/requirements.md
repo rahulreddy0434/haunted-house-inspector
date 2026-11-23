@@ -339,9 +339,9 @@ The feature builds on `pro-dashboard-and-booking` (Job_Status rules, Pro_Cookie,
 
 #### Acceptance Criteria
 
-1. WHEN the Help_API responds with success, THE Help_Form SHALL show the text "Thanks, we got your message. We'll reply by email." in an element with `role="status"`.
+1. WHEN the Help_API responds with success, THE Help_Form SHALL show the text "Thank you, we got your message. We'll reply to <email> within the next 24 hours." in an element with `role="status"`, where `<email>` is the trimmed email the Visitor typed, shown as plain text, kept visible after the fields clear, and wrapped so that a long address causes no horizontal scroll at 390 px.
 2. THE Help_Form SHALL show the text "We use your email only to reply to you." directly under the form.
-3. THE Help_Form SHALL show the same confirmation for a saved message, for a message whose email failed and for a Honeypot-filled submission.
+3. THE Help_Form SHALL show the same confirmation sentence (with the email the Visitor typed) for a saved message, for a message whose email failed and for a Honeypot-filled submission.
 4. WHILE a Help_Message is being sent, THE Help_Form SHALL disable the submit button and show a text status, so that one click sends one Help_Message.
 
 ### Requirement 16: Page order, Pro job page

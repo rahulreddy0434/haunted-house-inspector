@@ -7,7 +7,7 @@ import { ERROR_TEXT, FIELD, MUTED, STATUS_BOX } from '@/components/ui/styles';
 import { EmergencyBanner } from '@/components/results/EmergencyBanner';
 import { useHelpForm } from '@/hooks/useHelpForm';
 import {
-  HELP_CONFIRMATION,
+  helpConfirmation,
   HELP_FIELD_LABELS,
   HELP_HONEYPOT_LABEL,
   HELP_PRIVACY_LINE,
@@ -85,8 +85,8 @@ export function HelpForm({ page, side, jobId }: HelpFormProps) {
         ) : null}
       </form>
       {phase === 'sent' ? (
-        <p role="status" className={`${STATUS_BOX} text-sm`}>
-          {HELP_CONFIRMATION}
+        <p role="status" className={`${STATUS_BOX} text-sm break-words [overflow-wrap:anywhere]`}>
+          {helpConfirmation(form.sentEmail)}
         </p>
       ) : null}
       <p className={MUTED}>{HELP_PRIVACY_LINE}</p>

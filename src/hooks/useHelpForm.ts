@@ -33,6 +33,8 @@ export interface UseHelpFormReturn {
   errorText: string | null;
   /** Fixed safety text for phase "emergency". */
   emergencyMessage: string | null;
+  /** The trimmed email the visitor submitted; kept after the form clears (phase "sent"). */
+  sentEmail: string;
   /** Attach to the <form>; used to focus the first invalid field by name. */
   formRef: RefObject<HTMLFormElement | null>;
   setValue: (field: keyof HelpValues, value: string) => void;
@@ -69,6 +71,7 @@ export function useHelpForm({ page, side, jobId }: UseHelpFormOptions): UseHelpF
   const [phase, setPhase] = useState<HelpPhase>('idle');
   const [errorText, setErrorText] = useState<string | null>(null);
   const [emergencyMessage, setEmergencyMessage] = useState<string | null>(null);
+  const [sentEmail, setSentEmail] = useState('');
   const formRef = useRef<HTMLFormElement | null>(null);
   const busy = useRef(false);
   const alive = useRef(true);
@@ -155,6 +158,7 @@ export function useHelpForm({ page, side, jobId }: UseHelpFormOptions): UseHelpF
           return;
         }
         if (response.ok && (body.status === 'sent' || body.status === 'ok')) {
+          setSentEmail(values.email.trim());
           setValues(EMPTY);
           setPhase('sent');
           return;
@@ -179,5 +183,5 @@ export function useHelpForm({ page, side, jobId }: UseHelpFormOptions): UseHelpF
     [values, page, side, jobId, focusFirstInvalid],
   );
 
-  return { values, errors, phase, errorText, emergencyMessage, formRef, setValue, submit };
+  return { values, errors, phase, errorText, emergencyMessage, sentEmail, formRef, setValue, submit };
 }
