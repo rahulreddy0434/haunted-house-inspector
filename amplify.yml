@@ -7,7 +7,7 @@ frontend:
         - npm ci
     build:
       commands:
-        - env | grep -e APP_AWS_REGION -e BEDROCK_MODEL_ID -e S3_BUCKET_NAME -e DYNAMODB_TABLE_NAME -e PRO_ACCESS_CODE -e SESSION_SECRET -e NEXT_PUBLIC_ >> .env.production
+        - env | grep -e APP_AWS_REGION -e BEDROCK_MODEL_ID -e S3_BUCKET_NAME -e DYNAMODB_TABLE_NAME -e PRO_ACCESS_CODE -e SESSION_SECRET -e CONTACT_FROM_EMAIL -e CONTACT_TO_EMAIL -e NEXT_PUBLIC_ >> .env.production
         - npm run lint
         - npm run type-check
         - npm run test

@@ -20,6 +20,7 @@ import { IssueSummary } from "./IssueSummary";
 import { CostRange } from "./CostRange";
 import { JobBrief } from "./JobBrief";
 import { StatusPanelBody } from "./StatusPanel";
+import { HelpSection } from "@/components/ui/help/HelpSection";
 export interface ResultsViewProps {
   id: string;
 }
@@ -104,6 +105,7 @@ function NormalResult({ id, result, urgency, markEmergency }: NormalResultProps)
         {RESULTS_PAGE_NOTICE}
       </p>
       <NewInspectionLink />
+      {polling.view?.status === "emergency" ? null : <HelpSection page="/inspect" jobId={id} />}
     </main>
   );
 }
@@ -116,6 +118,7 @@ export function ResultsView({ id }: ResultsViewProps) {
         <main className={PAGE}>
           <p className={`text-lg font-semibold ${TEXT}`}>Result could not be found</p>
           <NewInspectionLink />
+          <HelpSection page="/inspect" jobId={id} />
         </main>
       );
     }
@@ -126,6 +129,7 @@ export function ResultsView({ id }: ResultsViewProps) {
             {error}
           </p>
           <NewInspectionLink />
+          <HelpSection page="/inspect" jobId={id} />
         </main>
       );
     }

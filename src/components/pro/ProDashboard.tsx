@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { HelpSection } from '@/components/ui/help/HelpSection';
 import { BODY, PAGE_TITLE } from '@/components/ui/styles';
 import { AccessCodeForm } from '@/components/pro/AccessCodeForm';
 import { JobList } from '@/components/pro/JobList';
@@ -80,6 +81,7 @@ export function ProDashboard() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
       <h1 className={`${PAGE_TITLE} break-words`}>Tradesperson dashboard</h1>
       <DashboardBody key={generation} onLoggedIn={() => setGeneration((g) => g + 1)} />
+      <HelpSection page="/pro" />
     </div>
   );
 }

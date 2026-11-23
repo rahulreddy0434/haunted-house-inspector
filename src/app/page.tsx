@@ -1,3 +1,4 @@
+import { HelpSection } from '@/components/ui/help/HelpSection';
 import { UploadFlow } from '@/components/upload/UploadFlow';
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
         </p>
       </header>
       <UploadFlow />
+      <HelpSection page="/" />
     </div>
   );
 }

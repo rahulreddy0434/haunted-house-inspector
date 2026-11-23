@@ -241,37 +241,37 @@ Test rules for every task:
   - [x] 4.7 Checkpoint - Ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Help form: contact section, safety, saving and email
-  - [ ] 5.1 Add the SES package pin and configuration names
+- [x] 5. Help form: contact section, safety, saving and email
+  - [x] 5.1 Add the SES package pin and configuration names
     - Add `"@aws-sdk/client-sesv2": "3.1163.0"` (exact, same as the other `@aws-sdk` packages) to `package.json` and update `package-lock.json` with `npm install`; add no other package
     - Append `-e CONTACT_FROM_EMAIL -e CONTACT_TO_EMAIL` to the `env | grep` line in `amplify.yml`; add the two names with a one-line comment each and no value to `.env.example`
     - _Requirements: 13.9, 13.10_
 
-  - [ ] 5.2 Implement the pure help modules
+  - [x] 5.2 Implement the pure help modules
     - `src/lib/help/schema.ts`: `HELP_PAGES`, `HelpPage`, `helpLooseBodySchema`, `helpBodySchema`, `HELP_FIELD_MESSAGES`
     - `src/lib/help/email.ts`: `stripLineBreaks`, `buildHelpEmail`, `HELP_SUBJECT`, `HELP_SUBJECT_EMERGENCY` (fixed subject, no IP or cookie, no CR or LF in headers)
     - `src/lib/help/record.ts`: `toHelpRecord`, `helpKey`, `HelpRecord`
     - `src/lib/help/copy.ts`: heading, confirmation, privacy line, field labels
     - _Requirements: 11.1, 11.2, 11.3, 11.6, 11.8, 13.2, 13.4, 13.5, 15.1, 15.2_
 
-  - [ ] 5.3 Implement the SES client and the Help_Record writer
+  - [x] 5.3 Implement the SES client and the Help_Record writer
     - `src/lib/aws/ses.ts` (`server-only`): `getSesClient` singleton using `APP_AWS_REGION` and the default credential chain; `sendHelpEmail` with the From, To, Reply-To and fixed subject; throws `MissingConfigError` when either address variable is unset
     - `src/lib/aws/help.ts` (`server-only`): `saveHelpRecord` under `HELP#<uuid>` with no GSI1 attributes and `ttlFromNow`
     - _Requirements: 13.1, 13.3, 13.6, 13.11_
 
-  - [ ] 5.4 Implement the Help pipeline and route
+  - [x] 5.4 Implement the Help pipeline and route
     - `src/lib/help/handleHelp.ts` following the design: `readJsonBody(request, 8192)`, loose parse, Safety_Layer on Message and on Name checked separately, Honeypot, strict parse, `resolveVisitorId` then `incrementRateLimitCounter('help:' + id, now, 5, 24 h)`, save and send each in their own try block
     - A Trigger always gets 200 with `EMERGENCY_MESSAGE`, even when validation, counting, saving or sending fails; a non-Trigger gets 400, 429 with `Retry-After`, or 500 `ACTION_FAILED` only when both save and send fail; never changes a Job_Status; never calls `checkRateLimit`
     - `src/app/api/help/route.ts` exports `POST` with `noStoreJson`; log only error names
     - _Requirements: 11.6, 11.7, 12.1, 12.2, 12.4, 12.5, 12.6, 12.7, 13.1, 13.3, 13.6, 13.7, 13.8, 13.12, 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.9, 14.10_
 
-  - [ ] 5.5 Implement the Help components and hook
+  - [x] 5.5 Implement the Help components and hook
     - `src/hooks/useHelpForm.ts`: values, field errors, phase (`idle`, `sending`, `sent`, `emergency`, `error`), first-invalid-field focus, values kept on failure and cleared after a confirmation
     - `src/components/ui/help/HelpSection.tsx` and `HelpForm.tsx` using `TextField`, `TextAreaField` and `Button`; heading "Need help? Contact us"; Honeypot input named `website` with `tabIndex={-1}`, `autoComplete="off"` and an `aria-hidden` off-screen wrapper carrying a `focus-visible:` class; privacy line under the form; confirmation in `role="status"`; `EmergencyBanner` on a Trigger with no `haunted:` classes and no confirmation; button disabled and a text status while sending
     - Add any new Contrast_Registry rows first, then extend the registry test
     - _Requirements: 10.1, 11.1, 11.4, 11.5, 11.9, 12.3, 14.7, 15.1, 15.2, 15.3, 15.4, 18.1, 18.2, 18.3, 18.5, 18.6, 19.1, 19.2, 19.4, 19.6, 19.8, 20.1, 20.2_
 
-  - [ ] 5.6 Mount the Help_Section on every page
+  - [x] 5.6 Mount the Help_Section on every page
     - `src/app/page.tsx`: `<HelpSection page="/" />` after `UploadFlow`
     - `ResultsView`: `<HelpSection page="/inspect" jobId={id} />` in the normal, not-found and error branches, never in the loading or emergency branch, below the "Start a new inspection" link, removed in the same render as an emergency
     - `ProDashboard`: `<HelpSection page="/pro" />` at the bottom of every view, including the access code form
@@ -279,13 +279,13 @@ Test rules for every task:
     - Exactly one Help_Section per page
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [ ] 5.7 Write property test for Help safety
+  - [x] 5.7 Write property test for Help safety
     - **Property 2: Help messages are safety first (extends Property 3)**
     - File `src/app/api/help/help.safety.property.test.ts`: any Trigger in Message or Name, any Honeypot value, any limit state, any counter, table or SES failure, any field validity gives 200 `emergency` and exactly `EMERGENCY_MESSAGE`; the Safety_Layer check is logged before any DynamoDB or SES call; no Job_Status changes; nothing saved or sent when the Honeypot is filled, the limit is reached, the counter fails or fields are invalid; otherwise one Help_Record and one Help_Email, both marked as emergency, and one counter increment
     - Set a 30-second timeout on this route-level property test
     - **Validates: Requirements 12.1, 12.2, 12.4, 12.5, 12.6, 12.7, 12.8, 14.10, 14.11, 21.1, 21.7**
 
-  - [ ] 5.8 Write property test for the Help limit
+  - [x] 5.8 Write property test for the Help limit
     - **Property 14: The Help_Limit counts every saved message and ignores bots**
     - File `src/app/api/help/help.limit.property.test.ts`: N valid messages from one Visitor in one 24-hour window, with or without Triggers, save and send exactly min(N, 5); blocked non-Trigger messages get 429 with `Retry-After`; the inspection counter never changes; any non-empty Honeypot gives the normal success (or the Emergency_Message for a Trigger) with nothing saved, sent or counted
     - Set a 30-second timeout on this route-level property test
@@ -308,13 +308,13 @@ Test rules for every task:
     - Set a 30-second timeout on this route-level property test
     - **Validates: Requirements 7.6, 13.8, 21.9**
 
-  - [ ] 5.12 Write Help example, component and smoke tests
+  - [x] 5.12 Write Help example, component and smoke tests
     - Honeypot with and without a Trigger; counter independent of the inspection counter; SES failure still confirms; both failing gives 500; missing env keeps the record; SES command region and addresses; no IP or cookie in the record or email
     - HelpForm labels, errors with focus on the first invalid field and `aria-describedby`, disabled while sending, `role="status"` confirmation, Emergency_Banner with no confirmation, values kept on failure; one Help_Section per page and none in emergency views, removed in the same render as an emergency
     - Smoke: `amplify.yml` and `.env.example` name the two variables with no value; `@aws-sdk/client-sesv2` version equals the other `@aws-sdk` versions
     - _Requirements: 10.2, 10.3, 10.5, 11.9, 12.3, 12.5, 13.6, 13.7, 13.9, 13.10, 14.3, 15.1, 15.4, 19.8, 21.7, 21.10, 21.13_
 
-  - [ ] 5.13 Checkpoint - Ensure all tests pass
+  - [x] 5.13 Checkpoint - Ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. Page order: booking controls below the chat

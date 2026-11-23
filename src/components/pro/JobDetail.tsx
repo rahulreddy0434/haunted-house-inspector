@@ -11,6 +11,7 @@ import { UrgencyBadge } from '@/components/results/UrgencyBadge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ChatPanel } from '@/components/ui/chat/ChatPanel';
+import { HelpSection } from '@/components/ui/help/HelpSection';
 import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
 import { StateText } from '@/components/ui/haunted/StateText';
 import { TimeText } from '@/components/ui/TimeText';
@@ -124,6 +125,7 @@ export function JobDetail({ id }: JobDetailProps) {
           <p role="alert" className={`${BODY} ${ERROR_TEXT}`}>
             {DISABLED_MESSAGE}
           </p>
+          <HelpSection page="/pro/jobs" jobId={id} />
         </div>
       );
     }
@@ -135,6 +137,7 @@ export function JobDetail({ id }: JobDetailProps) {
           onDisabled={handleDisabled}
           notice={sessionLost || forceForm ? SESSION_ENDED_NOTICE : undefined}
         />
+        <HelpSection page="/pro/jobs" jobId={id} />
       </div>
     );
   }
@@ -149,6 +152,7 @@ export function JobDetail({ id }: JobDetailProps) {
             Go to the job list
           </Link>
         </div>
+        <HelpSection page="/pro/jobs" jobId={id} />
       </div>
     );
   }
@@ -163,6 +167,7 @@ export function JobDetail({ id }: JobDetailProps) {
         <div>
           <Button onClick={reload}>Try again</Button>
         </div>
+        <HelpSection page="/pro/jobs" jobId={id} />
       </div>
     );
   }
@@ -223,6 +228,7 @@ export function JobDetail({ id }: JobDetailProps) {
         onEmergency={handleEmergency}
         onUnauthorized={handleUnauthorized}
       />
+      <HelpSection page="/pro/jobs" jobId={id} />
     </div>
   );
 }
