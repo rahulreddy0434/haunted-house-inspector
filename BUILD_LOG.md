@@ -450,3 +450,48 @@ Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, m
 - Nov 19: README rewrite, demo jobs and sample photos for judges, the Weekly Reset site and LinkedIn, and the demo video
 - Nov 20: the Devpost write-up, blog and social posts, then submit
 - If there's time: a Kiro power (Postman), and a safety-reviewer pass over Haunted mode
+---
+## Nov 21, 2026 (Pro photo viewer)
+
+**Done**
+- Pro photos open in an in-page viewer instead of a new browser tab (5191fc4): a Close button at the top, Esc to close with focus back on the photo that opened it, Previous and Next, and a message when a photo link has expired
+---
+## Nov 22, 2026 (Spec 4, chat-and-help: all 7 tasks)
+
+**Done**
+- The 8 design screens added to `docs/design/` for reference (60bc94a)
+- AWS setup for spec 4, done by hand in the console: the SES email identity verified in us-east-2 (sandbox, one address as sender and recipient), two statements added to the Amplify compute role (`ses:SendEmail` on that identity, and `dynamodb:Query` on the main table for chat), and `CONTACT_FROM_EMAIL` and `CONTACT_TO_EMAIL` set in Amplify. No addresses or account IDs are in the repo
+- Spec 4 written (requirements, design and 7 parent tasks) and built in six commits: spec and task 1 (577f5ca), task 2 (bbd908f), tasks 3 and 4 (775582b), task 5 (192dead), task 6 (9a3e436), and a last small wording change with task 6 (da6b548)
+- Task 1, data and safety: chat types and schema fields, the pure rules (status rules, 100-message and 10-per-minute limits, thread order, poll schedule), `resolveVisitorId` pulled out of the rate limiter with no change to its tests, a fake DynamoDB table that supports transactions and range queries, and the chat storage module. Each message is its own item with no Job_Index attributes, and it expires with the job
+- Task 2, routes: one shared send and read pipeline behind a Homeowner route and a Pro route. A homeowner message goes through the Safety Layer before any other check, and a trigger gives the fixed emergency message. Every response carries the current status and booking data
+- Task 3, chat screens: the polling hook (5 s, then 30 s after 2 minutes, stopped for hidden tabs and closed jobs), the Chat_Panel components, and a contrast test for the colour pairs the chat uses
+- Task 4, switch-over:
+  - the "Ask a question" form, the reply box and the job history are replaced by the chat on both pages
+  - the new privacy notice and the new Results page line, now kept in `copy.ts`, with exact-text tests
+  - the ask-info and reply routes and their tests are untouched
+  - the chat and the status now update in the same render, so "Pick a time" shows within one chat poll after the tradesperson accepts
+- Task 5, help form: "Need help? Contact us" on home, results, /pro and the Pro job page, never on emergency views. `/api/help` checks safety first, drops bot submissions quietly, limits each visitor to 5 a day, saves the message with a 30-day TTL and emails it with Amazon SES. The only new package is `@aws-sdk/client-sesv2`, pinned like the other `@aws-sdk` packages
+- Task 6, page order: booking is last on both pages. A failed decline now shows its error in the decline card and a failed accept in the accept card, one at a time. The help confirmation now reads "Thank you, we got your message. We'll reply to <typed email> within the next 24 hours."
+- Task 7, final checkpoint: lint, type-check, 158 test files with 1,689 tests, and a clean build. The safety, source-scan, rate-limiter and ask-info and reply route tests pass, and nothing changed in `src/lib/safety/`, the emergency message or `sourceScan.test.ts`
+- Live checks on Amplify passed after tasks 4, 5 and 6: chat both ways, with "Pick a time" and the booked time appearing without a refresh; "I smell gas" in the chat giving the emergency page; a real help email arriving; a trigger in the help form; the 5-a-day help limit; booking last on both pages; and phone width
+
+**Kiro features used**
+- Specs: requirements, design and tasks for chat-and-help, built with sub-agents, with the user's review and changes between each document
+- Property tests: Properties 1, 2, 3, 4, 5, 7, 9 and 14 (safety, status rules, limits, storage and the help limit), each route-level one with a 30 second timeout
+- Spec updates after review: one status per page, a trigger help message counting toward the daily limit, keeping the old routes until after judging, and the new notice texts
+- Steering: safety.md drove the safety-first order in the chat and help routes
+
+**Problems and fixes**
+- Writing the hook tests found a real bug: a status-only change from the page restarted the poll timer, which broke the rule that it must not. Fixed in `useChatThread.ts`
+- Removing the reply box broke 14 existing tests. They were pointed at the chat path instead of deleted, so the emergency coverage stays, including the Haunted-mode emergency property
+- `ReplyBox.tsx` is still in the repo, because `sourceScan.test.ts` reads it by name and may not be changed. It can go once that test is allowed to change
+- Old questions and replies appear in the thread sorted by stored time, so they interleave. A question only comes before a reply when the times tie. Two example tests now show this on both routes
+- The Normal-theme card border (slate-300 on white, about 1.3:1) is treated as decorative, so it has no contrast row. The screens-polish spec can fix it
+- `helpSection.pages.test.tsx` failed twice early (no mounted router, and a cached result leaking between scenarios). Both causes were found and are covered by the router mock and the per-test `sessionStorage` clear; five runs, shuffled runs and one full run all passed
+- Tasks 3 and 4 were run together on purpose to save time, so they share one commit. The task list tool failed to save some status updates, which were re-set afterwards
+- `npm install` reported 15 vulnerabilities in the existing dependency tree. Left until after submission; `npm audit fix --force` is not used
+
+**Next**
+- Spec 5, guided-intake: a 3-step home page with tap-to-choose answers, safety chips, "Try it with a sample photo" and real progress stages
+- Spec 6, screens-polish
+- The 11 optional test tasks (1.9, 1.10, 1.12, 2.10, 2.11, 3.6, 3.7, 3.8, 5.9, 5.10, 5.11) wait until after judging

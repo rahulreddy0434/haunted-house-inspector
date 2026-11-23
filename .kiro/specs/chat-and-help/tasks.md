@@ -344,7 +344,7 @@ Test rules for every task:
   - [x] 6.6 Checkpoint - Ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Final checkpoint - Ensure all tests pass
+- [x] 7. Final checkpoint - Ensure all tests pass
   - Run `next lint`, `tsc --noEmit` and the full test suite (`vitest --run`); confirm the `src/lib/safety/` tests, `sourceScan.test.ts`, the rate-limiter tests and the ask-info and reply route tests pass unchanged
   - Ensure all tests pass, ask the user if questions arise.
 
