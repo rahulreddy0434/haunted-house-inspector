@@ -64,7 +64,7 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
 
   - [x] 1.10 Write example tests for Safety_Wording and the mapping
     - `safetyChips.test.ts`: each sentence alone makes `checkEmergency` true, contains no user input, and the worst-case fixed `recentChanges` is at most 498 characters
-    - `answerMapper.test.ts`: "Kitchen: under the sink", "Kitchen", "Other: text", "A few weeks", and "Dripping or leaking water. Getting worse. text"
+    - `answerMapper.test.ts`: "Kitchen: under the sink", "Kitchen", "Other: text", "A few weeks", and "Dripping or leaking water. Getting worse. text."
     - _Requirements: 1.3, 7.1, 7.2, 7.3, 7.4, 13.4_
 
   - [ ]* 1.11 Write property tests for format and cleaning
@@ -81,19 +81,19 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
 - [x] 2. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 3. State, validation and samples (pure modules)
-  - [ ] 3.1 Implement the reducer, step validation and fixed copy
+- [x] 3. State, validation and samples (pure modules)
+  - [x] 3.1 Implement the reducer, step validation and fixed copy
     - Create `src/lib/intake/intakeReducer.ts` (`IntakeAction`, `initialIntakeState`, `intakeReducer`); `next`, `back` and `goTo` change only `step` and keep the same `choices` object; toggles keep canonical order; deselecting "Something else" keeps its text; `applySample` replaces only location, duration and extras
     - Create `src/lib/intake/stepValidation.ts` (`validateStep`, `StepProblem`)
     - Create `src/lib/intake/copy.ts` with the fixed messages (no-files, no-location, no-other-text, sample failed)
     - _Requirements: 3.7, 3.8, 3.10, 3.11, 5.5, 5.6, 5.10, 5.12, 9.4, 9.6_
 
-  - [ ] 3.2 Implement Sample_Manifest and `loadSample`
+  - [x] 3.2 Implement Sample_Manifest and `loadSample`
     - Create `src/lib/intake/sampleManifest.ts` with exactly two typed entries (no safety field), `nextSampleIndex`
     - Create `src/lib/intake/loadSample.ts` that fetches `/samples/<file>` and returns a `File`, throwing on failure
     - _Requirements: 9.2, 9.3, 9.5, 9.8, 9.9, 9.10_
 
-  - [ ] 3.3 Write property test that Back and Next keep choices
+  - [x] 3.3 Write property test that Back and Next keep choices
     - **Property 8: Next, Back and Change never alter the choices**
     - Sequences of `next`, `back` and `goTo`; same `choices` reference; step always 1, 2 or 3
     - File: `src/lib/intake/intakeReducer.navigation.property.test.ts`
@@ -115,43 +115,43 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
     - File: `src/lib/intake/sampleManifest.property.test.ts`
     - **Validates: Requirements 9.3**
 
-  - [ ] 3.7 Write Sample_Manifest tests
+  - [x] 3.7 Write Sample_Manifest tests
     - `sampleManifest.test.ts`: exactly two entries; every listed file exists in `public/samples/` and every file there has an entry; types and sizes pass media validation; chosen labels are members of the option lists; no entry pre-selects a Safety_Chip; `loadSample` rejects on a failed fetch
     - _Requirements: 9.5, 9.8, 9.9, 9.10_
 
-- [ ] 4. Chips, text fields and the Live_Emergency_Notice
-  - [ ] 4.1 Build `ChipGroup`, `FreeTextField` and `StepHeading`
+- [x] 4. Chips, text fields and the Live_Emergency_Notice
+  - [x] 4.1 Build `ChipGroup`, `FreeTextField` and `StepHeading`
     - Create `src/components/intake/ChipGroup.tsx`: `fieldset` with `aria-labelledby` pointing to the legend's `id`; `role="radiogroup"` on single-choice groups; native `input type="radio"` or `checkbox` with `peer` and a label as the chip; real `aria-hidden` check mark; `min-h-11 min-w-11`; wrapping text; `peer-checked:` and `peer-focus-visible:` styles with `haunted:` partners; "Clear" button for single-choice groups; error slot with `aria-invalid` and `aria-describedby`
     - Create `FreeTextField.tsx` (label, counter, limit, error, over-limit note) and `StepHeading.tsx` (`h2`, `tabIndex={-1}`, ref)
     - No `onKeyDown`, `onKeyUp`, `onKeyPress`, `role="radio"` or `role="checkbox"`; no hex or rgb colours; no `animate-`, `transition` or `duration-` classes
     - _Requirements: 3.9, 5.2, 5.3, 5.4, 5.6, 5.7, 5.8, 5.11, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 11.2, 11.5_
 
-  - [ ] 4.2 Build `LiveEmergencyNotice`
+  - [x] 4.2 Build `LiveEmergencyNotice`
     - Create `src/components/intake/LiveEmergencyNotice.tsx` that renders the existing `EmergencyBanner` with `urgency="emergency"` while `active` is true; no copy of the message text, no `haunted:` classes, no focus movement
     - Leave `EmergencyBanner` unchanged
     - _Requirements: 2.1, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 11.7_
 
-  - [ ] 4.3 Write ChipGroup tests for names and keyboard
+  - [x] 4.3 Write ChipGroup tests for names and keyboard
     - `ChipGroup.test.tsx` with user-event: `getByRole('radiogroup', { name })` for single-choice groups and `getByRole('group', { name })` for multi-choice groups; each fieldset's `aria-labelledby` equals its legend's `id`; Tab stops, arrow keys in radio groups, Space on checkboxes; single-choice replaces and Clear works; multi-choice toggles off
     - _Requirements: 5.3, 5.5, 5.6, 6.2, 6.3, 6.9, 6.10_
 
-  - [ ] 4.4 Write Live_Emergency_Notice test
+  - [x] 4.4 Write Live_Emergency_Notice test
     - `LiveEmergencyNotice.test.tsx`: text equals `EMERGENCY_MESSAGE` exactly, `role="alert"`, no class token starting with `haunted:`, same text after a theme toggle, nothing rendered when inactive
     - _Requirements: 2.1, 2.3, 2.4, 2.5, 2.7, 2.8, 13.8_
 
-  - [ ] 4.5 Write source guard for the intake components
+  - [x] 4.5 Write source guard for the intake components
     - `src/components/intake/intakeSource.test.ts` reads `src/components/intake/*.tsx` and fails on `onKeyDown`, `onKeyUp`, `onKeyPress`, `role="radio"` and `role="checkbox"`
     - _Requirements: 6.2, 6.3_
 
-- [ ] 5. Upload status panel
-  - [ ] 5.1 Extract `UploadStatusPanel` and move `prefersReducedMotion`
+- [x] 5. Upload status panel
+  - [x] 5.1 Extract `UploadStatusPanel` and move `prefersReducedMotion`
     - Create `src/components/upload/UploadStatusPanel.tsx` by copying the stage and error JSX from `UploadFlow.tsx`; one `role="status"` region; "Uploading photos" while uploading (existing `UploadProgress` below); "Checking for safety and reading your photos" with `StateText hauntedKey="inspecting"` while analysing; focus moves to the stage heading when analysing starts; existing error cards and "Try again" unchanged
     - Create `src/lib/utils/prefersReducedMotion.ts` and import it from `UploadFlow.tsx`
     - Change `UploadFlow.tsx` to use the panel and update its existing tests for the new stage text, so the page still works
     - Do not change `useUpload` or `runUploadFlow`
     - _Requirements: 10.1, 10.2, 10.4, 10.5, 10.6, 10.7_
 
-  - [ ] 5.2 Write UploadStatusPanel tests
+  - [x] 5.2 Write UploadStatusPanel tests
     - Stage text from real status values, no timer (advance fake timers, text unchanged), focus on the stage heading, Haunted line appended, error card and "Try again"
     - _Requirements: 10.1, 10.2, 10.4, 10.5, 10.6, 10.7, 13.9_
 

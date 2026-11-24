@@ -59,9 +59,13 @@ const BASELINE: Record<string, string[]> = {
   ],
   'upload/DataRetentionNotice.tsx': ['bg-slate-50', 'border-slate-300', 'text-slate-900'],
   'upload/UploadFlow.tsx': [
+    'bg-brand-700', 'focus-visible:outline-brand-900', 'hover:bg-brand-800', 'text-red-700',
+    'text-white',
+  ],
+  'upload/UploadStatusPanel.tsx': [
     'bg-brand-700', 'bg-red-50', 'bg-slate-50', 'border-red-300', 'border-slate-300',
-    'focus-visible:outline-brand-900', 'hover:bg-brand-800', 'text-brand-900', 'text-red-700',
-    'text-red-900', 'text-slate-900', 'text-white',
+    'focus-visible:outline-brand-900', 'hover:bg-brand-800', 'text-brand-900', 'text-red-900',
+    'text-slate-900', 'text-white',
   ],
   'upload/DropZone.tsx': [
     'bg-brand-100', 'bg-brand-50', 'bg-brand-700', 'bg-red-50', 'bg-white', 'border-brand-200',

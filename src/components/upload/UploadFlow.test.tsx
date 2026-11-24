@@ -148,7 +148,7 @@ describe('UploadFlow', () => {
   it('shows the loading state while analysing and blocks submits', () => {
     hookState = makeState({ uploadStatus: 'analysing' });
     render(<UploadFlow />);
-    expect(screen.getByText('Inspecting your home…')).toBeTruthy();
+    expect(screen.getByText('Checking for safety and reading your photos')).toBeTruthy();
     fireEvent.click(submitButton());
     expect(submit).not.toHaveBeenCalled();
   });

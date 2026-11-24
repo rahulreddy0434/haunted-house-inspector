@@ -19,6 +19,10 @@
     "1.7 Write property test for answer length": {
       "status": "passed",
       "lastRunTimestamp": 1795483923058
+    },
+    "3.3 Write property test that Back and Next keep choices": {
+      "status": "passed",
+      "lastRunTimestamp": 1795484527249
     }
   },
   "executionHistory": {
@@ -171,6 +175,169 @@
         "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
         "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
         "timestamp": 1795484222050
+      }
+    ],
+    "3.1 Implement the reducer, step validation and fixed copy": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484449079
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484492336
+      }
+    ],
+    "3.2 Implement Sample_Manifest and `loadSample`": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484449710
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484492755
+      }
+    ],
+    "3.3 Write property test that Back and Next keep choices": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484494825
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484597394
+      }
+    ],
+    "3.7 Write Sample_Manifest tests": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484495400
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484598013
+      }
+    ],
+    "3. State, validation and samples (pure modules)": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484598097
+      }
+    ],
+    "4.1 Build `ChipGroup`, `FreeTextField` and `StepHeading`": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484600990
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484735976
+      }
+    ],
+    "4.2 Build `LiveEmergencyNotice`": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484601258
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484736197
+      }
+    ],
+    "5.1 Extract `UploadStatusPanel` and move `prefersReducedMotion`": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484601653
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484736335
+      }
+    ],
+    "4.3 Write ChipGroup tests for names and keyboard": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484738431
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484814967
+      }
+    ],
+    "4.4 Write Live_Emergency_Notice test": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484739189
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484815701
+      }
+    ],
+    "4.5 Write source guard for the intake components": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484739790
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484816409
+      }
+    ],
+    "5.2 Write UploadStatusPanel tests": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484740422
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484816790
+      }
+    ],
+    "4. Chips, text fields and the Live_Emergency_Notice": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484816531
+      }
+    ],
+    "5. Upload status panel": [
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484816875
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484824823
+      },
+      {
+        "executionId": "0481e8ca-8786-4e88-9ef4-f7c2e5e67758",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485053598
       }
     ]
   }
