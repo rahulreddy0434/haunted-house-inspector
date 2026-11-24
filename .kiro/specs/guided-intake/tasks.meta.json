@@ -1,0 +1,177 @@
+{
+  "pbtResults": {
+    "1.4 Write property test for Safety_Chips and the Safety_Layer": {
+      "status": "passed",
+      "lastRunTimestamp": 1795483911046
+    },
+    "1.5 Write property test for Safety_Wording placement": {
+      "status": "passed",
+      "lastRunTimestamp": 1795483914707
+    },
+    "1.8 Write property test for schema compatibility": {
+      "status": "passed",
+      "lastRunTimestamp": 1795483917178
+    },
+    "1.6 Write property test that chip labels alone never trigger an emergency": {
+      "status": "passed",
+      "lastRunTimestamp": 1795483920754
+    },
+    "1.7 Write property test for answer length": {
+      "status": "passed",
+      "lastRunTimestamp": 1795483923058
+    }
+  },
+  "executionHistory": {
+    "1.1 Add shared types, option lists and Safety_Wording": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483739467
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483774654
+      }
+    ],
+    "1.2 Implement the pure Answer_Mapper": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483776427
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483830463
+      }
+    ],
+    "1.3 Add shared fast-check arbitraries": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483831057
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483869640
+      }
+    ],
+    "1.4 Write property test for Safety_Chips and the Safety_Layer": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483873100
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483929866
+      }
+    ],
+    "1.5 Write property test for Safety_Wording placement": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483873271
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483930425
+      }
+    ],
+    "1.6 Write property test that chip labels alone never trigger an emergency": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483873560
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483931157
+      }
+    ],
+    "1.7 Write property test for answer length": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483874360
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483931950
+      }
+    ],
+    "1.8 Write property test for schema compatibility": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483874839
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483932745
+      }
+    ],
+    "1.9 Write route test for Safety_Wording over the rate limit": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483933522
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483976227
+      }
+    ],
+    "1.10 Write example tests for Safety_Wording and the mapping": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483934069
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483977064
+      }
+    ],
+    "1.12 Write prompt test for chip answers": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483934695
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483977464
+      }
+    ],
+    "1. Safety foundations: types, Safety_Wording and Answer_Mapper": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483977549
+      }
+    ],
+    "2. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795483981072
+      },
+      {
+        "executionId": "8deb1794-ff8c-4e71-b014-c37d1d47a555",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795484222050
+      }
+    ]
+  }
+}
