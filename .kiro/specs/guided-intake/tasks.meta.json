@@ -339,6 +339,109 @@
         "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
         "timestamp": 1795485053598
       }
+    ],
+    "6.1 Build `StepProgress`, `ReviewList` and `SampleButton`": [
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485410680
+      },
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485492130
+      }
+    ],
+    "6.2 Build `StepOne`, `StepTwo` and `StepThree`": [
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485493026
+      },
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485576170
+      }
+    ],
+    "6.3 Build `GuidedIntake` and switch the page": [
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485576905
+      },
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485728368
+      }
+    ],
+    "6.4 Write test that Back and Next keep every answer": [
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485731976
+      },
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485909089
+      }
+    ],
+    "6.6 Write keyboard tests for all four chip groups": [
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485732085
+      },
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485909367
+      }
+    ],
+    "6.7 Write Sample_Button tests": [
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485732897
+      },
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485909758
+      }
+    ],
+    "6.8 Write real-stage and Live_Emergency_Notice placement tests": [
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485733261
+      },
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485910553
+      }
+    ],
+    "6. Steps, `GuidedIntake` and the page": [
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485910705
+      }
+    ],
+    "7. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795485912930
+      },
+      {
+        "executionId": "642df53f-07ef-4362-b8be-db87d75d8198",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795486190142
+      }
     ]
   }
 }

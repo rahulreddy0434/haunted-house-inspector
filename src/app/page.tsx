@@ -1,5 +1,5 @@
 import { HelpSection } from '@/components/ui/help/HelpSection';
-import { UploadFlow } from '@/components/upload/UploadFlow';
+import { GuidedIntake } from '@/components/intake/GuidedIntake';
 
 export default function Home() {
   return (
@@ -13,7 +13,7 @@ export default function Home() {
           cause, who to call and a rough cost range.
         </p>
       </header>
-      <UploadFlow />
+      <GuidedIntake />
       <HelpSection page="/" />
     </div>
   );

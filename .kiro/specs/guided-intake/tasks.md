@@ -155,26 +155,26 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
     - Stage text from real status values, no timer (advance fake timers, text unchanged), focus on the stage heading, Haunted line appended, error card and "Try again"
     - _Requirements: 10.1, 10.2, 10.4, 10.5, 10.6, 10.7, 13.9_
 
-- [ ] 6. Steps, `GuidedIntake` and the page
-  - [ ] 6.1 Build `StepProgress`, `ReviewList` and `SampleButton`
+- [x] 6. Steps, `GuidedIntake` and the page
+  - [x] 6.1 Build `StepProgress`, `ReviewList` and `SampleButton`
     - `StepProgress.tsx`: "Step N of 3", `role="progressbar"` with `aria-valuenow`, width-only inline style, no transition
     - `ReviewList.tsx`: Safety labels or "None selected", thumbnails (object URLs revoked on cleanup), `answers.location`, `answers.duration`, extras, each with a Change button
     - `SampleButton.tsx`: "Try it with a sample photo"
     - _Requirements: 3.2, 8.1, 8.2, 9.1, 11.4_
 
-  - [ ] 6.2 Build `StepOne`, `StepTwo` and `StepThree`
+  - [x] 6.2 Build `StepOne`, `StepTwo` and `StepThree`
     - Step 1 order: heading, Safety_Group, Live_Emergency_Notice, `DropZone`, Sample_Button (only while no file), error, Next
     - Step 2 order: heading, notice, Location_Group with Exact_Place_Text (required when Other), Duration_Group, Extras_Group with Something_Else_Text (only while the chip is on), error, Back, Next
     - Step 3 order: heading, notice, `ReviewList`, `DataRetentionNotice`, status panel, Back, "Inspect my home"
     - _Requirements: 2.2, 3.1, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 5.1, 5.7, 5.8, 5.9, 5.10, 5.11, 5.13, 8.3, 8.6, 8.7_
 
-  - [ ] 6.3 Build `GuidedIntake` and switch the page
+  - [x] 6.3 Build `GuidedIntake` and switch the page
     - Create `GuidedIntake.tsx`: `useUpload()` plus `useReducer(intakeReducer)`; `mapAnswers` memoised and pushed with `setAnswers` in an effect; Next and Back with `validateStep`; focus and scroll to the heading on step change (not on first render; no smooth scroll under reduced motion); focus the first invalid control; sample handler using `loadSample` and `mergeSelection`, rotation index moved only on success; `handleSubmit` with the existing notice prompt and a re-check of Step 2; send through `submit()` and `buildInspectRequestBody`
     - Change `src/app/page.tsx` to render `GuidedIntake`, keeping the `h1`, intro text and `HelpSection`
     - Leave `useUpload`, `runUploadFlow`, `DropZone` and `DataRetentionNotice` unchanged
     - _Requirements: 3.3, 3.7, 3.8, 3.9, 3.11, 3.12, 3.13, 1.5, 7.10, 8.4, 8.5, 9.2, 9.3, 9.4, 9.6, 9.7, 9.8, 10.3, 10.6_
 
-  - [ ] 6.4 Write test that Back and Next keep every answer
+  - [x] 6.4 Write test that Back and Next keep every answer
     - `GuidedIntake.navigation.test.tsx`: add a file, tap Safety, Location, Duration and Extras chips, type all three Free_Text values, go to Step 3, go Back twice and forward again; every file, chip and text value is still present; Change links keep the state; Something_Else_Text survives deselect and reselect
     - _Requirements: 3.10, 3.11, 5.10, 8.2, 13.5_
 
@@ -182,15 +182,15 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
     - `GuidedIntake.steps.test.tsx`: titles, "Step N of 3" and `aria-valuenow`, Back and Next per step, focus on the heading, scroll behaviour with and without reduced motion, error messages with `aria-invalid` and `aria-describedby`, focus on the first invalid control, notice shown on Steps 1, 2 and 3 in the right place, send still allowed with a Safety_Chip
     - _Requirements: 1.5, 2.2, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.12, 3.13, 6.7, 8.4_
 
-  - [ ] 6.6 Write keyboard tests for all four chip groups
+  - [x] 6.6 Write keyboard tests for all four chip groups
     - `GuidedIntake.keyboard.test.tsx`: Safety_Group on Step 1; Location_Group, Duration_Group and Extras_Group on Step 2; Tab order, arrow keys in single-choice groups, Space on each chip, one Tab stop per checkbox; Back and Next reachable by Tab; group names checked with `getByRole`
     - _Requirements: 6.1, 6.2, 6.3, 6.10, 13.6_
 
-  - [ ] 6.7 Write Sample_Button tests
+  - [x] 6.7 Write Sample_Button tests
     - `SampleButton.test.tsx`: shown only while no file and on Step 1 only; adds exactly one file through the normal validation; pre-selects the manifest answers on Step 2 where they can be changed or cleared; selects no Safety_Chip; leaves Safety_Group and Free_Text unchanged; rotates in manifest order and wraps (remove the sample, tap again, get the other one); failed fetch shows "We couldn't load the sample photo. Please add your own photo." and changes nothing
     - _Requirements: 4.4, 4.5, 5.13, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.8, 13.7_
 
-  - [ ] 6.8 Write real-stage and Live_Emergency_Notice placement tests
+  - [x] 6.8 Write real-stage and Live_Emergency_Notice placement tests
     - `GuidedIntake.stages.test.tsx` with `runUploadFlow` mocked: "Uploading photos" with progress from `onProgress`, analysis text only after `onAnalysing`, no text change when timers advance, Back and "Inspect my home" disabled while running, errors keep the state and return to Step 3, "Try again" works
     - Notice placement: directly below the Safety_Group on Step 1 before any file is added, at the top of Step 2 and Step 3, exact `EMERGENCY_MESSAGE`, no `haunted:` class, focus stays on the chip
     - _Requirements: 2.1, 2.2, 8.6, 8.7, 10.1, 10.2, 10.4, 10.6, 13.8, 13.9_
@@ -199,7 +199,7 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
     - Read the `fetch` body sent by `runUploadFlow` from `GuidedIntake` and check it has the same shape and the three answer fields from `mapAnswers`
     - _Requirements: 7.10_
 
-- [ ] 7. Checkpoint - Ensure all tests pass
+- [x] 7. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 8. Theme contrast and source scan
