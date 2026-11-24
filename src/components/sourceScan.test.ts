@@ -416,10 +416,11 @@ const EXTRA_FILES = [
   'src/components/results/ResultsView.tsx',
   'src/components/results/EmergencyBanner.tsx',
   'src/components/upload/DataRetentionNotice.tsx',
+  'src/components/upload/UploadStatusPanel.tsx',
 ];
 
 function scannedFiles(): string[] {
-  const dirs = ['src/components/pro', 'src/components/ui', 'src/app/pro'].map((d) =>
+  const dirs = ['src/components/pro', 'src/components/ui', 'src/app/pro', 'src/components/intake'].map((d) =>
     path.join(ROOT, d),
   );
   const files = [...dirs.flatMap(walk), ...EXTRA_FILES.map((f) => path.join(ROOT, f))];
@@ -442,6 +443,7 @@ describe('source scan of Pro dashboard and booking components', () => {
     expect(rel).toContain('src/components/pro/JobDetail.tsx');
     expect(rel).toContain('src/components/ui/styles.ts');
     expect(rel).toContain('src/app/pro/page.tsx');
+    expect(rel).toContain('src/components/intake/GuidedIntake.tsx');
     expect(rel.some((f) => /\.test\.tsx?$/.test(f) || f.endsWith('testHelpers.ts'))).toBe(false);
   });
 

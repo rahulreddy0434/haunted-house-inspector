@@ -96,9 +96,13 @@ export function GuidedIntake() {
   }, [step]);
 
   // After an error, the Homeowner is on Step 3 with everything kept.
+  // Runs only when the status changes to 'error', so Back and Change still work while the error shows.
+  const previousStatus = useRef(uploadStatus);
   useEffect(() => {
-    if (uploadStatus === 'error' && step !== 3) dispatch({ type: 'goTo', step: 3 });
-  }, [uploadStatus, step]);
+    const was = previousStatus.current;
+    previousStatus.current = uploadStatus;
+    if (uploadStatus === 'error' && was !== 'error') dispatch({ type: 'goTo', step: 3 });
+  }, [uploadStatus]);
 
   const goNext = () => {
     const found = validateStep(step, { hasFiles, choices });

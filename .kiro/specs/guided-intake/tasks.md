@@ -202,12 +202,12 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
 - [x] 7. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Theme contrast and source scan
-  - [ ] 8.1 Add Contrast_Registry rows
+- [x] 8. Theme contrast and source scan
+  - [x] 8.1 Add Contrast_Registry rows
     - In `src/lib/haunted/contrastRegistry.ts`, add rows only for pairs not yet listed: unselected chip text, chip border, selected chip border against fill, progress fill against track, "Step N of 3" text, focus ring against page and selected fill, in both themes; reuse existing rows (for example `F-01`, `F-02` for the emergency banner); the existing `checkRegistry` test must pass
     - _Requirements: 6.4, 11.2, 11.3_
 
-  - [ ] 8.2 Extend the source scan (additions only)
+  - [x] 8.2 Extend the source scan (additions only)
     - In `src/components/sourceScan.test.ts`, add `src/components/intake` and `src/components/upload/UploadStatusPanel.tsx` to the scanned set
     - Never remove a file from the scan and never loosen a rule
     - _Requirements: 11.2, 11.5, 11.6_
@@ -216,17 +216,17 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
     - Assert `min-h-11`, `min-w-11`, `peer-focus-visible:` and `peer-checked:` are present, `truncate` is absent, and the notice file has no `haunted:` class
     - _Requirements: 2.4, 6.4, 6.6, 6.8_
 
-- [ ] 9. Cleanup of the old form
-  - [ ] 9.1 Migrate the old UploadFlow tests
+- [x] 9. Cleanup of the old form
+  - [x] 9.1 Migrate the old UploadFlow tests
     - Rewrite the cases in `UploadFlow.test.tsx` (notice prompt, rate limit card, upload, timeout and analysis error cards, retry) against `GuidedIntake` before anything is deleted; the `ContextForm` rules are already covered by Properties 4, 5 and 7 and the mapper examples
     - _Requirements: 8.4, 8.5, 10.6_
 
-  - [ ] 9.2 Delete the old components and their tests
+  - [x] 9.2 Delete the old components and their tests
     - Only after 9.1 passes, delete `src/components/upload/UploadFlow.tsx`, `src/components/upload/ContextForm.tsx` and their test files; fix any remaining imports
     - In `src/components/ui/normalBaseline.test.ts`, remove only the `'upload/UploadFlow.tsx'` and `'upload/ContextForm.tsx'` entries and change nothing else in that test
     - _Requirements: 3.13, 11.6_
 
-- [ ] 10. Final checkpoint - Run lint, type check and tests
+- [x] 10. Final checkpoint - Run lint, type check and tests
   - Run `next lint`, `tsc --noEmit` and `vitest --run`, fix failures, and ensure all pass; ask the user if questions arise.
 
 ## Notes

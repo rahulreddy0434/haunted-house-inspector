@@ -58,10 +58,6 @@ const BASELINE: Record<string, string[]> = {
     'text-slate-700', 'text-slate-900', 'text-white',
   ],
   'upload/DataRetentionNotice.tsx': ['bg-slate-50', 'border-slate-300', 'text-slate-900'],
-  'upload/UploadFlow.tsx': [
-    'bg-brand-700', 'focus-visible:outline-brand-900', 'hover:bg-brand-800', 'text-red-700',
-    'text-white',
-  ],
   'upload/UploadStatusPanel.tsx': [
     'bg-brand-700', 'bg-red-50', 'bg-slate-50', 'border-red-300', 'border-slate-300',
     'focus-visible:outline-brand-900', 'hover:bg-brand-800', 'text-brand-900', 'text-red-900',
@@ -77,10 +73,6 @@ const BASELINE: Record<string, string[]> = {
   'upload/UploadProgress.tsx': [
     'bg-blue-600', 'bg-gray-200', 'bg-gray-400', 'bg-green-600', 'bg-red-600', 'border-gray-200',
     'text-gray-700', 'text-gray-800', 'text-gray-900',
-  ],
-  'upload/ContextForm.tsx': [
-    'bg-white', 'border-gray-400', 'focus-visible:ring-brand-600', 'placeholder:text-gray-500',
-    'text-gray-600', 'text-gray-900', 'text-red-700',
   ],
   'results/ResultsView.tsx': [
     'bg-blue-700', 'border-blue-800', 'focus-visible:ring-blue-600', 'hover:bg-blue-800',

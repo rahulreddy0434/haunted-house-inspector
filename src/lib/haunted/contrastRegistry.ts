@@ -120,6 +120,12 @@ export const CONTRAST_REGISTRY: readonly ColourPair[] = [
   N('N-30', 'non-text', 'blue.600', 'white', 'Focus ring (blue-600)'),
   N('N-31', 'non-text', 'brand.600', 'white', 'Focus ring (brand-600)'),
   N('N-32', 'non-text', 'brand.600', 'slate.50', 'Focus ring inside a status box'),
+  // Guided intake (ChipGroup, StepProgress). The other intake pairs reuse existing rows:
+  //   chip text N-02/H-03, chip border N-28/H-25/H-27, selected chip text N-21/H-10,
+  //   selected chip fill against the page N-29/H-29, focus ring against the page N-30/H-29,
+  //   progress fill against track H-31, "Step N of 3" N-04/H-04, emergency banner F-01/F-02.
+  N('N-33', 'non-text', 'blue.800', 'white', 'Selected chip border against the page'),
+  N('N-34', 'non-text', 'blue.700', 'slate.300', 'Progress fill against its track'),
 ];
 
 export { minimumFor };

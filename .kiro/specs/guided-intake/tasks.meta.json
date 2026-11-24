@@ -442,6 +442,80 @@
         "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
         "timestamp": 1795486190142
       }
+    ],
+    "8.1 Add Contrast_Registry rows": [
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534123840
+      },
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534209945
+      }
+    ],
+    "8.2 Extend the source scan (additions only)": [
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534124260
+      },
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534210167
+      }
+    ],
+    "8. Theme contrast and source scan": [
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534210275
+      }
+    ],
+    "9.1 Migrate the old UploadFlow tests": [
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534221770
+      },
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534420782
+      }
+    ],
+    "9.2 Delete the old components and their tests": [
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534420997
+      },
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534665654
+      }
+    ],
+    "9. Cleanup of the old form": [
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534665815
+      }
+    ],
+    "10. Final checkpoint - Run lint, type check and tests": [
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534666584
+      },
+      {
+        "executionId": "e6e05cd9-1723-4715-b7be-a188448f4aa8",
+        "chatSessionId": "sess_c218f28a-38e2-4c7e-be61-a0c47182eade",
+        "timestamp": 1795534909713
+      }
     ]
   }
 }
