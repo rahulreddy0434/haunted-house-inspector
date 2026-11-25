@@ -1,3 +1,62 @@
+/*
+ * screens-polish task 1.3 (Requirements 1.9, 15.2): deliberate update after task 1.2.
+ *
+ * Test mechanics: COLOUR_CLASS now also recognises 
+ormal-* and adge-* token colours. Without
+ * that the new token classes would be invisible and the lock would be weaker, not stricter.
+ * No other file's expectation changed.
+ *
+ * ui/styles.ts
+ *   removed: bg-blue-700, bg-slate-50, bg-white, border-blue-800, border-gray-500, border-slate-300,
+ *     border-slate-500, focus-visible:ring-blue-600, focus-visible:ring-brand-600, hover:bg-blue-800,
+ *     hover:bg-slate-100, text-gray-900, text-red-800, text-slate-600, text-slate-700, text-slate-900,
+ *     text-white
+ *   added: active:bg-normal-accent-hover, active:bg-normal-table-head, active:border-normal-accent-hover,
+ *     active:text-normal-accent-hover, bg-badge-emergency-bg, bg-badge-monitor-bg, bg-badge-soon-bg,
+ *     bg-badge-urgent-bg, bg-normal-accent, bg-normal-card, bg-normal-page, border-badge-emergency-bg,
+ *     border-badge-monitor-text, border-badge-soon-text, border-badge-urgent-text, border-normal-accent,
+ *     border-normal-card-border, border-normal-muted, focus-visible:ring-normal-accent,
+ *     hover:bg-normal-accent-hover, hover:bg-normal-page, hover:border-normal-accent-hover,
+ *     hover:text-normal-accent-hover, text-badge-emergency-text, text-badge-monitor-text,
+ *     text-badge-soon-text, text-badge-urgent-text, text-normal-accent, text-normal-card,
+ *     text-normal-emergency, text-normal-muted, text-normal-text
+ *   renamed (old -> new): bg-white -> bg-normal-card, bg-slate-50 -> bg-normal-page,
+ *     bg-blue-700 -> bg-normal-accent, border-slate-300 -> border-normal-card-border,
+ *     border-gray-500 / border-slate-500 -> border-normal-muted, border-blue-800 -> border-normal-accent,
+ *     text-slate-900 / text-gray-900 -> text-normal-text, text-slate-600 / text-slate-700 -> text-normal-muted,
+ *     text-red-800 -> text-normal-emergency, text-white -> text-normal-card,
+ *     focus-visible:ring-blue-600 / ring-brand-600 -> focus-visible:ring-normal-accent,
+ *     hover:bg-blue-800 -> hover:bg-normal-accent-hover, hover:bg-slate-100 -> hover:bg-normal-page
+ *
+ * results/CostRange.tsx (colours come from CARD in ui/styles.ts)
+ *   removed: bg-white, border-slate-300, text-slate-900
+ *   added: bg-normal-card, border-normal-card-border, text-normal-text
+ *   unchanged: text-slate-700 (the file's own class)
+ *
+ * screens-polish task 2.3 (Requirements 1.9, 15.2): header, footer, layout and Pro page chrome.
+ * New locked entries (none of these files was in the baseline before; expectations are not loosened):
+ *
+ * ui/SiteHeader.tsx (new file)
+ *   locked: bg-normal-card, bg-normal-text, border-normal-card-border, focus-visible:ring-normal-accent,
+ *     focus:bg-normal-card, focus:text-normal-text, text-normal-accent, text-normal-card
+ *
+ * ui/SiteFooter.tsx (new file)
+ *   locked: bg-normal-card, border-normal-card-border, focus-visible:ring-normal-accent
+ *
+ * ../app/layout.tsx (outside components/, reached through a relative path)
+ *   removed: border-gray-200, focus:bg-white, focus:text-gray-900, text-gray-600 (header, footer and skip link
+ *     moved into SiteHeader.tsx / SiteFooter.tsx)
+ *   locked: bg-white, text-gray-900 (the body classes that remain)
+ *
+ * screens-polish task 2.6 (page background): ../app/layout.tsx body now uses the PAGE_BG recipe.
+ *   removed: bg-white, text-gray-900
+ *   added: bg-normal-page, text-normal-text (read from the PAGE_BG recipe in ui/styles.ts, so a recipe
+ *     change still fails this test; the body's own haunted: classes are unchanged)
+ *   test mechanics: CARD_RECIPE_USERS also maps '../app/layout.tsx' to 'PAGE_BG'
+ *
+ * pro/ProDashboard.tsx, pro/JobDetail.tsx, pro/ProChrome.tsx, pro/ProChromeContext.tsx
+ *   no own Normal colour classes before or after task 2 (empty lists, so any raw colour class added later fails)
+ */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -20,7 +79,7 @@ const COLOUR_NAMES =
   'slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose';
 const COLOUR_CLASS = new RegExp(
   '^(?:[a-z0-9-]+:)*(?:text|bg|border|ring|ring-offset|accent|fill|stroke|divide|placeholder|outline)-' +
-    `(?:(?:${COLOUR_NAMES})-\\d{2,3}|white|black|transparent|current|brand-\\d+|haunted-[a-z]+)(?:/\\d+)?$`,
+    `(?:(?:${COLOUR_NAMES})-\\d{2,3}|white|black|transparent|current|brand-\\d+|haunted-[a-z]+|normal-[a-z-]+|badge-[a-z-]+)(?:/\\d+)?$`,
 );
 
 /**
@@ -28,8 +87,9 @@ const COLOUR_CLASS = new RegExp(
  * their own classes. The recipe's non-haunted colour classes count as the file's effective Normal
  * classes, so a change to the recipe still fails this test.
  */
-const CARD_RECIPE_USERS: Record<string, 'CARD' | 'STATUS_BOX'> = {
+const CARD_RECIPE_USERS: Record<string, 'CARD' | 'STATUS_BOX' | 'PAGE_BG'> = {
   'results/CostRange.tsx': 'CARD',
+  '../app/layout.tsx': 'PAGE_BG',
 };
 
 function recipeSource(name: string): string {
@@ -52,10 +112,15 @@ function normalColourClasses(relativePath: string): string[] {
 
 const BASELINE: Record<string, string[]> = {
   'ui/styles.ts': [
-    'bg-blue-700', 'bg-slate-50', 'bg-white', 'border-blue-800',
-    'border-gray-500', 'border-slate-300', 'border-slate-500', 'focus-visible:ring-blue-600', 'focus-visible:ring-brand-600',
-    'hover:bg-blue-800', 'hover:bg-slate-100', 'text-gray-900', 'text-red-800', 'text-slate-600',
-    'text-slate-700', 'text-slate-900', 'text-white',
+    'active:bg-normal-accent-hover', 'active:bg-normal-table-head', 'active:border-normal-accent-hover',
+    'active:text-normal-accent-hover', 'bg-badge-emergency-bg', 'bg-badge-monitor-bg', 'bg-badge-soon-bg',
+    'bg-badge-urgent-bg', 'bg-normal-accent', 'bg-normal-card', 'bg-normal-page',
+    'border-badge-emergency-bg', 'border-badge-monitor-text', 'border-badge-soon-text',
+    'border-badge-urgent-text', 'border-normal-accent', 'border-normal-card-border', 'border-normal-muted',
+    'focus-visible:ring-normal-accent', 'hover:bg-normal-accent-hover', 'hover:bg-normal-page',
+    'hover:border-normal-accent-hover', 'hover:text-normal-accent-hover', 'text-badge-emergency-text',
+    'text-badge-monitor-text', 'text-badge-soon-text', 'text-badge-urgent-text', 'text-normal-accent',
+    'text-normal-card', 'text-normal-emergency', 'text-normal-muted', 'text-normal-text',
   ],
   'upload/DataRetentionNotice.tsx': ['bg-slate-50', 'border-slate-300', 'text-slate-900'],
   'upload/UploadStatusPanel.tsx': [
@@ -79,7 +144,7 @@ const BASELINE: Record<string, string[]> = {
     'text-red-800', 'text-slate-700', 'text-slate-900', 'text-white',
   ],
   'results/IssueSummary.tsx': ['bg-white', 'border-slate-300', 'text-slate-600', 'text-slate-900'],
-  'results/CostRange.tsx': ['bg-white', 'border-slate-300', 'text-slate-700', 'text-slate-900'],
+  'results/CostRange.tsx': ['bg-normal-card', 'border-normal-card-border', 'text-normal-text', 'text-slate-700'],
   'results/JobBrief.tsx': [
     'bg-blue-700', 'bg-gray-50', 'bg-white', 'border-blue-800', 'border-gray-300', 'border-gray-500',
     'focus-visible:ring-blue-600', 'hover:bg-blue-800', 'text-gray-900', 'text-green-800',
@@ -98,6 +163,16 @@ const BASELINE: Record<string, string[]> = {
   'pro/PhotoGallery.tsx': ['focus-visible:ring-blue-600'],
   'pro/JobFacts.tsx': [],
   'pro/ActionPanel.tsx': [],
+  'pro/ProDashboard.tsx': [],
+  'pro/JobDetail.tsx': [],
+  'pro/ProChrome.tsx': [],
+  'pro/ProChromeContext.tsx': [],
+  'ui/SiteHeader.tsx': [
+    'bg-normal-card', 'bg-normal-text', 'border-normal-card-border', 'focus-visible:ring-normal-accent',
+    'focus:bg-normal-card', 'focus:text-normal-text', 'text-normal-accent', 'text-normal-card',
+  ],
+  'ui/SiteFooter.tsx': ['bg-normal-card', 'border-normal-card-border', 'focus-visible:ring-normal-accent'],
+  '../app/layout.tsx': ['bg-normal-page', 'text-normal-text'],
   'pro/AcceptForm.tsx': [],
   'pro/DeclineForm.tsx': [],
 };

@@ -126,6 +126,42 @@ export const CONTRAST_REGISTRY: readonly ColourPair[] = [
   //   progress fill against track H-31, "Step N of 3" N-04/H-04, emergency banner F-01/F-02.
   N('N-33', 'non-text', 'blue.800', 'white', 'Selected chip border against the page'),
   N('N-34', 'non-text', 'blue.700', 'slate.300', 'Progress fill against its track'),
+  // Normal_Palette base pairs (screens-polish task 1.4). The Haunted equivalents are
+  // H-01/H-02 (text), H-05 (muted on card), H-07/H-08 (accent text), H-10/H-11 (accent button text),
+  // H-29/H-30 (focus ring) and H-35/H-36/H-31 (badge borders), so they are not repeated here.
+  N('N-35', 'body', 'normal.text', 'normal.page', 'Text on the page background'),
+  N('N-36', 'body', 'normal.text', 'normal.card', 'Text on a card'),
+  N('N-37', 'body', 'normal.muted', 'normal.page', 'Muted text on the page background'),
+  N('N-38', 'body', 'normal.muted', 'normal.card', 'Muted text on a card'),
+  N('N-39', 'body', 'normal.accent', 'normal.page', 'Accent text and links on the page'),
+  N('N-40', 'body', 'normal.accent', 'normal.card', 'Accent text and headings on a card'),
+  N('N-41', 'body', 'normal.card', 'normal.accent', 'Accent button text'),
+  N('N-42', 'body', 'normal.card', 'normal.accent-hover', 'Accent button text on hover'),
+  N('N-43', 'non-text', 'normal.accent', 'normal.page', 'Focus ring and accent button against the page'),
+  N('N-44', 'non-text', 'normal.accent', 'normal.card', 'Focus ring and accent button inside a card'),
+  N('N-45', 'body', 'badge.soon-text', 'badge.soon-bg', 'Soon badge text'),
+  N('N-46', 'body', 'badge.urgent-text', 'badge.urgent-bg', 'Urgent badge text'),
+  N('N-47', 'body', 'badge.monitor-text', 'badge.monitor-bg', 'Monitor badge text'),
+  N('N-48', 'body', 'badge.emergency-text', 'badge.emergency-bg', 'Emergency badge text'),
+  // Emergency badge colours are fixed, so the same pair is registered for Haunted too.
+  H('H-37', 'body', 'badge.emergency-text', 'badge.emergency-bg', 'Emergency badge text (fixed colours)'),
+  // Header and footer (screens-polish task 2.4). Haunted header and footer are transparent over haunted.bg.
+  N('N-49', 'body', 'normal.accent', 'normal.card', 'Header title'),
+  N('N-50', 'body', 'normal.card', 'normal.text', 'PRO tag text'),
+  N('N-51', 'body', 'normal.text', 'normal.card', 'Log out button text'),
+  N('N-52', 'non-text', 'normal.muted', 'normal.card', 'Log out button border'),
+  N('N-53', 'body', 'gray.900', 'normal.card', 'Haunted_Switch label'),
+  N('N-54', 'non-text', 'gray.500', 'normal.card', 'Haunted_Switch track border and thumb, Off'),
+  N('N-55', 'body', 'normal.muted', 'normal.card', 'Footer text'),
+  N('N-56', 'body', 'normal.accent', 'normal.card', 'Footer link'),
+  H('H-38', 'body', 'haunted.accent', 'haunted.bg', 'Header title'),
+  H('H-39', 'body', 'haunted.on-accent', 'haunted.accent', 'PRO tag text'),
+  H('H-40', 'body', 'haunted.text', 'haunted.field', 'Log out button text'),
+  H('H-41', 'non-text', 'haunted.border', 'haunted.bg', 'Log out button border'),
+  H('H-42', 'body', 'haunted.text', 'haunted.bg', 'Haunted_Switch label'),
+  H('H-43', 'non-text', 'haunted.border', 'haunted.field', 'Haunted_Switch track border, Off'),
+  H('H-44', 'body', 'haunted.muted', 'haunted.bg', 'Footer text'),
+  H('H-45', 'body', 'haunted.accent', 'haunted.bg', 'Footer link'),
 ];
 
 export { minimumFor };

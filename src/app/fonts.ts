@@ -7,3 +7,10 @@ export const displayFont = localFont({
   preload: false,
   fallback: ['system-ui', 'sans-serif'],
 });
+
+export const bodyFont = localFont({
+  src: [{ path: '../assets/fonts/inter/Inter-Variable.ttf', weight: '400 700', style: 'normal' }],
+  variable: '--font-body',
+  display: 'swap',
+  fallback: ['system-ui', 'sans-serif'],
+});

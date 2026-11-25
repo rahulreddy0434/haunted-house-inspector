@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import type { ReactNode } from 'react';
 import { HelpSection } from '@/components/ui/help/HelpSection';
 import { BODY, PAGE_TITLE } from '@/components/ui/styles';
 import { AccessCodeForm } from '@/components/pro/AccessCodeForm';
 import { JobList } from '@/components/pro/JobList';
+import { ProChrome } from '@/components/pro/ProChrome';
 import { useProJobs } from '@/hooks/useProJobs';
 import { resetProSession } from '@/hooks/proSession';
 import { SESSION_ENDED_NOTICE } from '@/lib/jobs/copy';
@@ -40,38 +41,36 @@ function DashboardBody({ onLoggedIn }: DashboardBodyProps) {
     setLoggedOut(true);
   }
 
+  let content: ReactNode;
   if (view === 'checking') {
-    return (
+    content = (
       <p role="status" className={BODY}>
         Loading jobs…
       </p>
     );
-  }
-  if (view === 'disabled') {
-    return (
+  } else if (view === 'disabled') {
+    content = (
       <p role="status" className={BODY}>
         {DISABLED_MESSAGE}
       </p>
     );
-  }
-  if (view === 'form') {
-    return (
+  } else if (view === 'form') {
+    content = (
       <AccessCodeForm
         onSuccess={onLoggedIn}
         onDisabled={() => setFormDisabled(true)}
         notice={sessionLost && !loggedOut ? SESSION_ENDED_NOTICE : undefined}
       />
     );
+  } else {
+    content = <JobList jobs={jobs} error={error} refreshing={refreshing} onRefresh={refresh} />;
   }
+
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <Button variant="secondary" onClick={() => void logOut()}>
-          Log out
-        </Button>
-      </div>
-      <JobList jobs={jobs} error={error} refreshing={refreshing} onRefresh={refresh} />
-    </div>
+    <>
+      <ProChrome loggedIn={view === 'list'} onLogout={() => void logOut()} />
+      {content}
+    </>
   );
 }
 

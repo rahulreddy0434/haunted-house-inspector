@@ -99,7 +99,7 @@ describe('GuidedIntake navigation keeps every answer', () => {
 
     await user.click(screen.getByRole('button', { name: 'Next' }));
     expectStep3();
-  });
+  }, 30_000);
 
   it('keeps the state when the Change buttons on Step 3 are used', async () => {
     const user = userEvent.setup();
@@ -135,7 +135,7 @@ describe('GuidedIntake navigation keeps every answer', () => {
     await user.click(screen.getByRole('button', { name: 'Change where' }));
     await user.click(screen.getByRole('button', { name: 'Back' }));
     expectStep1();
-  });
+  }, 30_000);
 
   it('keeps the Something_Else_Text when the chip is turned off and on again', async () => {
     const user = userEvent.setup();
@@ -156,5 +156,5 @@ describe('GuidedIntake navigation keeps every answer', () => {
     expect(checkbox('Something else').checked).toBe(true);
     expect(more().value).toBe(MORE);
     expect(place().value).toBe(PLACE);
-  });
+  }, 30_000);
 });

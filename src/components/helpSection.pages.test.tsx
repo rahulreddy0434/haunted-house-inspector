@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import Home from '@/app/page';
 import { ProDashboard } from '@/components/pro/ProDashboard';
+import { renderWithChrome } from '@/components/pro/renderWithChrome.test-util';
 import { JobDetail } from '@/components/pro/JobDetail';
 import { ResultsView } from '@/components/results/ResultsView';
 import { resetProSession } from '@/hooks/proSession';
@@ -124,13 +125,13 @@ describe('Help_Section placement (real timers)', () => {
 
   it('Pro dashboard: one on the access-code form and one on the job list', async () => {
     stubFetch((url) => (url === '/api/pro/jobs' ? UNAUTHORIZED() : null));
-    const form = render(<ProDashboard />);
+    const form = renderWithChrome(<ProDashboard />);
     await screen.findByLabelText('Access code');
     expect(helpCount()).toBe(1);
     form.unmount();
 
     stubFetch((url) => (url === '/api/pro/jobs' ? json(200, { jobs: [] }) : null));
-    render(<ProDashboard />);
+    renderWithChrome(<ProDashboard />);
     await screen.findByRole('button', { name: 'Log out' });
     expect(helpCount()).toBe(1);
   });

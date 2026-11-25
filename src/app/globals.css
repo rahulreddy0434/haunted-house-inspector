@@ -11,7 +11,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  font-family: var(--font-body, system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

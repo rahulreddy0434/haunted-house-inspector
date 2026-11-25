@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ProDashboard } from './ProDashboard';
+import { renderWithChrome } from './renderWithChrome.test-util';
 import { resetProSession } from '@/hooks/proSession';
 import { metadata } from '@/app/pro/page';
 
@@ -78,7 +79,7 @@ afterEach(() => {
 describe('ProDashboard', () => {
   it('shows the access code form without the notice on a first-load 401', async () => {
     routes.jobs = [() => json(401, { error: 'UNAUTHORIZED', message: 'no' })];
-    render(<ProDashboard />);
+    renderWithChrome(<ProDashboard />);
     expect(await screen.findByLabelText('Access code')).toBeTruthy();
     expect(screen.queryByText(NOTICE)).toBeNull();
   });
@@ -90,11 +91,11 @@ describe('ProDashboard', () => {
     ];
     routes.login = () => json(200, { ok: true });
     const user = userEvent.setup();
-    render(<ProDashboard />);
+    renderWithChrome(<ProDashboard />);
     await user.type(await screen.findByLabelText('Access code'), 'letmein');
     await user.click(screen.getByRole('button', { name: 'Enter' }));
 
-    const link = await screen.findByRole('link');
+    const link = await screen.findByRole('link', { name: /Plumber|Springfield/ });
     expect(link.getAttribute('href')).toBe(`/pro/jobs/${JOB_ID}`);
     expect(screen.getByText('Springfield, IL')).toBeTruthy();
     expect(screen.queryByLabelText('Access code')).toBeNull();
@@ -108,7 +109,7 @@ describe('ProDashboard', () => {
       () => json(401, { error: 'UNAUTHORIZED', message: 'no' }),
     ];
     const user = userEvent.setup();
-    render(<ProDashboard />);
+    renderWithChrome(<ProDashboard />);
     expect(await screen.findByText('Springfield, IL')).toBeTruthy();
 
     await waitFor(() => {
@@ -120,12 +121,12 @@ describe('ProDashboard', () => {
     expect(screen.getByLabelText('Access code')).toBeTruthy();
     expect(screen.queryByText('Springfield, IL')).toBeNull();
     expect(screen.queryByText('Plumber')).toBeNull();
-    expect(screen.queryByRole('link')).toBeNull();
+    expect(screen.queryByRole('link', { name: /Plumber|Springfield/ })).toBeNull();
   });
 
   it('shows the unavailable message and no form on a 503', async () => {
     routes.jobs = [() => json(503, { error: 'PRO_DISABLED', message: 'off' })];
-    render(<ProDashboard />);
+    renderWithChrome(<ProDashboard />);
     expect(await screen.findByText(DISABLED)).toBeTruthy();
     expect(screen.queryByLabelText('Access code')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Enter' })).toBeNull();
@@ -135,7 +136,7 @@ describe('ProDashboard', () => {
     routes.jobs = [() => json(200, JOBS_BODY)];
     routes.logout = () => json(200, { ok: true });
     const user = userEvent.setup();
-    render(<ProDashboard />);
+    renderWithChrome(<ProDashboard />);
     await screen.findByText('Springfield, IL');
     await user.click(screen.getByRole('button', { name: 'Log out' }));
 
@@ -153,7 +154,7 @@ describe('ProDashboard', () => {
       throw new TypeError('Failed to fetch');
     };
     const user = userEvent.setup();
-    render(<ProDashboard />);
+    renderWithChrome(<ProDashboard />);
     await screen.findByText('Springfield, IL');
     await user.click(screen.getByRole('button', { name: 'Log out' }));
 

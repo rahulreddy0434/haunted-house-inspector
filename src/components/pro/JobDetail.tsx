@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessCodeForm } from '@/components/pro/AccessCodeForm';
 import { AcceptSection, DeclineSection } from '@/components/pro/ActionPanel';
+import { ProChrome } from '@/components/pro/ProChrome';
 import { JobFacts } from '@/components/pro/JobFacts';
 import { PhotoGallery } from '@/components/pro/PhotoGallery';
 import { ProEmergencyView } from '@/components/pro/ProEmergencyView';
@@ -19,6 +20,7 @@ import { BODY, ERROR_TEXT, HEADING, PAGE_TITLE, SECONDARY_BUTTON } from '@/compo
 import { useProActions } from '@/hooks/useProActions';
 import type { UseProActionsResult } from '@/hooks/useProActions';
 import { useProJob } from '@/hooks/useProJob';
+import { resetProSession } from '@/hooks/proSession';
 import { PRO_STATUS_LABEL, SESSION_ENDED_NOTICE } from '@/lib/jobs/copy';
 import type { ProJobDetailActive } from '@/types/job';
 
@@ -97,6 +99,7 @@ export function JobDetail({ id }: JobDetailProps) {
   const { phase, job, error, sessionLost, reload, applyLive } = useProJob(id);
   const [forceForm, setForceForm] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  const [loggedOut, setLoggedOut] = useState(false);
   const statusRef = useRef<HTMLParagraphElement>(null);
   const focusAfterLoadRef = useRef(false);
 
@@ -128,6 +131,7 @@ export function JobDetail({ id }: JobDetailProps) {
 
   const handleLoginSuccess = useCallback((): void => {
     setForceForm(false);
+    setLoggedOut(false);
     reload();
   }, [reload]);
 
@@ -135,10 +139,25 @@ export function JobDetail({ id }: JobDetailProps) {
     setDisabled(true);
   }, []);
 
+  const logOut = async (): Promise<void> => {
+    try {
+      await fetch('/api/pro/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch {
+      // Show the form even if the request failed.
+    }
+    resetProSession();
+    setLoggedOut(true);
+    setForceForm(true);
+  };
+
+  const signedIn = !forceForm && (phase === 'ready' || phase === 'notFound');
+  const chrome = <ProChrome loggedIn={signedIn} onLogout={() => void logOut()} />;
+
   if (phase === 'unauthorized' || forceForm) {
     if (disabled) {
       return (
         <div className={PAGE}>
+          {chrome}
           <BackLink />
           <p role="alert" className={`${BODY} ${ERROR_TEXT}`}>
             {DISABLED_MESSAGE}
@@ -149,11 +168,12 @@ export function JobDetail({ id }: JobDetailProps) {
     }
     return (
       <div className={PAGE}>
+      {chrome}
         <BackLink />
         <AccessCodeForm
           onSuccess={handleLoginSuccess}
           onDisabled={handleDisabled}
-          notice={sessionLost || forceForm ? SESSION_ENDED_NOTICE : undefined}
+          notice={!loggedOut && (sessionLost || forceForm) ? SESSION_ENDED_NOTICE : undefined}
         />
         <HelpSection page="/pro/jobs" jobId={id} />
       </div>
@@ -163,6 +183,7 @@ export function JobDetail({ id }: JobDetailProps) {
   if (phase === 'notFound') {
     return (
       <div className={PAGE}>
+      {chrome}
         <BackLink />
         <p className={`text-lg font-semibold ${BODY}`}>We couldn&apos;t find this job.</p>
         <div>
@@ -178,6 +199,7 @@ export function JobDetail({ id }: JobDetailProps) {
   if (phase === 'error') {
     return (
       <div className={PAGE}>
+      {chrome}
         <BackLink />
         <p role="alert" className={`${BODY} ${ERROR_TEXT}`}>
           {error}
@@ -193,6 +215,7 @@ export function JobDetail({ id }: JobDetailProps) {
   if (phase === 'loading' || !job) {
     return (
       <div className={PAGE}>
+      {chrome}
         <BackLink />
         <StateText
           plain="Loading the job…"
@@ -207,6 +230,7 @@ export function JobDetail({ id }: JobDetailProps) {
   if (job.status === 'emergency') {
     return (
       <div className={PAGE}>
+      {chrome}
         <EmergencyScope />
         <BackLink />
         <h1 className={`${PAGE_TITLE} break-words`}>Job details</h1>
@@ -220,6 +244,7 @@ export function JobDetail({ id }: JobDetailProps) {
 
   return (
     <div className={PAGE}>
+      {chrome}
       <BackLink />
       <h1 className={`${PAGE_TITLE} break-words`}>Job details</h1>
       <div>

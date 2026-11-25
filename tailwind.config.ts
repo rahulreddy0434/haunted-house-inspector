@@ -24,6 +24,32 @@ const config: Config = {
           800: "#075985",
           900: "#0c4a6e",
         },
+        // Normal_Palette (screens-polish Requirement 1.1)
+        normal: {
+          page: "#F6F7F9",
+          card: "#FFFFFF",
+          "card-border": "#D9DEE5",
+          text: "#18212B",
+          muted: "#55606E",
+          accent: "#1F5FA8",
+          "accent-hover": "#174A84",
+          emergency: "#B42318",
+          "table-head": "#EEF1F5",
+          "emergency-row": "#FEF3F2",
+          notice: "#EEF4FB",
+          "notice-border": "#C9DAEE",
+        },
+        // Urgency badge pairs (background / text), Requirement 7.4
+        badge: {
+          "soon-bg": "#FEF0C7",
+          "soon-text": "#7A4F01",
+          "urgent-bg": "#FCE3D3",
+          "urgent-text": "#9A3412",
+          "monitor-bg": "#DCF5E6",
+          "monitor-text": "#14532D",
+          "emergency-bg": "#B42318",
+          "emergency-text": "#FFFFFF",
+        },
         // Urgency colours (shared across themes)
         urgency: {
           emergency: "#dc2626", // red-600
@@ -49,12 +75,18 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+        sans: ["var(--font-body)", "system-ui", "sans-serif"],
         mono: ["var(--font-geist-mono)", "monospace"],
         display: ["var(--font-display)", "system-ui", "sans-serif"],
       },
       borderRadius: {
         "4xl": "2rem",
+        card: "14px", // card radius token (Requirement 1.1)
+      },
+      // `tall:` applies only in a window tall enough to show a whole Sticky_Panel
+      // (tallest panel plus header; 900px is the working value, re-measure when the panels exist).
+      screens: {
+        tall: { raw: "(min-height: 900px) and (min-width: 1024px)" },
       },
     },
   },
