@@ -24,7 +24,7 @@ export interface UseChatThreadOptions {
   /** Called only when the status or the booking data differs from the previous response. */
   onJobChange: (next: { status: OpenStatus; booking: BookingData }) => void;
   /** Called once on a 409 JOB_IS_EMERGENCY or a 200 emergency response. */
-  onEmergency: () => void;
+  onEmergency: (reasonSentence?: string) => void;
   /** Called on a 401 (Pro side). */
   onUnauthorized?: () => void;
 }
@@ -45,6 +45,7 @@ const SEND_FAILED_TEXT = 'Your message was not sent. Please try again.';
 const errorBodySchema = z.object({
   error: z.string().optional(),
   message: z.string().optional(),
+  reasonSentence: z.string().optional(),
   status: z.enum(['new', 'info_requested', 'accepted', 'declined', 'booked', 'emergency']).optional(),
 });
 
@@ -137,12 +138,12 @@ export function useChatThread(options: UseChatThreadOptions): UseChatThreadRetur
       inFlight = null;
     };
 
-    const handleEmergency = (): void => {
+    const handleEmergency = (reasonSentence?: string): void => {
       if (emergencyNotified) return;
       emergencyNotified = true;
       stopAll();
       setMessages([]);
-      callbacksRef.current.onEmergency();
+      callbacksRef.current.onEmergency(reasonSentence);
     };
 
     const handleUnauthorized = (): void => {
@@ -177,7 +178,7 @@ export function useChatThread(options: UseChatThreadOptions): UseChatThreadRetur
       const requestUrl = first ? url : `${url}?after=${cursor}`;
       let outcome:
         | { kind: 'read'; data: z.infer<typeof chatReadResponseSchema> }
-        | { kind: 'emergency' }
+        | { kind: 'emergency'; reasonSentence?: string }
         | { kind: 'unauthorized' }
         | { kind: 'failed' };
       try {
@@ -192,7 +193,7 @@ export function useChatThread(options: UseChatThreadOptions): UseChatThreadRetur
           const body = errorBodySchema.safeParse(await response.json());
           outcome =
             body.success && body.data.error === 'JOB_IS_EMERGENCY'
-              ? { kind: 'emergency' }
+              ? { kind: 'emergency', reasonSentence: body.data.reasonSentence }
               : { kind: 'failed' };
         } else if (!response.ok) {
           outcome = { kind: 'failed' };
@@ -200,7 +201,7 @@ export function useChatThread(options: UseChatThreadOptions): UseChatThreadRetur
           const raw: unknown = await response.json();
           const emergency = chatEmergencyResponseSchema.safeParse(raw);
           if (emergency.success) {
-            outcome = { kind: 'emergency' };
+            outcome = { kind: 'emergency', reasonSentence: emergency.data.reasonSentence };
           } else {
             const parsed = chatReadResponseSchema.safeParse(raw);
             outcome = parsed.success ? { kind: 'read', data: parsed.data } : { kind: 'failed' };
@@ -214,7 +215,7 @@ export function useChatThread(options: UseChatThreadOptions): UseChatThreadRetur
       inFlight = null;
 
       if (outcome.kind === 'emergency') {
-        handleEmergency();
+        handleEmergency(outcome.reasonSentence);
         return;
       }
       if (outcome.kind === 'unauthorized') {
@@ -272,8 +273,9 @@ export function useChatThread(options: UseChatThreadOptions): UseChatThreadRetur
         if (!alive) return 'refused';
 
         if (response.ok) {
-          if (chatEmergencyResponseSchema.safeParse(raw).success) {
-            handleEmergency();
+          const emergencyBody = chatEmergencyResponseSchema.safeParse(raw);
+          if (emergencyBody.success) {
+            handleEmergency(emergencyBody.data.reasonSentence);
             return 'emergency';
           }
           const parsed = chatSendResponseSchema.safeParse(raw);
@@ -293,7 +295,7 @@ export function useChatThread(options: UseChatThreadOptions): UseChatThreadRetur
         const body = errorBodySchema.safeParse(raw);
         const errorBody = body.success ? body.data : {};
         if (response.status === 409 && errorBody.error === 'JOB_IS_EMERGENCY') {
-          handleEmergency();
+          handleEmergency(errorBody.reasonSentence);
           return 'emergency';
         }
         if (response.status === 409 && errorBody.error === 'ILLEGAL_TRANSITION') {

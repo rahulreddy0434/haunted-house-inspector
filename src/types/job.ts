@@ -61,6 +61,7 @@ export interface ProJobDetailEmergency {
   id: string; createdAt: string; status: 'emergency'; urgency: 'emergency';
   likelyIssue: string; answers: ContextAnswers;
   emergencyNote: string;             // PRO_EMERGENCY_NOTE
+  reasonSentence?: string;
 }
 export type ProJobDetail = ProJobDetailActive | ProJobDetailEmergency;
 
@@ -71,7 +72,7 @@ export type HomeownerStatusView =
   | { status: 'accepted'; offeredSlots: TimeSlot[] }
   | { status: 'declined'; reason?: string }
   | { status: 'booked'; bookedSlot: TimeSlot }
-  | { status: 'emergency'; message: string };
+  | { status: 'emergency'; message: string; reasonSentence?: string };
 
 export type ApiErrorCode =
   | 'INVALID_REQUEST' | 'PAYLOAD_TOO_LARGE' | 'UNAUTHORIZED' | 'INVALID_CODE' | 'TOO_MANY_ATTEMPTS'
@@ -84,5 +85,6 @@ export interface ApiErrorBody {
   error: ApiErrorCode;
   message: string;
   status?: JobStatus;
+  reasonSentence?: string;           // 409 JOB_IS_EMERGENCY only
   fields?: Partial<Record<'name' | 'email' | 'message', string>>;
 }

@@ -1,5 +1,26 @@
 {
-  "pbtResults": {},
+  "pbtResults": {
+    "3.9 Write property test that the saved rule never changes": {
+      "status": "passed",
+      "lastRunTimestamp": 1795647022980
+    },
+    "3.13 Write property test that the Emergency_Rule_Wrapper agrees with replyTriggersEmergency": {
+      "status": "passed",
+      "lastRunTimestamp": 1795647026687
+    },
+    "3.10 Write property test for the reason-sentence mapping": {
+      "status": "passed",
+      "lastRunTimestamp": 1795647046778
+    },
+    "3.8 Write property test that no homeowner text is stored": {
+      "status": "passed",
+      "lastRunTimestamp": 1795647049297
+    },
+    "3.7 Write property test for the rule and source pair": {
+      "status": "passed",
+      "lastRunTimestamp": 1795647081526
+    }
+  },
   "executionHistory": {
     "1.1 Load Inter from the repository": [
       {
@@ -143,6 +164,191 @@
         "executionId": "5f60d669-8298-478a-9589-7dfe2e780ede",
         "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
         "timestamp": 1795619297041
+      }
+    ],
+    "3.1 Add the reasons file and the source type": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795645009121
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795645245975
+      }
+    ],
+    "3.2 Add the optional fields to types and Zod schemas": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795645009244
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795645246505
+      }
+    ],
+    "3.3 Save the rule and source at the three write paths": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795645248771
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795645524391
+      }
+    ],
+    "3.4 Return the reason sentence on every emergency response": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795645524927
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795646306718
+      }
+    ],
+    "3.5 Render the sentence on the emergency pages": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795646306844
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795646433128
+      }
+    ],
+    "3.6 Update existing tests that fix the changed shapes on purpose": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795646433724
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795646976581
+      }
+    ],
+    "3.7 Write property test for the rule and source pair": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795646976732
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647090302
+      }
+    ],
+    "3.8 Write property test that no homeowner text is stored": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795646976836
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647091045
+      }
+    ],
+    "3.9 Write property test that the saved rule never changes": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795646977008
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647091873
+      }
+    ],
+    "3.10 Write property test for the reason-sentence mapping": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795646977381
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647092660
+      }
+    ],
+    "3.13 Write property test that the Emergency_Rule_Wrapper agrees with replyTriggersEmergency": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795646978081
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647093471
+      }
+    ],
+    "3.11 Write unit tests for the emergency reason": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647094268
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647248748
+      }
+    ],
+    "3.12 Update the Normal_Baseline_Test and Contrast_Registry for the sentence": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647095024
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647248378
+      }
+    ],
+    "3.14 Verify task 3": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647251300
+      },
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647701002
+      },
+      {
+        "executionId": "625c7735-2963-41e1-89da-a2c43f51ff61",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647937832
+      },
+      {
+        "executionId": "625c7735-2963-41e1-89da-a2c43f51ff61",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648199113
+      }
+    ],
+    "3. Emergency reason": [
+      {
+        "executionId": "579b0c96-0f88-46a3-86d0-2548024dcba1",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795647701091
       }
     ]
   }

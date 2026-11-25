@@ -6,7 +6,7 @@ import { persistInspection } from '@/lib/aws/dynamodb';
 import { EMERGENCY_FOLLOW_UP_QUESTIONS, EMERGENCY_LIKELY_ISSUE } from '@/lib/emergency/messages';
 import { declaredLengthExceeds, readBodyWithLimit } from '@/lib/http/readBodyWithLimit';
 import { checkRateLimit, type SessionCookie } from '@/lib/rateLimiter';
-import { applyOverrides, checkEmergency } from '@/lib/safety/safetyLayer';
+import { applyOverrides, checkEmergency, type SafetyCheckResult } from '@/lib/safety/safetyLayer';
 import { bedrockResponseSchema, inspectRequestSchema } from '@/lib/validation/inspectionSchema';
 import type { BedrockInspectionResponse } from '@/types/bedrock';
 import type { ContextAnswers, InspectionResult } from '@/types/inspection';
@@ -63,6 +63,20 @@ async function finish(
   return response;
 }
 
+/** Adds the Emergency_Rule and Emergency_Source to the assembled result; applyOverrides stays unchanged. */
+function withEmergencyTags(
+  result: InspectionResult,
+  check: SafetyCheckResult,
+  source: 'precheck' | 'postcheck',
+): InspectionResult {
+  if (!result.isEmergency) return result;
+  return {
+    ...result,
+    ...(check.triggeredCondition !== undefined ? { emergencyRule: check.triggeredCondition } : {}),
+    emergencySource: source,
+  };
+}
+
 const MAX_BODY_BYTES = 16 * 1024;
 const PAYLOAD_TOO_LARGE_BODY = {
   error: 'PAYLOAD_TOO_LARGE',
@@ -102,13 +116,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   // Step 2: safety check on context answers, before the rate limiter and Bedrock
   const preCheck = checkEmergency({ contextAnswers, bedrockOutput: undefined });
   if (preCheck.isEmergency) {
-    const result = applyOverrides(EMERGENCY_PLACEHOLDER, preCheck, EMERGENCY_PLACEHOLDER.trade, {
+    const assembled = applyOverrides(EMERGENCY_PLACEHOLDER, preCheck, EMERGENCY_PLACEHOLDER.trade, {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       s3Keys,
       answers: contextAnswers,
     });
-    return finish(result);
+    return finish(withEmergencyTags(assembled, preCheck, 'precheck'));
   }
 
   // Step 3: rate limit (non-emergency only)
@@ -154,7 +168,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   });
 
   // Step 7: overrides and assembly
-  const result = applyOverrides(bedrock, postCheck, bedrock.trade, {
+  const assembled = applyOverrides(bedrock, postCheck, bedrock.trade, {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     s3Keys,
@@ -162,5 +176,5 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   });
 
   // Steps 8-9
-  return finish(result, cookie);
+  return finish(withEmergencyTags(assembled, postCheck, 'postcheck'), cookie);
 }

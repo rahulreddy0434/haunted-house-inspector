@@ -56,6 +56,22 @@ ormal-* and adge-* token colours. Without
  *
  * pro/ProDashboard.tsx, pro/JobDetail.tsx, pro/ProChrome.tsx, pro/ProChromeContext.tsx
  *   no own Normal colour classes before or after task 2 (empty lists, so any raw colour class added later fails)
+ *
+ * screens-polish task 3.12 (Requirements 1.9, 14.1, 15.2): Emergency_Reason_Sentence.
+ *
+ * results/EmergencyReasonLine.tsx (new file)
+ *   locked: text-normal-text (no haunted: class, no theme variant)
+ *
+ * results/ResultsView.tsx
+ *   unchanged: bg-blue-700, border-blue-800, focus-visible:ring-blue-600, hover:bg-blue-800, text-red-800,
+ *     text-slate-700, text-slate-900, text-white (the sentence adds no class here; it comes from the component)
+ *
+ * results/StatusPanel.tsx
+ *   unchanged: empty list (the sentence adds no class here)
+ *
+ * pro/ProEmergencyView.tsx (new entry)
+ *   locked: empty list (colours come from NOTE_BOX/BODY recipes and EmergencyReasonLine; any raw colour
+ *     class added later fails)
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -151,6 +167,8 @@ const BASELINE: Record<string, string[]> = {
     'text-red-800', 'text-white',
   ],
   'results/StatusPanel.tsx': [],
+  'results/EmergencyReasonLine.tsx': ['text-normal-text'],
+  'pro/ProEmergencyView.tsx': [],
   'results/ReplyBox.tsx': [],
   'results/SlotPicker.tsx': ['accent-blue-700', 'focus-visible:ring-blue-600'],
   'results/UrgencyBadge.tsx': [

@@ -1,3 +1,4 @@
+import { reasonSentenceField } from '@/lib/emergency/emergencyView';
 import { EMERGENCY_MESSAGE, PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
 import type { BookingData } from '@/types/chat';
 import type { ContextAnswers } from '@/types/inspection';
@@ -42,7 +43,9 @@ function copyAnswers(a: ContextAnswers): ContextAnswers {
 
 /** The Pro view of an emergency Job: no trade, cost, brief, photos, slots or chat. */
 export function toProEmergencyDetail(
-  job: Pick<JobRecord, 'id' | 'createdAt' | 'likelyIssue' | 'answers'>,
+  job: Pick<JobRecord, 'id' | 'createdAt' | 'likelyIssue' | 'answers' | 'emergencyRule'>,
+  /** A sentence already known on the client (from a chat response); wins over the saved rule. */
+  knownSentence?: string,
 ): ProJobDetailEmergency {
   return {
     id: job.id,
@@ -52,6 +55,7 @@ export function toProEmergencyDetail(
     likelyIssue: job.likelyIssue,
     answers: copyAnswers(job.answers),
     emergencyNote: PRO_EMERGENCY_NOTE,
+    ...(knownSentence !== undefined ? { reasonSentence: knownSentence } : reasonSentenceField(job.emergencyRule)),
   };
 }
 
@@ -103,10 +107,17 @@ export function toBookingData(
 
 /** Builds the Homeowner status view from a chat response's status and booking data. */
 export function viewFromChat(
-  status: Exclude<JobStatus, 'emergency'>,
+  status: JobStatus,
   booking: BookingData,
+  reasonSentence?: string,
 ): HomeownerStatusView {
   switch (status) {
+    case 'emergency':
+      return {
+        status: 'emergency',
+        message: EMERGENCY_MESSAGE,
+        ...(reasonSentence !== undefined ? { reasonSentence } : {}),
+      };
     case 'info_requested':
       return { status: 'info_requested', question: '' };
     case 'accepted':
@@ -127,7 +138,7 @@ export function toHomeownerStatusView(job: JobRecord): HomeownerStatusView {
   const status = effectiveStatus(job);
   switch (status) {
     case 'emergency':
-      return { status: 'emergency', message: EMERGENCY_MESSAGE };
+      return { status: 'emergency', message: EMERGENCY_MESSAGE, ...reasonSentenceField(job.emergencyRule) };
     case 'info_requested': {
       const requests = job.infoRequests ?? [];
       const latest = requests.length > 0 ? requests[requests.length - 1] : undefined;

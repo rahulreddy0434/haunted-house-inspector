@@ -154,6 +154,10 @@ export const CONTRAST_REGISTRY: readonly ColourPair[] = [
   N('N-54', 'non-text', 'gray.500', 'normal.card', 'Haunted_Switch track border and thumb, Off'),
   N('N-55', 'body', 'normal.muted', 'normal.card', 'Footer text'),
   N('N-56', 'body', 'normal.accent', 'normal.card', 'Footer link'),
+  // Emergency_Reason_Sentence (screens-polish task 3.12). It sits directly on the page background on the
+  // results, status and Pro emergency views. EmergencyScope forces the effective theme to Normal there,
+  // so no Haunted row is needed. Same colours as N-35; kept as its own row so the usage is traceable.
+  N('N-57', 'body', 'normal.text', 'normal.page', 'Emergency reason sentence on the page background'),
   H('H-38', 'body', 'haunted.accent', 'haunted.bg', 'Header title'),
   H('H-39', 'body', 'haunted.on-accent', 'haunted.accent', 'PRO tag text'),
   H('H-40', 'body', 'haunted.text', 'haunted.field', 'Log out button text'),

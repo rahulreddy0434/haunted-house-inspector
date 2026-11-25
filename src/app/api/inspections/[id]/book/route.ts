@@ -2,6 +2,7 @@ import 'server-only';
 
 import type { NextResponse } from 'next/server';
 import { applyBooking, getJob, type JobLookup, type WriteResult } from '@/lib/aws/jobs';
+import { reasonSentenceField } from '@/lib/emergency/emergencyView';
 import { EMERGENCY_MESSAGE } from '@/lib/emergency/messages';
 import { MAX_ACTION_BODY_BYTES, readJsonBody } from '@/lib/http/readBodyWithLimit';
 import { errorBody, noStoreJson } from '@/lib/http/responses';
@@ -67,7 +68,11 @@ export async function POST(
   if (job.status === 'emergency') {
     return noStoreJson(
       409,
-      errorBody('JOB_IS_EMERGENCY', EMERGENCY_MESSAGE, { status: 'emergency' }),
+      errorBody('JOB_IS_EMERGENCY', EMERGENCY_MESSAGE, {
+        status: 'emergency',
+        // Read-only: the stored rule fills the sentence; nothing is written here.
+        ...reasonSentenceField(job.emergencyRule),
+      }),
     );
   }
   if (job.status !== 'accepted') {

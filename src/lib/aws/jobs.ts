@@ -2,6 +2,8 @@ import 'server-only';
 
 import { GetCommand, QueryCommand, UpdateCommand, type UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
 import { getDocClient, jobKey, requireTableName } from '@/lib/aws/dynamodb';
+import type { EmergencySource } from '@/lib/emergency/source';
+import type { EmergencyConditionCode } from '@/lib/safety/safetyLayer';
 import { effectiveStatus, type ProListStored } from '@/lib/jobs/views';
 import { proListItemSchema, storedJobSchema } from '@/lib/validation/jobSchema';
 import type { JobRecord, JobStatus, TimeSlot, TransitionPatch } from '@/types/job';
@@ -173,7 +175,12 @@ const OVERRIDE_NOT_EMERGENCY = 'attribute_exists(PK) AND (attribute_not_exists(#
  * while a reply slot is free; attempt B (A's condition failed) overrides without the reply.
  * An empty reply skips straight to B. Returns 'skipped' when the Job is missing or already emergency.
  */
-export async function applySafetyOverride(id: string, replyText: string, nowIso: string): Promise<'applied' | 'skipped'> {
+export async function applySafetyOverride(
+  id: string,
+  replyText: string,
+  nowIso: string,
+  triggeredCondition?: EmergencyConditionCode,
+): Promise<'applied' | 'skipped'> {
   const baseValues: Record<string, unknown> = {
     ':emergency': 'emergency',
     ':now': nowIso,
@@ -181,14 +188,21 @@ export async function applySafetyOverride(id: string, replyText: string, nowIso:
     ':zero': 0,
     ':emptyStr': '',
     ':emptyList': [],
+    ':source': 'override' satisfies EmergencySource,
   };
+  if (triggeredCondition !== undefined) baseValues[':rule'] = triggeredCondition;
+  // Written in the same gated update as the status, so an existing emergency is never written to.
+  const overrideSet =
+    triggeredCondition !== undefined
+      ? `${OVERRIDE_SET}, emergencyRule = :rule, emergencySource = :source`
+      : `${OVERRIDE_SET}, emergencySource = :source`;
   const names = { '#status': 'status' };
 
   const text = replyText.trim().slice(0, OVERRIDE_REPLY_MAX);
   if (text !== '') {
     const a = await sendConditionalUpdate(
       {
-        UpdateExpression: `${OVERRIDE_SET}, replies = list_append(if_not_exists(replies, :emptyList), :r) ADD replyCount :one ${OVERRIDE_REMOVE}`,
+        UpdateExpression: `${overrideSet}, replies = list_append(if_not_exists(replies, :emptyList), :r) ADD replyCount :one ${OVERRIDE_REMOVE}`,
         ConditionExpression: `${OVERRIDE_NOT_EMERGENCY} AND (attribute_not_exists(replyCount) OR replyCount < :five)`,
         ExpressionAttributeNames: names,
         ExpressionAttributeValues: { ...baseValues, ':r': [{ text, at: nowIso }], ':one': 1, ':five': REPLY_LIMIT },
@@ -202,7 +216,7 @@ export async function applySafetyOverride(id: string, replyText: string, nowIso:
 
   const b = await sendConditionalUpdate(
     {
-      UpdateExpression: `${OVERRIDE_SET} ${OVERRIDE_REMOVE}`,
+      UpdateExpression: `${overrideSet} ${OVERRIDE_REMOVE}`,
       ConditionExpression: OVERRIDE_NOT_EMERGENCY,
       ExpressionAttributeNames: names,
       ExpressionAttributeValues: baseValues,

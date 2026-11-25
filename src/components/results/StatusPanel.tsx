@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { EmergencyScope } from '@/components/ui/haunted/EmergencyScope';
 import { StateText } from '@/components/ui/haunted/StateText';
 import { BODY, ERROR_TEXT, MUTED, PRIMARY_BUTTON } from '@/components/ui/styles';
+import { EmergencyReasonLine } from '@/components/results/EmergencyReasonLine';
 import { BookingControls } from '@/components/results/BookingControls';
 import { useStatusPolling } from '@/hooks/useStatusPolling';
 import type { UseStatusPollingReturn } from '@/hooks/useStatusPolling';
@@ -55,7 +56,14 @@ export function StatusPanel({ id, onEmergency, polling, hideBooking = false }: S
 export function StatusPanelBody({ id, polling, hideBooking = false }: StatusPanelBodyProps) {
   const { view, loaded, updateFailed, refreshing, gone, refresh } = polling;
 
-  if (view?.status === 'emergency') return <EmergencyScope />;
+  if (view?.status === 'emergency') {
+    return (
+      <>
+        <EmergencyScope />
+        <EmergencyReasonLine sentence={view.reasonSentence} />
+      </>
+    );
+  }
   if (gone) return null;
 
   const failedFirstLoad = view === null && loaded && updateFailed;

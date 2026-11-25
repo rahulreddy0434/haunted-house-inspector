@@ -54,4 +54,5 @@ export const chatSendResponseSchema = z.object({
 export const chatEmergencyResponseSchema = z.object({
   status: z.literal('emergency'),
   message: z.string(),
+  reasonSentence: z.string().optional(),
 });

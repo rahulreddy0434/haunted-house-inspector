@@ -10,6 +10,8 @@ import {
   type ConsoleSpies,
 } from '@/test/proRouteHarness';
 import { EMERGENCY_MESSAGE } from '@/lib/emergency/messages';
+import { emergencyReasonSentence } from '@/lib/emergency/reasons';
+import { emergencyRuleFor } from '@/lib/emergency/ruleWrapper';
 import { JOB_STATUSES, type JobStatus } from '@/types/job';
 
 vi.mock('server-only', () => ({}));
@@ -150,7 +152,12 @@ async function runOnce(input: RunInput): Promise<void> {
   const res = await callWithId(POST, makeRequest(`/api/inspections/${id}/chat`, { body: { text } }), id);
 
   expect(res.status).toBe(200);
-  expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE });
+  // The sentence comes from the rule that fires on this exact (random) text, so it is computed, not fixed.
+  expect(await res.json()).toEqual({
+    status: 'emergency',
+    message: EMERGENCY_MESSAGE,
+    reasonSentence: emergencyReasonSentence(emergencyRuleFor(text).rule),
+  });
 
   // The Safety_Layer ran first; no read, put or transaction happens at all.
   expect(holder.sequence[0]).toBe('check');

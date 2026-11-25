@@ -1,6 +1,7 @@
 import 'server-only';
 import type { NextRequest, NextResponse } from 'next/server';
 import { applyTransition, getJob, type JobLookup } from '@/lib/aws/jobs';
+import { reasonSentenceField } from '@/lib/emergency/emergencyView';
 import { MAX_ACTION_BODY_BYTES, readJsonBody } from '@/lib/http/readBodyWithLimit';
 import { errorBody, noStoreJson } from '@/lib/http/responses';
 import { conflictResponse } from '@/lib/jobs/conflict';
@@ -45,11 +46,18 @@ function actionFailed(error: unknown): NextResponse {
   return noStoreJson(500, errorBody('ACTION_FAILED', ERROR_MESSAGES.ACTION_FAILED));
 }
 
-function conflictFor(reason: 'ILLEGAL_TRANSITION' | 'JOB_IS_EMERGENCY', status: JobStatus): NextResponse {
+function conflictFor(
+  reason: 'ILLEGAL_TRANSITION' | 'JOB_IS_EMERGENCY',
+  status: JobStatus,
+  emergencyRule?: string,
+): NextResponse {
   if (reason === 'JOB_IS_EMERGENCY') {
     return noStoreJson(
       409,
-      errorBody('JOB_IS_EMERGENCY', ERROR_MESSAGES.JOB_IS_EMERGENCY.pro, { status: 'emergency' }),
+      errorBody('JOB_IS_EMERGENCY', ERROR_MESSAGES.JOB_IS_EMERGENCY.pro, {
+        status: 'emergency',
+        ...reasonSentenceField(emergencyRule),
+      }),
     );
   }
   return noStoreJson(
@@ -91,7 +99,7 @@ export async function runProAction<B>(args: RunProActionArgs<B>): Promise<NextRe
   const job = lookup.job;
 
   const t = transition(job.status, args.action);
-  if (!t.ok) return conflictFor(t.reason, job.status);
+  if (!t.ok) return conflictFor(t.reason, job.status, job.emergencyRule);
 
   const early = args.precheck?.(job);
   if (early) return early;

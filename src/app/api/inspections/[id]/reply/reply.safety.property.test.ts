@@ -10,6 +10,8 @@ import {
   type ConsoleSpies,
 } from '@/test/proRouteHarness';
 import { EMERGENCY_MESSAGE } from '@/lib/emergency/messages';
+import { emergencyReasonSentence } from '@/lib/emergency/reasons';
+import { emergencyRuleFor } from '@/lib/emergency/ruleWrapper';
 import { storedJobSchema } from '@/lib/validation/jobSchema';
 import { JOB_STATUSES, type JobStatus } from '@/types/job';
 
@@ -102,6 +104,8 @@ interface RunInput {
 
 async function runOnce(input: RunInput): Promise<void> {
   const { text, kind, status, replyCount, writeFails } = input;
+  // Computed before the sequence is reset: emergencyRuleFor calls the spied checkEmergency.
+  const expectedSentence = emergencyReasonSentence(emergencyRuleFor(text).rule);
   holder.sequence.length = 0;
   holder.fake = createFakeDynamoTable();
 
@@ -135,13 +139,21 @@ async function runOnce(input: RunInput): Promise<void> {
   const res = await callWithId(POST, makeRequest(`/api/inspections/${id}/reply`, { body: { text } }), id);
 
   expect(res.status).toBe(200);
-  expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE });
+  // The sentence comes from the rule that fires on this exact (random) text, so it is computed, not fixed.
+  expect(await res.json()).toEqual({
+    status: 'emergency',
+    message: EMERGENCY_MESSAGE,
+    reasonSentence: expectedSentence,
+  });
 
   // The Safety_Layer ran first; no read ever happens; no write precedes the check.
   expect(holder.sequence[0]).toBe('check');
   expect(holder.sequence).not.toContain('GetCommand');
   if (kind === 'nonUuid') {
-    expect(holder.sequence).toEqual(['check']);
+    // Since task 3.3 the route runs the check twice (decision, then the rule wrapper). Still no DynamoDB command.
+    expect(holder.sequence.length).toBeGreaterThanOrEqual(1);
+    expect(holder.sequence.every((entry) => entry === 'check')).toBe(true);
+    expect(holder.sequence.filter((entry) => entry.endsWith('Command'))).toEqual([]);
   }
 
   if (seeded && !writeFails) {

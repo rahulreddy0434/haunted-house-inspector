@@ -2,7 +2,9 @@ import 'server-only';
 
 import type { NextResponse } from 'next/server';
 import { applyReply, applySafetyOverride, getJob, type JobLookup, type WriteResult } from '@/lib/aws/jobs';
+import { emergencyResponseBody, reasonSentenceField } from '@/lib/emergency/emergencyView';
 import { EMERGENCY_MESSAGE } from '@/lib/emergency/messages';
+import { emergencyRuleFor } from '@/lib/emergency/ruleWrapper';
 import { MAX_ACTION_BODY_BYTES, readJsonBody } from '@/lib/http/readBodyWithLimit';
 import { errorBody, noStoreJson } from '@/lib/http/responses';
 import { conflictResponse } from '@/lib/jobs/conflict';
@@ -48,14 +50,15 @@ export async function POST(
 
   // (3) Safety_Layer on the full untrimmed text, before any read or write.
   if (replyTriggersEmergency(text)) {
+    const triggeredRule = emergencyRuleFor(text).rule;
     if (idIsUuid) {
       try {
-        await applySafetyOverride(id, text, new Date().toISOString());
+        await applySafetyOverride(id, text, new Date().toISOString(), triggeredRule);
       } catch (error: unknown) {
         console.error('Safety override failed', error instanceof Error ? error.name : 'UnknownError');
       }
     }
-    return noStoreJson(200, { status: 'emergency', message: EMERGENCY_MESSAGE });
+    return noStoreJson(200, emergencyResponseBody(triggeredRule));
   }
 
   // (4) id must be a UUID.
@@ -92,7 +95,10 @@ export async function POST(
   if (job.status === 'emergency') {
     return noStoreJson(
       409,
-      errorBody('JOB_IS_EMERGENCY', EMERGENCY_MESSAGE, { status: 'emergency' }),
+      errorBody('JOB_IS_EMERGENCY', EMERGENCY_MESSAGE, {
+        status: 'emergency',
+        ...reasonSentenceField(job.emergencyRule),
+      }),
     );
   }
   if (job.status !== 'info_requested') {

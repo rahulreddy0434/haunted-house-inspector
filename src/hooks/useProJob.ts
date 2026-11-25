@@ -34,12 +34,14 @@ export interface UseProJobReturn {
 export interface LiveUpdate {
   status: JobStatus;
   booking: BookingData;
+  /** Sentence from an emergency chat response; used when the status is emergency. */
+  reasonSentence?: string;
 }
 
 /** Pure patch used by `applyLive`: status plus only the booking facts that exist for it. */
 export function patchLive(job: ProJobDetail, next: LiveUpdate): ProJobDetail {
   if (next.status === 'emergency') {
-    return job.status === 'emergency' ? job : toProEmergencyDetail(job);
+    return job.status === 'emergency' ? job : toProEmergencyDetail(job, next.reasonSentence);
   }
   if (job.status === 'emergency') return job;
   const { offeredSlots: _o, bookedSlot: _b, declineReason: _d, ...rest } = job;

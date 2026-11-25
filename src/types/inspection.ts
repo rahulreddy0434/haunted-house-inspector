@@ -1,3 +1,6 @@
+import type { EmergencyConditionCode } from '@/lib/safety/safetyLayer';
+import type { EmergencySource } from '@/lib/emergency/source';
+
 export type UrgencyLevel = 'emergency' | 'urgent' | 'soon' | 'monitor';
 
 export interface ContextAnswers {
@@ -25,4 +28,8 @@ export interface InspectionResult {
 
   // Context answers
   answers: ContextAnswers;
+
+  // Set only when isEmergency is true (spec 6)
+  emergencyRule?: EmergencyConditionCode;
+  emergencySource?: EmergencySource;
 }

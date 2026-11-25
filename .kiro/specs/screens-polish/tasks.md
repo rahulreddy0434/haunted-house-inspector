@@ -75,20 +75,20 @@ Rules that apply to every task:
     - Run `next lint`, `tsc --noEmit` and `vitest --run`. Fix any failure.
     - _Requirements: 15.12_
 
-- [ ] 3. Emergency reason
-  - [ ] 3.1 Add the reasons file and the source type
+- [x] 3. Emergency reason
+  - [x] 3.1 Add the reasons file and the source type
     - Create `src/lib/emergency/reasons.ts` with the four fixed sentences keyed by `EmergencyConditionCode` and the total function `emergencyReasonSentence(code: string | undefined)`. Import only the type from `safetyLayer.ts`.
     - Create `src/lib/emergency/source.ts` with `export type EmergencySource = 'precheck' | 'postcheck' | 'override'`.
     - Do not edit `messages.ts` or anything in `src/lib/safety/`.
     - _Requirements: 18.5, 18.6, 18.9_
 
-  - [ ] 3.2 Add the optional fields to types and Zod schemas
+  - [x] 3.2 Add the optional fields to types and Zod schemas
     - Add optional `emergencyRule` and `emergencySource` to `InspectionResult` in `src/types/inspection.ts`, and to `inspectionResultSchema` and `storedJobSchema`.
     - Add optional `reasonSentence` to the emergency variant of `HomeownerStatusView`, to `ProJobDetailEmergency` and to their schemas in `src/lib/validation/jobSchema.ts`, to `ChatEmergencyResponse` in `src/types/chat.ts`, and to the 409 `JOB_IS_EMERGENCY` body shape.
     - No field is renamed, removed or retyped. List each changed shape in a comment on the task commit message or `BUILD_LOG.md`.
     - _Requirements: 18.1, 18.11, 18.12_
 
-  - [ ] 3.3 Save the rule and source at the three write paths
+  - [x] 3.3 Save the rule and source at the three write paths
     - Do not edit `src/lib/safety/replyCheck.ts`, because it is under `src/lib/safety/`. Create the Emergency_Rule_Wrapper in `src/lib/emergency/ruleWrapper.ts`, outside `src/lib/safety/`: `emergencyRuleFor(text)` calls the unchanged `checkEmergency` with the same input that `replyTriggersEmergency` uses and returns `{ isEmergency, rule }`. The wrapper must not change any decision. The routes (`reply/route.ts` and `chatRoute.ts`) keep deciding with `replyTriggersEmergency(text)`, and only when it returns true do they call the wrapper to get the rule code. This replaces the design's earlier plan to change the return type of `replyTriggersEmergency`.
     - In `src/lib/aws/jobs.ts`, give `applySafetyOverride` a `triggeredCondition` parameter. Add `emergencyRule` and `emergencySource = 'override'` to the same gated update expression that `OVERRIDE_NOT_EMERGENCY` already protects.
     - In `src/app/api/inspect/route.ts`, set `emergencyRule` from `triggeredCondition` and `emergencySource` to `'precheck'` or `'postcheck'` when the result is an emergency, in the object assembled after `applyOverrides`. Leave `applyOverrides` unchanged.
@@ -97,58 +97,58 @@ Rules that apply to every task:
     - Store no Homeowner text in any new attribute. A job that is already an emergency is not written to.
     - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5, 18.6, 18.7, 18.8_
 
-  - [ ] 3.4 Return the reason sentence on every emergency response
+  - [x] 3.4 Return the reason sentence on every emergency response
     - Extend `toHomeownerStatusView`, `toProEmergencyDetail` and the 409 conflict builders (`conflict.ts`, `proAction.ts`) with `reasonSentence` computed by `emergencyReasonSentence(job.emergencyRule)`.
     - For the book route, the 409 `JOB_IS_EMERGENCY` body only reads the stored rule of the existing emergency to fill `reasonSentence`. It never sets or changes `emergencyRule` or `emergencySource`.
     - Carry the field through the client side: `toEmergencyResult` in `emergencyView.ts`, `viewFromChat`, `applyView` and `applyLive`, and the inspect, reply, chat, book and status responses.
     - A job without a saved rule returns no `reasonSentence`.
     - _Requirements: 18.7, 18.8, 18.10, 18.11_
 
-  - [ ] 3.5 Render the sentence on the emergency pages
+  - [x] 3.5 Render the sentence on the emergency pages
     - Create `src/components/results/EmergencyReasonLine.tsx`: one fixed plain `<p>` with no `haunted:` class and no theme variant.
     - Render it under the Emergency_Banner in `ResultsView.tsx` (before the Emergency badge) and in the `StatusPanelBody` emergency branch, and under `PRO_EMERGENCY_NOTE` in `ProEmergencyView.tsx`. Render nothing when there is no sentence.
     - _Requirements: 5.1, 10.11, 18.7, 18.8, 18.9, 18.10_
 
-  - [ ] 3.6 Update existing tests that fix the changed shapes on purpose
+  - [x] 3.6 Update existing tests that fix the changed shapes on purpose
     - Run `vitest --run`, find every existing test that uses an exact-shape assertion on the shapes changed in 3.2 and 3.3, and update each one. Name each updated test file in the task notes.
     - `src/app/api/emergencyIrreversible.property.test.ts` must pass without edits.
     - _Requirements: 18.12_
 
-  - [ ] 3.7 Write property test for the rule and source pair
+  - [x] 3.7 Write property test for the rule and source pair
     - **Property 6: Emergency_Rule and Emergency_Source are a total, consistent pair**
     - Cover the three call sites (`precheck`, `postcheck`, `override`) with `fakeDynamoTable.ts`. Non-emergency results write neither field. A booking request on an emergency job writes nothing and sets no source.
     - **Validates: Requirements 18.1, 18.2**
 
-  - [ ] 3.8 Write property test that no homeowner text is stored
+  - [x] 3.8 Write property test that no homeowner text is stored
     - **Property 7: No homeowner text reaches the stored emergency attributes**
     - New file `src/lib/emergency/noTextLeak.property.test.ts`, using the existing trigger-phrase corpus plus random padding.
     - **Validates: Requirements 18.3, 18.13**
 
-  - [ ] 3.9 Write property test that the saved rule never changes
+  - [x] 3.9 Write property test that the saved rule never changes
     - **Property 8: Once emergency, the saved rule and source never change**
     - New file `src/lib/aws/jobs.emergencyImmutable.property.test.ts`, in the style of `emergencyIrreversible.property.test.ts`.
     - **Validates: Requirements 18.4**
 
-  - [ ] 3.10 Write property test for the reason-sentence mapping
+  - [x] 3.10 Write property test for the reason-sentence mapping
     - **Property 9: The reason-sentence mapping is total and exact**
     - New file `src/lib/emergency/reasons.property.test.ts`.
     - **Validates: Requirements 18.7, 18.8, 18.9, 18.10**
 
-  - [ ] 3.11 Write unit tests for the emergency reason
+  - [x] 3.11 Write unit tests for the emergency reason
     - One test per rule (saved rule, saved source, shown sentence). One test for a job with no saved rule. One test per Emergency_Source. One test that the sentence element has no `haunted:` class. One test that a booking request on an emergency job returns 409 and sets no source.
     - _Requirements: 18.3, 18.13, 18.14, 18.17_
 
-  - [ ] 3.12 Update the Normal_Baseline_Test and Contrast_Registry for the sentence
+  - [x] 3.12 Update the Normal_Baseline_Test and Contrast_Registry for the sentence
     - Update `normalBaseline.test.ts` for `EmergencyReasonLine.tsx` and the changed emergency components, listing each class in the top comment.
     - Add a Contrast_Registry row for the Emergency_Reason_Sentence on its background.
     - _Requirements: 1.9, 14.1, 15.2_
 
-  - [ ] 3.13 Write property test that the Emergency_Rule_Wrapper agrees with replyTriggersEmergency
+  - [x] 3.13 Write property test that the Emergency_Rule_Wrapper agrees with replyTriggersEmergency
     - **Property 10: The Emergency_Rule_Wrapper agrees with replyTriggersEmergency**
     - New file `src/lib/emergency/ruleWrapper.property.test.ts`. For any text, `emergencyRuleFor(text).isEmergency` equals `replyTriggersEmergency(text)`. When true, `rule` is one of the four Emergency_Rule codes. When false, `rule` is `undefined`. Generate `fc.string()` and trigger phrases from the existing corpus embedded in random padding. Import `replyCheck.ts` as it is.
     - **Validates: Requirements 18.4, 18.5**
 
-  - [ ] 3.14 Verify task 3
+  - [x] 3.14 Verify task 3
     - Run `next lint`, `tsc --noEmit` and `vitest --run`. `src/lib/safety/`, `EMERGENCY_MESSAGE` and `sourceScan.test.ts` must be unchanged and passing.
     - _Requirements: 14.5, 14.6, 15.12_
 

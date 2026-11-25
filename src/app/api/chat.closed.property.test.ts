@@ -13,6 +13,8 @@ import {
   type ConsoleSpies,
 } from '@/test/proRouteHarness';
 import { EMERGENCY_MESSAGE, PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
+import { emergencyReasonSentence } from '@/lib/emergency/reasons';
+import { emergencyRuleFor } from '@/lib/emergency/ruleWrapper';
 import type { JobStatus } from '@/types/job';
 
 vi.mock('server-only', () => ({}));
@@ -64,6 +66,9 @@ const TRIGGER_TEXTS = [
   'The carbon monoxide alarm is going off',
   'Water is flooding near the electrical panel',
 ];
+
+/** The sentence the route must show for a trigger text, computed from that text's rule. */
+const reasonFor = (text: string): string | undefined => emergencyReasonSentence(emergencyRuleFor(text).rule);
 
 const sideArb = fc.constantFrom<Side>('homeowner', 'tradesperson');
 
@@ -245,7 +250,11 @@ describe('a closed chat stays closed (route-level)', () => {
           // A Trigger from the Homeowner makes any Job an emergency Job.
           const first = await sendChat('homeowner', firstTrigger);
           expect(first.status).toBe(200);
-          expect(await first.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE });
+          expect(await first.json()).toEqual({
+            status: 'emergency',
+            message: EMERGENCY_MESSAGE,
+            reasonSentence: reasonFor(firstTrigger),
+          });
           expect(stored().status).toBe('emergency');
           const chatBefore = chatItemCount();
 
@@ -260,7 +269,12 @@ describe('a closed chat stays closed (route-level)', () => {
               (op.kind === 'send' && op.side === 'homeowner' && TRIGGER_TEXTS.includes(op.text));
             if (isTriggerSend) {
               expect(res.status).toBe(200);
-              expect(body).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE });
+              expect(body).toEqual({
+                status: 'emergency',
+                message: EMERGENCY_MESSAGE,
+                // Every trigger send carries text from TRIGGER_TEXTS (op.kind is 'send' or 'trigger').
+                reasonSentence: reasonFor((op as { text: string }).text),
+              });
             } else {
               expect(res.status).toBe(409);
               expect(body.error).toBe('JOB_IS_EMERGENCY');

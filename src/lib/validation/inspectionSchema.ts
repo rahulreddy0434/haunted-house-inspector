@@ -46,6 +46,8 @@ export const inspectionResultSchema = z
       duration: z.string().max(500),
       recentChanges: z.string().max(500),
     }),
+    emergencyRule: z.enum(['GAS_SMELL', 'ELECTRICAL_FIRE', 'WATER_ELECTRICAL', 'CO_ALARM']).optional(),
+    emergencySource: z.enum(['precheck', 'postcheck', 'override']).optional(),
   })
   .refine((d) => d.costRangeHigh >= d.costRangeLow, {
     message: 'costRangeHigh must be >= costRangeLow',

@@ -495,3 +495,15 @@ Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, m
 - Spec 5, guided-intake: a 3-step home page with tap-to-choose answers, safety chips, "Try it with a sample photo" and real progress stages
 - Spec 6, screens-polish
 - The 11 optional test tasks (1.9, 1.10, 1.12, 2.10, 2.11, 3.6, 3.7, 3.8, 5.9, 5.10, 5.11) wait until after judging
+
+## Spec 6 task 3: changed shapes
+
+All additions are optional. No field is renamed, removed or retyped.
+
+- `InspectionResult` (`src/types/inspection.ts`): `emergencyRule?: EmergencyConditionCode`, `emergencySource?: EmergencySource` (type imports only).
+- `inspectionResultSchema` (`src/lib/validation/inspectionSchema.ts`): same two fields as optional Zod enums.
+- `storedJobSchema` (`src/lib/validation/jobSchema.ts`): same two fields as optional Zod enums. `JobRecord` inherits them from `InspectionResult`.
+- `HomeownerStatusView` emergency variant (`src/types/job.ts`) and `homeownerStatusViewSchema`: `reasonSentence?: string`.
+- `ProJobDetailEmergency` (`src/types/job.ts`) and `proDetailEmergencySchema`: `reasonSentence?: string`.
+- `ChatEmergencyResponse` (`src/types/chat.ts`): `reasonSentence?: string`.
+- 409 `JOB_IS_EMERGENCY` body: `ApiErrorBody` (`src/types/job.ts`) and `apiErrorSchema`: `reasonSentence?: string`.

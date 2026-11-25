@@ -10,6 +10,8 @@ import {
   type ConsoleSpies,
 } from '@/test/proRouteHarness';
 import { EMERGENCY_MESSAGE } from '@/lib/emergency/messages';
+import { emergencyReasonSentence } from '@/lib/emergency/reasons';
+import { emergencyRuleFor } from '@/lib/emergency/ruleWrapper';
 import type { JobStatus } from '@/types/job';
 
 vi.mock('server-only', () => ({}));
@@ -31,6 +33,8 @@ import { POST } from './route';
 
 const UNKNOWN_ID = '11111111-2222-4333-8444-555555555555';
 const TRIGGER = 'I can smell gas in the kitchen';
+/** The sentence for TRIGGER's rule (a gas smell), computed from the rule rather than typed in. */
+const TRIGGER_SENTENCE = emergencyReasonSentence(emergencyRuleFor(TRIGGER).rule);
 const TOO_LONG = 'Your reply is too long. Please shorten it to 500 characters or fewer.';
 const EMPTY = 'Please write a reply before sending.';
 
@@ -188,7 +192,7 @@ describe('POST /api/inspections/[id]/reply', () => {
       seed(item);
       const res = await call(item.id, { text: padded(TRIGGER, length) });
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE });
+      expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE, reasonSentence: TRIGGER_SENTENCE });
       expectCleanHeaders(res);
 
       const stored = storedJob(item.id);
@@ -208,7 +212,7 @@ describe('POST /api/inspections/[id]/reply', () => {
         seed(item);
         const res = await call(item.id, { text: TRIGGER });
         expect(res.status).toBe(200);
-        expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE });
+        expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE, reasonSentence: TRIGGER_SENTENCE });
         expectCleanHeaders(res);
         expect(storedJob(item.id).status).toBe('emergency');
       },
@@ -217,14 +221,14 @@ describe('POST /api/inspections/[id]/reply', () => {
     it('is 200 emergency for an unknown UUID and creates nothing', async () => {
       const res = await call(UNKNOWN_ID, { text: TRIGGER });
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE });
+      expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE, reasonSentence: TRIGGER_SENTENCE });
       expect(holder.fake.items.size).toBe(0);
     });
 
     it('is 200 emergency for a non-UUID with zero commands', async () => {
       const res = await call('not-a-uuid', { text: TRIGGER });
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE });
+      expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE, reasonSentence: TRIGGER_SENTENCE });
       expectCleanHeaders(res);
       expect(holder.fake.calls).toHaveLength(0);
     });
@@ -235,7 +239,7 @@ describe('POST /api/inspections/[id]/reply', () => {
       holder.fake.send = () => Promise.reject(Object.assign(new Error('boom'), { name: 'ThrottlingException' }));
       const res = await call(item.id, { text: TRIGGER });
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE });
+      expect(await res.json()).toEqual({ status: 'emergency', message: EMERGENCY_MESSAGE, reasonSentence: TRIGGER_SENTENCE });
     });
 
     it('does not read before the Safety_Layer: a trigger issues no GetCommand', async () => {

@@ -43,4 +43,5 @@ export interface ChatSendResponse extends ChatJobState {
 export interface ChatEmergencyResponse {
   status: 'emergency';
   message: string;
+  reasonSentence?: string;
 }

@@ -1,10 +1,11 @@
+import { EmergencyReasonLine } from '@/components/results/EmergencyReasonLine';
 import { Card } from '@/components/ui/Card';
 import { BODY, HEADING, NOTE_BOX } from '@/components/ui/styles';
 import { PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
 import type { ProJobDetailEmergency } from '@/types/job';
 
 export interface ProEmergencyViewProps {
-  job: Pick<ProJobDetailEmergency, 'likelyIssue' | 'answers'>;
+  job: Pick<ProJobDetailEmergency, 'likelyIssue' | 'answers' | 'reasonSentence'>;
 }
 
 const NOT_ANSWERED = 'Not answered';
@@ -25,6 +26,7 @@ export function ProEmergencyView({ job }: ProEmergencyViewProps) {
   return (
     <div className="space-y-4">
       <p className={`${NOTE_BOX} whitespace-pre-wrap break-words font-semibold`}>{PRO_EMERGENCY_NOTE}</p>
+      <EmergencyReasonLine sentence={job.reasonSentence} />
 
       <Card as="section" aria-label="Job facts" className="space-y-4">
         <div>

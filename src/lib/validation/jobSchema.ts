@@ -9,6 +9,9 @@ export const jobIdSchema = z.uuid();
 const isoUtc = z.iso.datetime(); // trailing Z only, as inspectionSchema.ts already uses
 const urgencySchema = z.enum(['emergency', 'urgent', 'soon', 'monitor']);
 const statusSchema = z.enum(JOB_STATUSES);
+// Same values as EmergencyConditionCode and EmergencySource (types only, no runtime import).
+const emergencyRuleSchema = z.enum(['GAS_SMELL', 'ELECTRICAL_FIRE', 'WATER_ELECTRICAL', 'CO_ALARM']);
+const emergencySourceSchema = z.enum(['precheck', 'postcheck', 'override']);
 
 // ── request bodies (unknown fields are stripped: Requirement 7.20) ──────────
 export const loginBodySchema = z.object({ code: z.string().min(1).max(200) }); // no trim (1.2)
@@ -81,6 +84,8 @@ export const storedJobSchema = z
     chatLastAt: isoUtc.optional(),
     chatSentHomeowner: z.array(z.number()).max(10).optional(),
     chatSentTradesperson: z.array(z.number()).max(10).optional(),
+    emergencyRule: emergencyRuleSchema.optional(),
+    emergencySource: emergencySourceSchema.optional(),
   })
   .superRefine((j, ctx) => {
     // An emergency Job must stay readable whatever else is wrong.
@@ -118,7 +123,7 @@ export const homeownerStatusViewSchema = z.discriminatedUnion('status', [
   z.object({ status: z.literal('accepted'), offeredSlots: z.array(isoUtc).min(1).max(3) }),
   z.object({ status: z.literal('declined'), reason: z.string().optional() }),
   z.object({ status: z.literal('booked'), bookedSlot: isoUtc }),
-  z.object({ status: z.literal('emergency'), message: z.string() }),
+  z.object({ status: z.literal('emergency'), message: z.string(), reasonSentence: z.string().optional() }),
 ]);
 
 const detailAnswersSchema = z.object({
@@ -156,6 +161,7 @@ const proDetailEmergencySchema = z.object({
   likelyIssue: z.string(),
   answers: detailAnswersSchema,
   emergencyNote: z.string(),
+  reasonSentence: z.string().optional(),
 });
 
 /** Both Pro detail shapes (Requirements 5.3 and 5.10). */
@@ -181,4 +187,5 @@ export const apiErrorSchema = z.object({
   error: z.string(),
   message: z.string(),
   status: statusSchema.optional(),
+  reasonSentence: z.string().optional(),
 });

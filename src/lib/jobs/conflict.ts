@@ -1,6 +1,7 @@
 import 'server-only';
 import type { NextResponse } from 'next/server';
 import { getJob } from '@/lib/aws/jobs';
+import { reasonSentenceField } from '@/lib/emergency/emergencyView';
 import { EMERGENCY_MESSAGE, PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
 import { ERROR_MESSAGES } from '@/lib/jobs/copy';
 import { errorBody, noStoreJson } from '@/lib/http/responses';
@@ -27,7 +28,10 @@ export async function conflictResponse(
       const status = lookup.job.status;
       if (status === 'emergency') {
         const message = audience === 'pro' ? PRO_EMERGENCY_NOTE : EMERGENCY_MESSAGE;
-        return noStoreJson(409, errorBody('JOB_IS_EMERGENCY', message, { status: 'emergency' }));
+        return noStoreJson(409, errorBody('JOB_IS_EMERGENCY', message, {
+            status: 'emergency',
+            ...reasonSentenceField(lookup.job.emergencyRule),
+          }));
       }
       return noStoreJson(
         409,

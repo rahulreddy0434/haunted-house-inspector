@@ -7,7 +7,9 @@ import { checkSendLimits } from '@/lib/chat/limits';
 import { chatAccess, statusAfterSend } from '@/lib/chat/rules';
 import { legacyToMessages, mergeThread } from '@/lib/chat/thread';
 import { chatAfterSchema, chatSendBodySchema } from '@/lib/chat/validation';
+import { emergencyResponseBody, reasonSentenceField } from '@/lib/emergency/emergencyView';
 import { EMERGENCY_MESSAGE, PRO_EMERGENCY_NOTE } from '@/lib/emergency/messages';
+import { emergencyRuleFor } from '@/lib/emergency/ruleWrapper';
 import { MAX_ACTION_BODY_BYTES, readJsonBody } from '@/lib/http/readBodyWithLimit';
 import { errorBody, noStoreJson } from '@/lib/http/responses';
 import { conflictResponse } from '@/lib/jobs/conflict';
@@ -39,9 +41,12 @@ function audienceOf(side: ChatSide): 'pro' | 'homeowner' {
   return side === 'tradesperson' ? 'pro' : 'homeowner';
 }
 
-function emergencyClosed(side: ChatSide): NextResponse {
+function emergencyClosed(side: ChatSide, job: JobRecord): NextResponse {
   const message = side === 'tradesperson' ? PRO_EMERGENCY_NOTE : EMERGENCY_MESSAGE;
-  return noStoreJson(409, errorBody('JOB_IS_EMERGENCY', message, { status: 'emergency' }));
+  return noStoreJson(409, errorBody('JOB_IS_EMERGENCY', message, {
+      status: 'emergency',
+      ...reasonSentenceField(job.emergencyRule),
+    }),);
 }
 
 type Loaded = { ok: true; job: JobRecord } | { ok: false; response: NextResponse };
@@ -86,7 +91,7 @@ async function attemptSend(
   const rule = statusAfterSend(status, side);
   if (!rule.ok) {
     if (rule.reason === 'JOB_IS_EMERGENCY') {
-      return { kind: 'refused', response: emergencyClosed(side) };
+      return { kind: 'refused', response: emergencyClosed(side, job) };
     }
     return {
       kind: 'refused',
@@ -197,15 +202,16 @@ export async function runChatSend(request: Request, id: string, side: ChatSide):
   }
 
   if (side === 'homeowner' && replyTriggersEmergency(text)) {
+    const triggeredRule = emergencyRuleFor(text).rule;
     if (jobIdSchema.safeParse(id).success) {
       try {
         // Empty reply text: the override is applied and the Trigger text is stored nowhere.
-        await applySafetyOverride(id, '', new Date().toISOString());
+        await applySafetyOverride(id, '', new Date().toISOString(), triggeredRule);
       } catch (error: unknown) {
         console.error('Safety override failed', errorName(error));
       }
     }
-    return noStoreJson(200, { status: 'emergency', message: EMERGENCY_MESSAGE });
+    return noStoreJson(200, emergencyResponseBody(triggeredRule));
   }
 
   return sendPipeline(id, side, text);
@@ -238,7 +244,7 @@ export async function runChatRead(request: Request, id: string, side: ChatSide):
 
   const status = effectiveStatus(job);
   if (chatAccess(status) === 'closed') {
-    return emergencyClosed(side);
+    return emergencyClosed(side, job);
   }
 
   let stored: ChatMessage[] = [];

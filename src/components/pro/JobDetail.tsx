@@ -125,8 +125,12 @@ export function JobDetail({ id }: JobDetailProps) {
     onUnauthorized: handleUnauthorized,
   });
 
-  const handleEmergency = useCallback((): void => {
-    applyLive({ status: 'emergency', booking: {} });
+  const handleEmergency = useCallback((reasonSentence?: string): void => {
+    applyLive({
+      status: 'emergency',
+      booking: {},
+      ...(reasonSentence !== undefined ? { reasonSentence } : {}),
+    });
   }, [applyLive]);
 
   const handleLoginSuccess = useCallback((): void => {

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useInspection } from "@/hooks/useInspection";
 import { useStatusPolling } from "@/hooks/useStatusPolling";
 import { ChatPanel } from "@/components/ui/chat/ChatPanel";
-import { EMERGENCY_MESSAGE } from "@/lib/emergency/messages";
 import { viewFromChat } from "@/lib/jobs/views";
 import type { BookingData } from "@/types/chat";
 import type { InspectionResult } from "@/types/inspection";
@@ -14,7 +13,9 @@ import { EmergencyScope } from "@/components/ui/haunted/EmergencyScope";
 import { StateText } from "@/components/ui/haunted/StateText";
 import { PAGE_TITLE } from "@/components/ui/styles";
 import { RESULTS_PAGE_NOTICE } from "@/lib/jobs/copy";
+import { emergencyReasonSentence } from "@/lib/emergency/reasons";
 import { EmergencyBanner } from "./EmergencyBanner";
+import { EmergencyReasonLine } from "./EmergencyReasonLine";
 import { UrgencyBadge } from "./UrgencyBadge";
 import { IssueSummary } from "./IssueSummary";
 import { CostRange } from "./CostRange";
@@ -62,8 +63,8 @@ function NormalResult({ id, result, urgency, markEmergency }: NormalResultProps)
     },
     [applyView],
   );
-  const handleChatEmergency = useCallback(() => {
-    applyView({ status: "emergency", message: EMERGENCY_MESSAGE });
+  const handleChatEmergency = useCallback((reasonSentence?: string) => {
+    applyView(viewFromChat("emergency", {}, reasonSentence));
   }, [applyView]);
 
   return (
@@ -155,6 +156,7 @@ export function ResultsView({ id }: ResultsViewProps) {
       <main className={PAGE}>
         <EmergencyScope />
         <EmergencyBanner urgency="emergency" />
+        <EmergencyReasonLine sentence={emergencyReasonSentence(result.emergencyRule)} />
         <h1 className={`${PAGE_TITLE} break-words`}>Your inspection result</h1>
         <div>
           <UrgencyBadge urgency="emergency" />
