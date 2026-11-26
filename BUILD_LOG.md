@@ -496,7 +496,107 @@ Nov 7 to 9: no build work. The plan was shortened that morning (Kiro Crew app, m
 - Spec 6, screens-polish
 - The 11 optional test tasks (1.9, 1.10, 1.12, 2.10, 2.11, 3.6, 3.7, 3.8, 5.9, 5.10, 5.11) wait until after judging
 
-## Spec 6 task 3: changed shapes
+---
+
+## Nov 23 to 24, 2026 (Spec 5, guided-intake: all 10 tasks)
+
+**Done**
+- Spec 5 built in four commits: tasks 1 and 2 (c1da651), tasks 3 to 5 (6cf7287), tasks 6 and 7 (6d8b0b2), tasks 8 to 10 (57d04d9)
+- The 3-step home page
+- The safety question moved to the top of Step 1 after review, so the 911 message shows before any photo
+- Fixed Safety_Wording that the safety layer always matches
+- Tap-to-choose chips built from native inputs
+- The 911 notice under the safety question
+- "Try it with a sample photo", with two of the user's own photos (`wall-hole.jpeg`, `bathroom-tap.jpeg`), resized, with the photo data removed
+- Real stages: "Uploading photos", then "Checking for safety and reading your photos"
+- The old form deleted after its tests were moved over
+- `product.md` steering updated (30-second video, chat, real stages)
+- Final checks: 176 test files and 1,875 tests
+
+**Kiro features used**
+- Specs: requirements, design and tasks, with review between documents
+- Required property tests 1 to 5 and 8:
+  - any safety chip gives an emergency before the rate limiter and Bedrock
+  - chip labels alone never trigger one
+  - answers stay within 500 characters and pass the schema
+  - Back and Next keep every choice
+- Steering: `safety.md`
+- Tasks run in four groups on purpose, with a live check after each push
+
+**Problems and fixes**
+- The light-switch sample photo was left out, because the AI's answer could turn it into the 911 page
+- Two contrast pairs below 3:1 were left out on purpose: the focus ring has a page-colour gap, and a selected chip shows by its fill, a check mark and text
+- Moving the tests over found a real bug: after an upload error, Back and Change were pulled back to Step 3. Fixed, with a test
+- The duration question's wording was corrected to match the requirements
+
+**Next**
+- Spec 6 (screens-polish)
+
+---
+
+## Nov 25, 2026 (Spec 6, screens-polish: spec written, tasks 1 to 4)
+
+**Done**
+- Spec 6 (screens-polish) written: 18 requirements, design and 10 parent tasks, written in one go (requirements, design and tasks together, to save time), then reviewed once with 13 changes. Changes from review:
+  - the safety wrapper sits outside `src/lib/safety/`
+  - a single `Inter-Variable.ttf` (weights 400 to 700)
+  - one DOM order for phone and desktop (result page: chat, then tracker, booking, copy-link notice, help)
+  - sticky panels must never hide their lower part
+  - the inspect route step order is kept
+  - booking never creates an emergency
+  - file paths fixed
+  - one header approach (`ProChromeContext`)
+- Three additions came from live testing of spec 5: the room and duration dropdowns, the two-column desktop pages with a live summary, and the emergency reason sentence
+- A second developer joined the project as a GitHub collaborator on Nov 25, for tasks 5 to 10
+- Task 1, tokens and fonts: Inter self-hosted with `next/font/local`; Normal palette tokens, a 14 px card radius and badge colours in `tailwind.config.ts`; the shared recipes in `styles.ts` switched to the new tokens. The Normal baseline test was updated on purpose, with each changed class listed. 15 contrast rows added
+- Task 2, header and footer: `SiteHeader` and `SiteFooter` extracted from `layout.tsx`. The PRO tag and Log out moved into the header through `ProChromeContext` (Log out only when signed in). Page background token on the body. 16 more contrast rows and two small tests (the PRO tag, the single Log out). `GuidedIntake.navigation.test.tsx` got a 30 second timeout so load can't fail the Amplify build
+- Task 3, emergency reason:
+  - the rule that fired (gas, electrical fire, water near electrics, CO alarm) and its source (pre-check, check on the AI's answer, chat or reply override) are saved with the job, never the homeowner's text
+  - one fixed sentence under the red message on the homeowner emergency page and in the Pro emergency note, plain style, never themed. Old jobs show no sentence
+  - property tests 6 to 10 (rule and source pair, no text stored, rule never changes, sentence mapping, wrapper agrees with `replyTriggersEmergency` for any text) and unit tests
+  - nothing changed in `src/lib/safety/`, `EMERGENCY_MESSAGE` or `sourceScan.test.ts`
+- Task 4, home page:
+  - Step 2 Location and Duration chips became native dropdowns (`SelectField`); the safety and extras chips stay. Answer strings sent to the server are unchanged and the `answerMapper` tests pass untouched
+  - the guided-intake requirements, design and tasks were updated so both specs agree
+  - the "Exactly where?" label was renamed
+  - the home look from the mockup: title, "Your photos" card with rows, drop area, "Before you send" card, full-width "Inspect my home"
+  - two-column desktop layout with a "Your inspection" panel (step list and live summary, sharing one review-text function with Step 3)
+  - `HOME_LAYOUT` module (`src/lib/layout/sections.ts`), with `RESULTS_LAYOUT` and `PRO_JOB_LAYOUT` ready for later tasks
+  - 61 contrast rows for the home page, plus 18 for the empty drop area (9 Normal, 9 Haunted)
+- Sticky panels: first built as a 1280 px min-height media query (measured worst case 1254 px plus a 16 px offset), then replaced after review by a pure function `shouldStick` (`stickyFits.ts`) and one reusable hook `useStickyPanel` (ResizeObserver plus window resize). The panel sticks whenever it fits in the window. Tasks 5.5 and 8.4 will reuse it. No summary text is capped
+- `mediaValidation.ts`: the only change is an optional, display-only `source?: { name, size }` on the video result. No validation rule changed, and the 12 validation test files pass unchanged
+- `.playwright-mcp/` added to `.gitignore`
+- Checks after task 4: lint clean, type-check clean, 190 test files with 2,033 tests, clean build
+
+**Kiro features used**
+- Spec workflow: one-go spec with one user review round; spec-task-execution sub-agents for each task, with the task list tool tracking status
+- Property tests: Properties 6 to 10
+- Playwright MCP on localhost to measure the real panel height at 1280 px
+- Steering: safety.md and the screens-polish emergency rules
+- The "Update build log" hook wrote this entry
+
+**Problems and fixes**
+- `next build` failed once because `ProDashboard.tsx` had a stray invalid byte in "Loading jobs…". The ellipsis was restored, and changed files are now scanned for invalid UTF-8 and BOMs
+- `GuidedIntake.navigation.test.tsx` timed out once (5 s) under full-suite load. It passes alone, so it now has a 30 s timeout
+- Task 3 first changed the call sites of `applySafetyOverride` and an "unedited" test. The new fourth parameter was made optional, so `emergencyIrreversible.property.test.ts` and `jobs.write.test.ts` stay unedited
+- The reply route now runs the safety check twice (once to decide, once in the wrapper to get the rule). The one test assertion this touched still requires at least one check entry, only check entries and no DynamoDB command
+- On a job that is already an emergency, a new trigger shows the sentence for the text just sent. The stored rule never changes
+- The dropdown task found two real bugs when its tests were migrated: the missing-room error did not clear after choosing a room, and the dropdown values had wide types that failed `tsc`. Both were fixed in source, not in tests
+- A BOM crept into `contrastRegistry.ts` once and was removed
+- What review caught:
+  - the page background token was not used yet (the page was still white), fixed before commit
+  - the first 1280 px sticky threshold would almost never apply on a laptop
+  - the loosened reply-route assertion would also pass with no safety check, so it now requires at least one
+  - the "Exact place" label did not match "Exactly where?"
+  - the empty drop area was still in the old colours
+  - four small tests were added after review: Clear selection keeps the answers, Remove removes one file, a video shows "1 video", and the home section order
+- Not done on purpose: optional tests 2.5, 4.9, 4.10 and 4.11 (the section-order test for the home page was added anyway as a small follow-up test)
+
+**Next**
+- Task 5: result page in the mockup order with two desktop columns, the urgency meter and the copy-link button. Then booking and tracker, the Pro list, the Pro job page, the Haunted check and the final checkpoint with Playwright MCP
+- Tasks 1 to 4 are committed and pushed: 6cd9f49 (tasks 1 and 2), 5efda12 (task 3), d015883 (task 4)
+
+### Changed shapes (task 3)
 
 All additions are optional. No field is renamed, removed or retyped.
 
