@@ -50,7 +50,9 @@ function removeSample(file: string) {
 const next = () => fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 const back = () => fireEvent.click(screen.getByRole('button', { name: 'Back' }));
 
-const radio = (name: string) => screen.getByRole('radio', { name }) as HTMLInputElement;
+const location = () => screen.getByRole('combobox', { name: /^Where is the problem\?/ }) as HTMLSelectElement;
+const duration = () =>
+  screen.getByRole('combobox', { name: /^How long has this been going on\?/ }) as HTMLSelectElement;
 const checkbox = (name: string) => screen.getByRole('checkbox', { name }) as HTMLInputElement;
 const checkedBoxes = () =>
   (screen.queryAllByRole('checkbox') as HTMLInputElement[]).filter((c) => c.checked);
@@ -84,7 +86,7 @@ describe('Sample_Button', () => {
     expect(sampleButton()).toBeNull();
 
     next();
-    await screen.findByRole('heading', { name: /review|check|send/i });
+    await screen.findByRole('heading', { name: 'Review and send' });
     expect(sampleButton()).toBeNull();
   });
 
@@ -94,7 +96,7 @@ describe('Sample_Button', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toBe(`/samples/${FIRST.file}`);
-    expect(screen.getByText('Selected: 1 photo')).toBeTruthy();
+    expect(screen.getByText('1 of 5 photos')).toBeTruthy();
     expect(screen.getAllByRole('img')).toHaveLength(1);
   });
 
@@ -106,7 +108,7 @@ describe('Sample_Button', () => {
     fireEvent.click(screen.getByRole('button', { name: SAMPLE_BUTTON }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     await waitFor(() => expect(sampleButton()).not.toBeNull());
-    expect(screen.queryByText('Selected: 1 photo')).toBeNull();
+    expect(screen.queryByText('1 of 5 photos')).toBeNull();
   });
 
   it('pre-selects the manifest answers on Step 2, and they can be changed or cleared', async () => {
@@ -117,19 +119,17 @@ describe('Sample_Button', () => {
     next();
     await screen.findByRole('heading', { name: 'A few quick questions' });
 
-    expect(radio(SECOND.location).checked).toBe(true);
-    expect(radio(SECOND.duration).checked).toBe(true);
+    expect(location().value).toBe(SECOND.location);
+    expect(duration().value).toBe(SECOND.duration);
     for (const extra of SECOND.extras) expect(checkbox(extra).checked).toBe(true);
 
-    // Change a single-choice answer.
-    fireEvent.click(radio('Kitchen'));
-    expect(radio('Kitchen').checked).toBe(true);
-    expect(radio(SECOND.location).checked).toBe(false);
+    // Change the room.
+    fireEvent.change(location(), { target: { value: 'Kitchen' } });
+    expect(location().value).toBe('Kitchen');
 
-    // Clear the duration and untick an extra.
-    const clearButtons = screen.getAllByRole('button', { name: 'Clear' });
-    fireEvent.click(clearButtons[clearButtons.length - 1]);
-    expect(radio(SECOND.duration).checked).toBe(false);
+    // Clear the duration with the empty option and untick an extra.
+    fireEvent.change(duration(), { target: { value: '' } });
+    expect(duration().value).toBe('');
     fireEvent.click(checkbox(SECOND.extras[0]));
     expect(checkbox(SECOND.extras[0]).checked).toBe(false);
   });
@@ -139,8 +139,8 @@ describe('Sample_Button', () => {
     await tapSample(FIRST.file);
     next();
     await screen.findByRole('heading', { name: 'A few quick questions' });
-    expect(radio(FIRST.location).checked).toBe(true);
-    expect(radio(FIRST.duration).checked).toBe(true);
+    expect(location().value).toBe(FIRST.location);
+    expect(duration().value).toBe(FIRST.duration);
     expect(checkedBoxes()).toHaveLength(0);
   });
 
@@ -162,7 +162,7 @@ describe('Sample_Button', () => {
     await tapSample(FIRST.file);
     next();
     await screen.findByRole('heading', { name: 'A few quick questions' });
-    fireEvent.change(screen.getByLabelText(/Exact place/), { target: { value: 'under the sink' } });
+    fireEvent.change(screen.getByLabelText(/Exactly where/), { target: { value: 'under the sink' } });
     back();
     await screen.findByRole('heading', { name: 'Safety check and photos' });
     removeSample(FIRST.file);
@@ -172,8 +172,8 @@ describe('Sample_Button', () => {
 
     next();
     await screen.findByRole('heading', { name: 'A few quick questions' });
-    expect((screen.getByLabelText(/Exact place/) as HTMLInputElement).value).toBe('under the sink');
-    expect(radio(SECOND.location).checked).toBe(true);
+    expect((screen.getByLabelText(/Exactly where/) as HTMLInputElement).value).toBe('under the sink');
+    expect(location().value).toBe(SECOND.location);
   });
 
   it('rotates in manifest order and wraps', async () => {
@@ -199,7 +199,7 @@ describe('Sample_Button', () => {
     expect(SAMPLE_FAILED_MESSAGE).toBe(
       "We couldn't load the sample photo. Please add your own photo.",
     );
-    expect(screen.queryByText('Selected: 1 photo')).toBeNull();
+    expect(screen.queryByText('1 of 5 photos')).toBeNull();
     expect(screen.queryAllByRole('img')).toHaveLength(0);
     expect(sampleButton()).not.toBeNull();
     expect(checkedBoxes().map((c) => c.value)).toHaveLength(1);

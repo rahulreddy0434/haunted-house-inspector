@@ -83,11 +83,6 @@ const config: Config = {
         "4xl": "2rem",
         card: "14px", // card radius token (Requirement 1.1)
       },
-      // `tall:` applies only in a window tall enough to show a whole Sticky_Panel
-      // (tallest panel plus header; 900px is the working value, re-measure when the panels exist).
-      screens: {
-        tall: { raw: "(min-height: 900px) and (min-width: 1024px)" },
-      },
     },
   },
   plugins: [

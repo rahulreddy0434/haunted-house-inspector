@@ -134,7 +134,7 @@ describe('DropZone additive selection', () => {
 
     expect(spies.onFilesAccepted).toHaveBeenCalledTimes(2);
     expect(names(spies.onFilesAccepted.mock.calls[1][0])).toEqual(['a.jpg', 'b.jpg']);
-    expect(screen.getByText('Selected: 2 photos')).toBeInTheDocument();
+    expect(screen.getByText('2 of 5 photos')).toBeInTheDocument();
     expect(screen.getByText('a.jpg')).toBeInTheDocument();
     expect(screen.getByText('b.jpg')).toBeInTheDocument();
   });
@@ -158,7 +158,7 @@ describe('DropZone additive selection', () => {
     pick(photo('a.jpg', 42, 100));
     pick(photo('a.jpg', 42, 100));
 
-    expect(screen.getByText('Selected: 1 photo')).toBeInTheDocument();
+    expect(screen.getByText('1 of 5 photos')).toBeInTheDocument();
     expect(screen.getAllByAltText('a.jpg')).toHaveLength(1);
     expect(spies.onFilesAccepted).toHaveBeenCalledTimes(1);
   });
@@ -179,7 +179,7 @@ describe('DropZone additive selection', () => {
     expect(spies.onValidationError).toHaveBeenCalledTimes(1);
     expect(spies.onValidationError.mock.calls[0][0][0].code).toBe('TOO_MANY_IMAGES');
     expect(screen.getByText(/The maximum is 5 photos/)).toBeInTheDocument();
-    expect(screen.getByText('Selected: 5 photos')).toBeInTheDocument();
+    expect(screen.getByText('5 of 5 photos')).toBeInTheDocument();
     expect(screen.queryByAltText('p6.jpg')).not.toBeInTheDocument();
     // At 5 photos the add control is replaced by the maximum text.
     expect(screen.getByText('You have added the maximum of 5 photos.')).toBeInTheDocument();
@@ -216,7 +216,7 @@ describe('DropZone additive selection', () => {
     expect(spies.onSelectionCleared).toHaveBeenCalledTimes(1);
     expect(spies.onFilesAccepted).toHaveBeenCalledTimes(acceptedCalls);
     expect(revokeObjectURL).toHaveBeenCalledWith(url);
-    expect(screen.queryByText(/^Selected:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ of 5 photos$/)).not.toBeInTheDocument();
   });
 
   it('revokes all remaining object URLs on unmount', () => {
@@ -278,7 +278,7 @@ describe('DropZone additive selection', () => {
     expect(spies.onValidationError.mock.calls.at(-1)![0][0].code).toBe('MIXED_MEDIA');
     expect(extractFramesMock).not.toHaveBeenCalled();
     expect(spies.onFilesAccepted).toHaveBeenCalledTimes(acceptedCalls);
-    expect(screen.getByText('Selected: 1 photo')).toBeInTheDocument();
+    expect(screen.getByText('1 of 5 photos')).toBeInTheDocument();
     expect(screen.getByAltText('a.jpg')).toBeInTheDocument();
   });
 

@@ -2,9 +2,9 @@
 
 ## Introduction
 
-The guided-intake feature replaces the single long form on the Home_Page with a three-step guided flow: (1) a safety check and photos or video, (2) a few quick questions answered by tapping chips, and (3) a review step with the safety answers, the other answers, the privacy notice and the "Inspect my home" button. It changes the homeowner's Home_Page only. It works the same on a phone (390 px wide) and on a desktop (1280 px and wider).
+The guided-intake feature replaces the single long form on the Home_Page with a three-step guided flow: (1) a safety check and photos or video, (2) a few quick questions answered with two dropdowns (the room and how long) and chips, and (3) a review step with the safety answers, the other answers, the privacy notice and the "Inspect my home" button. It changes the homeowner's Home_Page only. It works the same on a phone (390 px wide) and on a desktop (1280 px and wider).
 
-The feature adds no change to the API or to the stored data. The chip choices are converted into the same three answer strings the App sends today (`location`, `duration`, `recentChanges`), each limited to 500 characters. `POST /api/inspect` keeps its request schema, its order of steps (body limit, validation, Safety_Layer pre-check, rate limiter, Bedrock, post-check) and its stored result shape.
+The feature adds no change to the API or to the stored data. The dropdown and chip choices are converted into the same three answer strings the App sends today (`location`, `duration`, `recentChanges`), each limited to 500 characters. `POST /api/inspect` keeps its request schema, its order of steps (body limit, validation, Safety_Layer pre-check, rate limiter, Bedrock, post-check) and its stored result shape.
 
 Safety comes first. Four Safety_Chips ask whether something dangerous is happening right now. They sit at the top of Step 1, above the file picker, so that a homeowner who smells gas sees the Emergency_Message before taking any photos. Choosing one shows the fixed `EMERGENCY_MESSAGE` on the page at once, in a plain style that no theme changes. The inspection is still sent to the server, and the server decides. Each Safety_Chip is converted into fixed wording that the existing Safety_Layer (`checkEmergency` in `src/lib/safety/safetyLayer.ts`) always matches, so the server returns the emergency result before the rate limiter and before Bedrock. This feature does not edit anything in `src/lib/safety/`, `src/lib/emergency/messages.ts` or the `/api/inspect` route handler.
 
@@ -55,12 +55,12 @@ The feature also adds a "Try it with a sample photo" button so judges can test w
 - **Back_Button**: The button that moves to the previous Step.
 - **Next_Button**: The button that moves to the next Step.
 - **Intake_State**: All Homeowner input held by the Guided_Intake: the selected files, every Chip selection and every text box value.
-- **Chip**: A tappable choice with a visible text label, rendered as a radio or a checkbox.
-- **Chip_Group**: A set of Chips under one question label. A single-choice Chip_Group is a radio group, and a multi-choice Chip_Group is a checkbox group.
-- **Location_Group**: The single-choice Chip_Group "Where is the problem?" with the Location_Options.
+- **Chip**: A tappable choice with a visible text label, rendered as a checkbox.
+- **Chip_Group**: A set of Chips under one question label, rendered as a checkbox group. The Safety_Group and the Extras_Group are the only Chip_Groups. The room and the duration are not Chip_Groups: they are the Location_Select and the Duration_Select.
+- **Location_Select**: The native `<select>` with the visible label "Where is the problem?", an empty first option "Choose a room" and then the Location_Options.
 - **Location_Options**: Kitchen, Bathroom, Basement, Laundry room, Bedroom, Living room, Attic or roof, Garage, Outside (walls, yard or gutters), Hallway or stairs, Other.
-- **Exact_Place_Text**: The optional text box "Exactly where?" that follows the Location_Group.
-- **Duration_Group**: The single-choice Chip_Group "How long has this been going on?" with the Duration_Options.
+- **Exact_Place_Text**: The optional text box "Exactly where?" that follows the Location_Select.
+- **Duration_Select**: The native `<select>` with the visible label "How long has this been going on?", an empty first option "Choose how long (optional)" and then the Duration_Options.
 - **Duration_Options**: Just noticed today, A few days, About a week, A few weeks, A month or more, It comes and goes, Not sure.
 - **Safety_Group**: The multi-choice Chip_Group "Is any of this happening right now?" with the four Safety_Chips. It is shown at the top of Step 1, above the file picker.
 - **Safety_Chip**: One of the four Chips in the Safety_Group, with these labels: "I smell gas"; "Sparks, or a burning smell from an outlet, switch or the electrical panel"; "Water near outlets, switches or the electrical panel"; "A carbon monoxide (CO) alarm is going off".
@@ -78,7 +78,7 @@ The feature also adds a "Try it with a sample photo" button so judges can test w
 - **Live_Emergency_Notice**: The element on the Home_Page that shows the Emergency_Message while at least one Safety_Chip is selected. It uses the existing Emergency_Banner component and a fixed high-contrast style with no `haunted:` classes. On Step 1 it sits directly below the Safety_Group; on Step 2 and Step 3 it sits at the top of the Step content.
 - **Sample_Button**: The button "Try it with a sample photo" on Step 1, shown only while no file is selected.
 - **Sample_Photo**: One of the two image files in `public/samples/`: `wall-hole.jpeg` or `bathroom-tap.jpeg`.
-- **Sample_Manifest**: The single typed list that maps each Sample_Photo file to its pre-selected Chip answers (Location_Group, Duration_Group and Extras_Group only).
+- **Sample_Manifest**: The single typed list that maps each Sample_Photo file to its pre-selected Chip answers (Location_Select, Duration_Select and Extras_Group only).
 - **Upload_Stage**: The first running stage, "Uploading photos", with real progress per file.
 - **Analysis_Stage**: The second running stage, "Checking for safety and reading your photos", which covers the one `POST /api/inspect` call.
 - **Haunted_Theme**: The theme defined in the `haunted-mode` spec, active while the root element has the class `theme-haunted`.
@@ -94,7 +94,7 @@ The feature also adds a "Try it with a sample photo" button so judges can test w
 #### Acceptance Criteria
 
 1. THE Answer_Mapper SHALL convert each selected Safety_Chip into its Safety_Wording and SHALL place all selected Safety_Wording sentences at the start of `recentChanges`, before any Extras_Group wording and before any Free_Text.
-2. FOR ALL non-empty subsets of the four Safety_Chips, combined with any selections in the Location_Group, the Duration_Group and the Extras_Group and with any Free_Text of up to 500 characters each, THE Safety_Layer function `checkEmergency` SHALL return `isEmergency` true for the Answer_Strings produced by the Answer_Mapper (property).
+2. FOR ALL non-empty subsets of the four Safety_Chips, combined with any selections in the Location_Select, the Duration_Select and the Extras_Group and with any Free_Text of up to 500 characters each, THE Safety_Layer function `checkEmergency` SHALL return `isEmergency` true for the Answer_Strings produced by the Answer_Mapper (property).
 3. THE Safety_Wording of each Safety_Chip SHALL be a constant sentence that contains no Homeowner input, and the Safety_Wording of all four Safety_Chips together SHALL fit in 500 characters, so that truncating `recentChanges` to Max_Answer_Length never removes a Safety_Wording sentence.
 4. WHEN an inspection request built from at least one selected Safety_Chip reaches `POST /api/inspect`, THE App SHALL return the emergency result before `checkRateLimit` and before the Bedrock call, including when the daily rate limit is already used up (test with the rate limiter and the Bedrock client mocked and asserted not to be called).
 5. WHEN a Safety_Chip is selected, THE Guided_Intake SHALL still allow the Homeowner to continue to Step 3 and send the inspection, so that the server decides the result.
@@ -129,7 +129,7 @@ The feature also adds a "Try it with a sample photo" button so judges can test w
 5. WHILE the current Step is Step 2, THE Guided_Intake SHALL show both the Back_Button and the Next_Button.
 6. WHILE the current Step is Step 3, THE Guided_Intake SHALL show the Back_Button and the "Inspect my home" button, and no Next_Button.
 7. IF the Homeowner activates the Next_Button on Step 1 while no file is selected, THEN THE Guided_Intake SHALL stay on Step 1 and show the message "Please add a photo or a short video first."
-8. IF the Homeowner activates the Next_Button on Step 2 while the Location_Group has no selection, or while "Other" is selected and Other_Text is empty after trimming, THEN THE Guided_Intake SHALL stay on Step 2, show a message that names the missing answer, and move focus to the first invalid control.
+8. IF the Homeowner activates the Next_Button on Step 2 while the Location_Select has the empty option, or while "Other" is selected and Other_Text is empty after trimming, THEN THE Guided_Intake SHALL stay on Step 2, show a message that names the missing answer, and move focus to the first invalid control, so that a missing room shows its error next to the Location_Select with `aria-invalid="true"` and `aria-describedby` on the Location_Select, and focus moves to the Location_Select.
 9. WHEN the Homeowner moves to another Step, THE Guided_Intake SHALL move keyboard focus to the Step_Heading of that Step, which SHALL have `tabindex="-1"`.
 10. WHEN the Homeowner activates the Back_Button, THE Guided_Intake SHALL keep the Intake_State unchanged, so that every file, Chip selection and Free_Text value is still present when the earlier Step is shown and again when the Homeowner returns (property: for any sequence of Next and Back actions, the Intake_State after the sequence equals the Intake_State before it).
 11. THE Guided_Intake SHALL keep the Intake_State in memory while the Homeowner moves between Steps and SHALL NOT clear it on a Step change.
@@ -155,36 +155,36 @@ The feature also adds a "Try it with a sample photo" button so judges can test w
 
 #### Acceptance Criteria
 
-1. THE Guided_Intake SHALL show on Step 2, in this order: the Location_Group with the Exact_Place_Text box, the Duration_Group and the Extras_Group. The Safety_Group is not shown on Step 2.
-2. THE Location_Group SHALL offer exactly the Location_Options as a single-choice Chip_Group, THE Duration_Group SHALL offer exactly the Duration_Options as a single-choice Chip_Group, and THE Safety_Group (on Step 1) and THE Extras_Group (on Step 2) SHALL each offer exactly their options as a multi-choice Chip_Group.
-3. THE Guided_Intake SHALL render each single-choice Chip_Group as a radio group (a `radiogroup` that contains `radio` controls, or native radio inputs sharing one name) and each multi-choice Chip_Group as a group of checkboxes, each with an accessible name equal to its visible label and each group with an accessible name equal to its question.
-4. WHEN the Homeowner taps a Chip on a phone, THE Guided_Intake SHALL select it with one tap, with no second tap needed.
+1. THE Guided_Intake SHALL show on Step 2, in this order: the Location_Select with the Exact_Place_Text box, the Duration_Select and the Extras_Group. The Safety_Group is not shown on Step 2.
+2. THE Location_Select SHALL offer the empty first option "Choose a room" followed by exactly the Location_Options, THE Duration_Select SHALL offer the empty first option "Choose how long (optional)" followed by exactly the Duration_Options, both in the order listed in the Glossary, and THE Safety_Group (on Step 1) and THE Extras_Group (on Step 2) SHALL each offer exactly their options as a multi-choice Chip_Group.
+3. THE Guided_Intake SHALL render the Location_Select and the Duration_Select as native `<select>` elements, each with a visible `<label>` linked to it that gives its accessible name (the question text), and SHALL render each multi-choice Chip_Group as a group of checkboxes, each with an accessible name equal to its visible label and each group with an accessible name equal to its question.
+4. WHEN the Homeowner taps a Chip of a multi-choice Chip_Group on a phone, THE Guided_Intake SHALL select it with one tap, with no second tap needed, and WHEN the Homeowner chooses an option in the Location_Select or the Duration_Select, THE Guided_Intake SHALL select it at once with the native picker of the device.
 5. WHEN the Homeowner taps the selected Chip of a multi-choice Chip_Group, THE Guided_Intake SHALL deselect it.
-6. WHEN the Homeowner selects a different Chip in a single-choice Chip_Group, THE Guided_Intake SHALL deselect the previous Chip, so that at most one Chip is selected.
-7. THE Guided_Intake SHALL show the Exact_Place_Text box as optional, with the label "Exactly where?" and an example such as "under the sink", and SHALL limit it to Max_Answer_Length minus the length of the location Chip label and separator.
-8. WHILE the Chip "Other" is selected in the Location_Group, THE Guided_Intake SHALL mark the Exact_Place_Text box as required and show the label as required.
+6. WHEN the Homeowner chooses a different option in the Location_Select or the Duration_Select, THE Guided_Intake SHALL replace the previous choice, so that exactly one option is selected, and WHEN the Homeowner chooses the empty first option of the Duration_Select, THE Guided_Intake SHALL clear the duration.
+7. THE Guided_Intake SHALL show the Exact_Place_Text box as optional, with the label "Exactly where?" and an example such as "under the sink", and SHALL limit it to Max_Answer_Length minus the length of the location option label and separator.
+8. WHILE the option "Other" is selected in the Location_Select, THE Guided_Intake SHALL mark the Exact_Place_Text box as required and show the label as required.
 9. WHILE the Chip "Something else" is selected in the Extras_Group, THE Guided_Intake SHALL show the Something_Else_Text box, and WHILE it is not selected, THE Guided_Intake SHALL hide that box.
 10. WHEN the Homeowner deselects the Chip "Something else", THE Guided_Intake SHALL keep the text already typed in Something_Else_Text in memory, so that selecting the Chip again shows the same text, and SHALL leave that text out of the Answer_Strings while the Chip is not selected.
 11. THE Guided_Intake SHALL show a character count for each Free_Text box.
-12. THE Guided_Intake SHALL answer Step 1 and Step 2 without requiring any choice in the Safety_Group, the Duration_Group or the Extras_Group.
-13. WHERE answers were pre-selected by the Sample_Button, THE Guided_Intake SHALL show them as selected Chips on Step 2 and SHALL let the Homeowner change or clear them like any other choice.
+12. THE Guided_Intake SHALL answer Step 1 and Step 2 without requiring any choice in the Safety_Group, the Duration_Select or the Extras_Group.
+13. WHERE answers were pre-selected by the Sample_Button, THE Guided_Intake SHALL show them as the chosen options of the Location_Select and the Duration_Select and as selected Chips of the Extras_Group on Step 2, and SHALL let the Homeowner change or clear them like any other choice.
 
 ### Requirement 6: Keyboard use and accessibility of Chip groups
 
-**User Story:** As a Homeowner who uses a keyboard or a screen reader, I want every Chip group to work as a standard radio or checkbox group, so that I can answer without a mouse.
+**User Story:** As a Homeowner who uses a keyboard or a screen reader, I want every dropdown and every Chip group to work as a standard native control, so that I can answer without a mouse.
 
 #### Acceptance Criteria
 
-1. THE Guided_Intake SHALL let the Homeowner reach every Chip_Group, text box, Back_Button and Next_Button with the Tab key, in the visual order of the page.
-2. WHILE focus is in a single-choice Chip_Group, THE Guided_Intake SHALL let the Homeowner move between its Chips with the arrow keys and select the focused Chip with the Space key, as native radio inputs do.
+1. THE Guided_Intake SHALL let the Homeowner reach the Location_Select, the Duration_Select, every Chip_Group, text box, Back_Button and Next_Button with the Tab key, in the visual order of the page.
+2. WHILE focus is on the Location_Select or the Duration_Select, THE Guided_Intake SHALL keep the keyboard behaviour of a native `<select>` (the arrow keys and the first letter of an option change the choice, and the Space key or the Enter key opens the list), with no custom key code.
 3. WHILE focus is on a Chip of a multi-choice Chip_Group, THE Guided_Intake SHALL toggle that Chip with the Space key, and each Chip SHALL be a separate Tab stop.
 4. THE Guided_Intake SHALL show a visible focus indicator with a contrast ratio of at least 3:1 against its adjacent colours on every Chip, text box and button, in both the Normal theme and the Haunted_Theme.
 5. THE Guided_Intake SHALL show the selected state of a Chip with a visible mark (such as a check mark or a filled indicator) in addition to a colour change, so that the state does not depend on colour alone.
 6. THE Guided_Intake SHALL give every Chip, button and text box a touch target of at least 44 by 44 CSS pixels.
 7. THE Guided_Intake SHALL associate every error message with its control through `aria-describedby` and `aria-invalid`.
 8. THE Guided_Intake SHALL show every Chip label in full without cutting it off, wrapping long labels onto more lines, at viewport widths from 320 px to 1920 px.
-9. THE Guided_Intake SHALL render each Chip_Group inside a `fieldset` whose `aria-labelledby` points to the `id` of its `legend`, so that the Chip_Group keeps its accessible name together with `role="radiogroup"` on single-choice groups.
-10. THE test suite SHALL check the accessible name of every Chip_Group with `getByRole` (`radiogroup` for single-choice groups and `group` for multi-choice groups) and the name option set to the question text.
+9. THE Guided_Intake SHALL render each multi-choice Chip_Group inside a `fieldset` whose `aria-labelledby` points to the `id` of its `legend`, and SHALL link the visible `<label>` of the Location_Select and of the Duration_Select to its `<select>` with `htmlFor` and `id`, so that each control keeps its accessible name.
+10. THE test suite SHALL check the accessible name of the Location_Select and the Duration_Select with `getByRole('combobox', { name })` set to the question text, and of every multi-choice Chip_Group with `getByRole('group', { name })` set to the question text.
 
 ### Requirement 7: Choices become the same three answer strings
 
@@ -193,8 +193,8 @@ The feature also adds a "Try it with a sample photo" button so judges can test w
 #### Acceptance Criteria
 
 1. THE Answer_Mapper SHALL produce `location` as the selected Location_Options label, followed by ": " and the trimmed Exact_Place_Text when that text is not empty, so that Kitchen with "under the sink" gives "Kitchen: under the sink" and Kitchen with no text gives "Kitchen".
-2. WHERE the Chip "Other" is selected, THE Answer_Mapper SHALL produce `location` as "Other: " followed by the trimmed Other_Text.
-3. THE Answer_Mapper SHALL produce `duration` as the selected Duration_Options label, or as an empty string when no Duration Chip is selected, so that "A few weeks" gives "A few weeks".
+2. WHERE the option "Other" is selected in the Location_Select, THE Answer_Mapper SHALL produce `location` as "Other: " followed by the trimmed Other_Text.
+3. THE Answer_Mapper SHALL produce `duration` as the selected Duration_Options label, or as an empty string when the Duration_Select has the empty option, so that "A few weeks" gives "A few weeks".
 4. THE Answer_Mapper SHALL produce `recentChanges` as the following parts in order, each part ended by a full stop (unless the part already ends in ".", "!" or "?") and joined by single spaces: the Safety_Wording of each selected Safety_Chip, the label of each selected Extras_Group Chip other than "Something else" (in the order the Extras_Options are listed), and the trimmed Something_Else_Text when the Chip "Something else" is selected and the text is not empty, so that "Dripping or leaking water", "Getting worse" and the text "<their text>" give "Dripping or leaking water. Getting worse. <their text>." (the free text gets a full stop unless it already ends in ".", "!" or "?").
 5. THE Answer_Mapper SHALL strip the characters that the Safety_Layer normalises away (zero-width characters) from Free_Text and SHALL collapse repeated whitespace in Free_Text to a single space, so that the three Answer_Strings contain no control characters.
 6. IF a Free_Text value would make an Answer_String longer than Max_Answer_Length, THEN THE Answer_Mapper SHALL shorten only that Free_Text value (at a position that does not split a Unicode code point), so that the Chip labels and every Safety_Wording sentence stay complete.
@@ -227,9 +227,9 @@ The feature also adds a "Try it with a sample photo" button so judges can test w
 1. WHILE no file is selected, THE Guided_Intake SHALL show the Sample_Button on Step 1, and WHILE at least one file is selected, THE Guided_Intake SHALL hide the Sample_Button.
 2. WHEN the Homeowner activates the Sample_Button, THE Guided_Intake SHALL fetch one Sample_Photo from `public/samples/`, create a `File` from it, and add it as the only selected file through the same validation path as a file the Homeowner picks.
 3. WHEN the Homeowner activates the Sample_Button, THE Guided_Intake SHALL choose the Sample_Photo that follows, in Sample_Manifest order, the one chosen by the previous activation, and SHALL return to the first entry after the last entry, so that removing a sample and tapping the Sample_Button again gives the other sample.
-4. WHEN a Sample_Photo is added, THE Guided_Intake SHALL set the Location_Group, the Duration_Group and the Extras_Group to the choices listed for that Sample_Photo in the Sample_Manifest, and SHALL show these choices as selected Chips on Step 2, where the Homeowner can change or clear them.
+4. WHEN a Sample_Photo is added, THE Guided_Intake SHALL set the Location_Select, the Duration_Select and the Extras_Group to the choices listed for that Sample_Photo in the Sample_Manifest, and SHALL show these choices on Step 2 as the chosen options of the Location_Select and the Duration_Select and as selected Chips of the Extras_Group, where the Homeowner can change or clear them.
 5. THE Sample_Manifest SHALL pre-select no Safety_Chip for any Sample_Photo.
-6. WHEN a Sample_Photo is added, THE Guided_Intake SHALL leave the Safety_Group and all Free_Text unchanged and SHALL replace any earlier answers in the Location_Group, the Duration_Group and the Extras_Group with those of the Sample_Photo.
+6. WHEN a Sample_Photo is added, THE Guided_Intake SHALL leave the Safety_Group and all Free_Text unchanged and SHALL replace any earlier answers in the Location_Select, the Duration_Select and the Extras_Group with those of the Sample_Photo.
 7. THE Guided_Intake SHALL upload a sample through the normal upload path (pre-signed URL, PUT, then `POST /api/inspect`), subject to the normal Safety_Layer, rate limit and Bedrock steps, so that the `wall-hole.jpeg` sample, which shows an outlet, is treated by the Safety_Layer exactly like any other submission.
 8. IF the Sample_Photo cannot be fetched, THEN THE Guided_Intake SHALL show the message "We couldn't load the sample photo. Please add your own photo." and keep the Intake_State unchanged.
 9. THE Sample_Manifest SHALL be one typed list in one module with exactly these two entries, and a test SHALL fail if a listed file does not exist in `public/samples/` or if a file in `public/samples/` has no entry:
@@ -286,7 +286,7 @@ The feature also adds a "Try it with a sample photo" button so judges can test w
 3. THE test suite SHALL include a property-based test (at least 100 runs) for Requirement 7, criteria 7 and 8: the Answer_Strings never exceed Max_Answer_Length and pass `contextAnswersSchema`, with Free_Text of any length, including Unicode, emoji and zero-width characters.
 4. THE test suite SHALL include example tests for the mappings in Requirement 7, criteria 1 to 4.
 5. THE test suite SHALL include a test for Requirement 3, criterion 10 and Requirement 5, criterion 10: going Back and Next keeps every file, every Safety_Chip selection, every other selection and every Free_Text value.
-6. THE test suite SHALL include a keyboard test for each of the four Chip_Groups (the Safety_Group on Step 1; the Location_Group, Duration_Group and Extras_Group on Step 2): the Tab key, the arrow keys (single-choice groups) and the Space key.
+6. THE test suite SHALL include a keyboard test for each of the two multi-choice Chip_Groups (the Safety_Group on Step 1 and the Extras_Group on Step 2): the Tab key and the Space key, and a test for the Location_Select and the Duration_Select on Step 2: each is reachable with the Tab key, has the accessible name of its question with `getByRole('combobox', { name })`, offers the empty first option and then the options in order, and changes its value with the keyboard (`userEvent.selectOptions` and the arrow keys).
 7. THE test suite SHALL include tests for the Sample_Button in Requirement 9: it is shown only while no file is selected and hidden once a file is selected, it adds one file, it pre-selects the manifest answers on Step 2 where they can be changed, it selects no Safety_Chip, it rotates through the Sample_Manifest in order (removing the sample and tapping again gives the other sample, and the order wraps), and it handles a failed fetch.
 8. THE test suite SHALL include a test that the Live_Emergency_Notice shows the exact Emergency_Message text, appears directly below the Safety_Group on Step 1 when a Safety_Chip is selected (before any file is added), appears at the top of the Step content on Step 2 and Step 3, and has no `haunted:` class.
 9. THE test suite SHALL include a test that the Upload_Stage and the Analysis_Stage show their texts from real progress and analysing events, with no timer.

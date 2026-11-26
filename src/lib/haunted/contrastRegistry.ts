@@ -1,4 +1,4 @@
-﻿// Colour pairs are token names; hex values live only in tailwind.config.ts.
+// Colour pairs are token names; hex values live only in tailwind.config.ts.
 // Row ids and ratios follow the colour pair table in the haunted-mode design.
 // Imports palette.ts, so this module is for tests and tooling, not the browser bundle.
 import type { Theme } from '@/lib/theme';
@@ -166,6 +166,71 @@ export const CONTRAST_REGISTRY: readonly ColourPair[] = [
   H('H-43', 'non-text', 'haunted.border', 'haunted.field', 'Haunted_Switch track border, Off'),
   H('H-44', 'body', 'haunted.muted', 'haunted.bg', 'Footer text'),
   H('H-45', 'body', 'haunted.accent', 'haunted.bg', 'Footer link'),
+  // Home page (screens-polish task 4.8): "Before you send" notice (DataRetentionNotice.tsx).
+  N('N-58', 'body', 'normal.text', 'normal.notice', 'Before you send notice: title and list text'),
+  N('N-59', 'non-text', 'normal.accent', 'normal.notice', 'Before you send notice: icon'),
+  H('H-46', 'body', 'haunted.text', 'haunted.surface', 'Before you send notice: list text'),
+  H('H-47', 'body', 'haunted.accent', 'haunted.surface', 'Before you send notice: title'),
+  H('H-48', 'non-text', 'haunted.accent', 'haunted.surface', 'Before you send notice: icon'),
+  // Home page: photo rows and drop area (DropZone.tsx).
+  N('N-60', 'body', 'normal.text', 'normal.card', 'Photo row file name; drop area text with photos added'),
+  N('N-61', 'body', 'normal.muted', 'normal.card', 'Photo row file size and hints; drop area hint text'),
+  N('N-62', 'non-text', 'normal.muted', 'normal.card', 'Drop area dashed border with photos added'),
+  N('N-63', 'body', 'normal.text', 'normal.notice', 'Drop area text while dragging'),
+  N('N-64', 'non-text', 'normal.accent', 'normal.notice', 'Drop area dashed border while dragging'),
+  N('N-65', 'body', 'normal.text', 'normal.card', 'Remove button text'),
+  N('N-66', 'non-text', 'normal.muted', 'normal.card', 'Remove button border'),
+  N('N-67', 'body', 'normal.muted', 'normal.table-head', 'Video thumbnail icon on its background'),
+  N('N-68', 'non-text', 'normal.muted', 'normal.table-head', 'Video thumbnail icon (non-text) on its background'),
+  H('H-49', 'body', 'haunted.text', 'haunted.surface', 'Photo row file name; drop area text'),
+  H('H-50', 'body', 'haunted.muted', 'haunted.surface', 'Photo row file size and hints; drop area hint text'),
+  H('H-51', 'non-text', 'haunted.border', 'haunted.surface', 'Drop area dashed border'),
+  H('H-52', 'body', 'haunted.text', 'haunted.field', 'Drop area text while dragging; Remove button text'),
+  H('H-53', 'non-text', 'haunted.accent', 'haunted.field', 'Drop area dashed border while dragging'),
+  H('H-54', 'non-text', 'haunted.border', 'haunted.field', 'Remove button border'),
+  H('H-55', 'body', 'haunted.muted', 'haunted.field', 'Video thumbnail icon on its background'),
+  // Home page: dropdowns (SelectField.tsx).
+  N('N-69', 'body', 'normal.text', 'normal.card', 'Dropdown label'),
+  N('N-70', 'body', 'normal.text', 'normal.card', 'Dropdown selected text on its background'),
+  N('N-71', 'non-text', 'normal.muted', 'normal.card', 'Dropdown border'),
+  N('N-72', 'body', 'normal.emergency', 'normal.card', 'Dropdown error text'),
+  H('H-56', 'body', 'haunted.text', 'haunted.surface', 'Dropdown label inside a card'),
+  H('H-57', 'body', 'haunted.text', 'haunted.field', 'Dropdown selected text on its background'),
+  H('H-58', 'non-text', 'haunted.border', 'haunted.surface', 'Dropdown border against a card'),
+  H('H-59', 'body', 'haunted.error', 'haunted.surface', 'Dropdown error text inside a card'),
+  // Home page: Step_List states (StepList.tsx).
+  N('N-73', 'body', 'normal.text', 'normal.card', 'Step list: current step'),
+  N('N-74', 'body', 'normal.muted', 'normal.card', 'Step list: "Current step" caption and later steps'),
+  N('N-75', 'body', 'normal.text', 'normal.card', 'Step list: finished step button text'),
+  N('N-76', 'non-text', 'normal.muted', 'normal.card', 'Step list: finished step button border'),
+  H('H-60', 'body', 'haunted.text', 'haunted.surface', 'Step list: current step'),
+  H('H-61', 'body', 'haunted.muted', 'haunted.surface', 'Step list: "Current step" caption and later steps'),
+  H('H-62', 'body', 'haunted.text', 'haunted.field', 'Step list: finished step button text'),
+  H('H-63', 'non-text', 'haunted.border', 'haunted.field', 'Step list: finished step button border'),
+  // Home page: Live_Summary (LiveSummary.tsx, InspectionPanel.tsx).
+  N('N-77', 'body', 'normal.text', 'normal.card', 'Live summary: panel title and answers'),
+  N('N-78', 'body', 'normal.muted', 'normal.card', 'Live summary: uppercase headings'),
+  H('H-64', 'body', 'haunted.text', 'haunted.surface', 'Live summary: panel title and answers'),
+  H('H-65', 'body', 'haunted.muted', 'haunted.surface', 'Live summary: uppercase headings'),
+  // Home page: empty-state drop area (DropZone.tsx, task 4 follow-up).
+  N('N-79', 'body', 'normal.text', 'normal.card', 'Empty drop area: title'),
+  N('N-80', 'body', 'normal.muted', 'normal.card', 'Empty drop area: hint text'),
+  N('N-81', 'non-text', 'normal.muted', 'normal.card', 'Empty drop area: dashed border'),
+  N('N-82', 'body', 'normal.card', 'normal.accent', 'Empty drop area: choose button text'),
+  N('N-83', 'body', 'normal.card', 'normal.accent-hover', 'Empty drop area: choose button text on hover'),
+  N('N-84', 'non-text', 'normal.accent', 'normal.card', 'Empty drop area: choose button and focus ring against the area'),
+  N('N-85', 'body', 'normal.text', 'normal.notice', 'Empty drop area: title while dragging'),
+  N('N-86', 'body', 'normal.muted', 'normal.notice', 'Empty drop area: hint text while dragging'),
+  N('N-87', 'non-text', 'normal.accent', 'normal.notice', 'Empty drop area: dashed border while dragging'),
+  H('H-66', 'body', 'haunted.text', 'haunted.surface', 'Empty drop area: title'),
+  H('H-67', 'body', 'haunted.muted', 'haunted.surface', 'Empty drop area: hint text'),
+  H('H-68', 'non-text', 'haunted.border', 'haunted.surface', 'Empty drop area: dashed border'),
+  H('H-69', 'body', 'haunted.on-accent', 'haunted.accent', 'Empty drop area: choose button text'),
+  H('H-70', 'body', 'haunted.on-accent', 'haunted.accent-hover', 'Empty drop area: choose button text on hover'),
+  H('H-71', 'non-text', 'haunted.accent', 'haunted.surface', 'Empty drop area: choose button and focus ring against the area'),
+  H('H-72', 'body', 'haunted.text', 'haunted.field', 'Empty drop area: title while dragging'),
+  H('H-73', 'body', 'haunted.muted', 'haunted.field', 'Empty drop area: hint text while dragging'),
+  H('H-74', 'non-text', 'haunted.accent', 'haunted.field', 'Empty drop area: dashed border while dragging'),
 ];
 
 export { minimumFor };

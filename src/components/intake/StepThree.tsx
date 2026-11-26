@@ -80,25 +80,25 @@ export function StepThree({
         onTryAgain={onTryAgain}
       />
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          disabled={busy}
-          className={`min-h-12 min-w-11 flex-1 rounded-lg px-6 py-3 text-lg font-semibold ${dim} ${SECONDARY_BUTTON}`}
-        >
-          Back
-        </button>
+      <div className="flex flex-col gap-3">
         <button
           type="button"
           onClick={onSubmit}
           disabled={busy}
           aria-disabled={busy || notReady ? 'true' : undefined}
-          className={`min-h-12 min-w-11 flex-1 rounded-lg px-6 py-3 text-lg font-semibold ${dim} ${PRIMARY_BUTTON} ${
+          className={`h-[54px] w-full rounded-xl px-6 text-[17px] font-semibold ${dim} ${PRIMARY_BUTTON} ${
             notReady ? 'opacity-60' : ''
           }`}
         >
           Inspect my home
+        </button>
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={busy}
+          className={`min-h-11 w-full rounded-xl px-6 text-base font-semibold ${dim} ${SECONDARY_BUTTON}`}
+        >
+          Back
         </button>
       </div>
       <div role="alert">

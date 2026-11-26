@@ -48,7 +48,7 @@ type User = ReturnType<typeof userEvent.setup>;
 async function addPhoto(user: User) {
   const photo = new File([new Uint8Array(64)], 'leak.jpg', { type: 'image/jpeg' });
   await user.upload(screen.getByLabelText('Choose photos or a video'), photo);
-  await screen.findByText('Selected: 1 photo');
+  await screen.findByText('1 of 5 photos');
 }
 
 const next = (user: User) => user.click(screen.getByRole('button', { name: 'Next' }));
@@ -57,7 +57,10 @@ const next = (user: User) => user.click(screen.getByRole('button', { name: 'Next
 async function goToStepTwo(user: User) {
   await addPhoto(user);
   await next(user);
-  await user.click(screen.getByRole('radio', { name: /Kitchen/ }));
+  await user.selectOptions(
+    screen.getByRole('combobox', { name: /^Where is the problem\?/ }),
+    'Kitchen',
+  );
 }
 
 async function sendFromStepTwo(user: User) {
@@ -114,8 +117,11 @@ describe('request payload (was ContextForm Property 9)', () => {
     const user = userEvent.setup();
     render(<GuidedIntake />);
     await goToStepTwo(user);
-    await user.type(screen.getByLabelText(/Exact place/), 'under the sink');
-    await user.click(screen.getByRole('radio', { name: 'A few weeks' }));
+    await user.type(screen.getByLabelText(/Exactly where/), 'under the sink');
+    await user.selectOptions(
+    screen.getByRole('combobox', { name: /^How long has this been going on\?/ }),
+    'A few weeks',
+  );
     await user.click(screen.getByRole('checkbox', { name: 'Getting worse' }));
     await user.click(screen.getByRole('checkbox', { name: 'Something else' }));
     await user.type(screen.getByLabelText('Tell us more'), 'A faint ticking sound');
@@ -166,7 +172,7 @@ describe('answer length limits (was ContextForm Property 10)', () => {
     await goToStepTwo(user);
     const limit = exactPlaceLimit('Kitchen');
     expect(screen.getByText(`0/${limit}`)).toBeTruthy();
-    await user.type(screen.getByLabelText(/Exact place/), 'abc');
+    await user.type(screen.getByLabelText(/Exactly where/), 'abc');
     expect(screen.getByText(`3/${limit}`)).toBeTruthy();
     expect(screen.queryByText(/Only the first/)).toBeNull();
   });
@@ -189,7 +195,7 @@ describe('answer length limits (was ContextForm Property 10)', () => {
     await goToStepTwo(user);
     const limit = exactPlaceLimit('Kitchen');
     const text = 'x'.repeat(limit);
-    fireEvent.change(screen.getByLabelText(/Exact place/), { target: { value: text } });
+    fireEvent.change(screen.getByLabelText(/Exactly where/), { target: { value: text } });
     expect(screen.getByText(`${limit}/${limit}`)).toBeTruthy();
     expect(screen.queryByText(/Only the first/)).toBeNull();
     const opts = await sendFromStepTwo(user);
@@ -202,7 +208,7 @@ describe('answer length limits (was ContextForm Property 10)', () => {
     render(<GuidedIntake />);
     await goToStepTwo(user);
     const limit = exactPlaceLimit('Kitchen');
-    fireEvent.change(screen.getByLabelText(/Exact place/), { target: { value: 'y'.repeat(600) } });
+    fireEvent.change(screen.getByLabelText(/Exactly where/), { target: { value: 'y'.repeat(600) } });
     expect(screen.getByText(new RegExp(`Only the first ${limit} characters will be sent`))).toBeTruthy();
     const opts = await sendFromStepTwo(user);
     expect(opts.answers.location).toBe(`Kitchen: ${'y'.repeat(limit)}`);

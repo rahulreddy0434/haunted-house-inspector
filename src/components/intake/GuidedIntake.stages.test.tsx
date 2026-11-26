@@ -49,7 +49,7 @@ const photo = () => new File([new Uint8Array(1024)], 'leak.jpg', { type: 'image/
 
 async function addPhoto(user: ReturnType<typeof userEvent.setup>) {
   await user.upload(screen.getByLabelText('Choose photos or a video'), photo());
-  await screen.findByText('Selected: 1 photo');
+  await screen.findByText('1 of 5 photos');
 }
 
 /** Renders, adds a photo, answers the location, and lands on Step 3. */
@@ -58,7 +58,10 @@ async function goToStepThree() {
   render(<GuidedIntake />);
   await addPhoto(user);
   await user.click(screen.getByRole('button', { name: 'Next' }));
-  await user.click(screen.getByRole('radio', { name: /Kitchen/ }));
+  await user.selectOptions(
+    screen.getByRole('combobox', { name: /^Where is the problem\?/ }),
+    'Kitchen',
+  );
   await user.click(screen.getByRole('button', { name: 'Next' }));
   expect(screen.getByRole('heading', { name: 'Review and send' })).toBeTruthy();
   return user;
@@ -202,7 +205,7 @@ describe('Live_Emergency_Notice placement', () => {
     const user = userEvent.setup();
     const { container } = render(<GuidedIntake />);
     expect(screen.queryAllByRole('alert').some((a) => messageText(a) === EMERGENCY_MESSAGE)).toBe(false);
-    expect(screen.queryByText('Selected: 1 photo')).toBeNull();
+    expect(screen.queryByText('1 of 5 photos')).toBeNull();
 
     const chip = screen.getByRole('checkbox', { name: GAS_CHIP });
     await user.click(chip);
@@ -249,7 +252,10 @@ describe('Live_Emergency_Notice placement', () => {
     await user.click(chip);
     await addPhoto(user);
     await user.click(screen.getByRole('button', { name: 'Next' }));
-    await user.click(screen.getByRole('radio', { name: /Kitchen/ }));
+    await user.selectOptions(
+    screen.getByRole('combobox', { name: /^Where is the problem\?/ }),
+    'Kitchen',
+  );
     await user.click(screen.getByRole('button', { name: 'Next' }));
 
     const heading = screen.getByRole('heading', { name: 'Review and send' });

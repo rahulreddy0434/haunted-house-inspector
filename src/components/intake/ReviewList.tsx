@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { BODY, HEADING, MUTED, SECONDARY_BUTTON } from '@/components/ui/styles';
-import { SAFETY_CHIPS } from '@/lib/intake/safetyChips';
-import { cleanFreeText, somethingElseLimit, truncateUtf16 } from '@/lib/intake/answerMapper';
-import { EXTRAS_OPTIONS, SOMETHING_ELSE } from '@/lib/intake/options';
+import {
+  NO_DURATION_TEXT,
+  NO_EXTRAS_TEXT,
+  NO_PHOTOS_TEXT,
+  NO_SAFETY_TEXT,
+  reviewText,
+} from '@/lib/intake/reviewText';
 import type { AcceptedFiles } from '@/lib/validation/mediaValidation';
 import type { IntakeChoices } from '@/types/intake';
 import type { ContextAnswers } from '@/types/inspection';
@@ -20,7 +24,7 @@ export interface ReviewListProps {
 
 const CHANGE_BUTTON = `min-h-11 min-w-11 rounded-lg px-4 py-2 text-sm font-medium ${SECONDARY_BUTTON}`;
 
-function Thumbnails({ files }: { files: File[] }) {
+export function Thumbnails({ files, compact = false }: { files: File[]; compact?: boolean }) {
   const [urls, setUrls] = useState<string[]>([]);
 
   useEffect(() => {
@@ -40,10 +44,10 @@ function Thumbnails({ files }: { files: File[] }) {
             <img
               src={urls[i]}
               alt={`Photo ${i + 1}: ${f.name}`}
-              className="h-20 w-20 rounded-lg object-cover"
+              className={`rounded-lg object-cover ${compact ? 'h-14 w-14' : 'h-20 w-20'}`}
             />
           )}
-          <span className={`block max-w-20 break-words ${MUTED}`}>{f.name}</span>
+          {!compact && <span className={`block max-w-20 break-words ${MUTED}`}>{f.name}</span>}
         </li>
       ))}
     </ul>
@@ -75,18 +79,7 @@ function Row({
 }
 
 export function ReviewList({ choices, answers, files, onChange }: ReviewListProps) {
-  const safety = SAFETY_CHIPS.filter((c) => choices.safety.includes(c.id)).map((c) => c.label);
-
-  const extras: string[] = EXTRAS_OPTIONS.filter(
-    (o) => o !== SOMETHING_ELSE && choices.extras.includes(o),
-  );
-  if (choices.extras.includes(SOMETHING_ELSE)) {
-    const free = truncateUtf16(
-      cleanFreeText(choices.somethingElseText),
-      somethingElseLimit(choices),
-    );
-    if (free) extras.push(free);
-  }
+  const { safety, extras } = reviewText(choices);
 
   return (
     <dl className="space-y-4">
@@ -98,17 +91,17 @@ export function ReviewList({ choices, answers, files, onChange }: ReviewListProp
             ))}
           </ul>
         ) : (
-          'None selected'
+          NO_SAFETY_TEXT
         )}
       </Row>
       <Row title="Photos" onChange={() => onChange(1)} changeLabel="Change photos">
-        {files && files.files.length > 0 ? <Thumbnails files={files.files} /> : 'No photos'}
+        {files && files.files.length > 0 ? <Thumbnails files={files.files} /> : NO_PHOTOS_TEXT}
       </Row>
       <Row title="Where" onChange={() => onChange(2)} changeLabel="Change where">
         {answers.location}
       </Row>
       <Row title="How long" onChange={() => onChange(2)} changeLabel="Change how long">
-        {answers.duration || 'Not given'}
+        {answers.duration || NO_DURATION_TEXT}
       </Row>
       <Row title="Anything else" onChange={() => onChange(2)} changeLabel="Change anything else">
         {extras.length > 0 ? (
@@ -118,7 +111,7 @@ export function ReviewList({ choices, answers, files, onChange }: ReviewListProp
             ))}
           </ul>
         ) : (
-          'Nothing added'
+          NO_EXTRAS_TEXT
         )}
       </Row>
     </dl>

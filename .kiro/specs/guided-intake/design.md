@@ -2,12 +2,12 @@
 
 ## Overview
 
-Guided intake replaces the single long form on the Home_Page (`/`) with a three-step flow: (1) safety check and photos, (2) a few quick questions answered by tapping chips, (3) review and send. It changes how the Home_Page is laid out. It does not change how files are uploaded or how an inspection is sent. `useUpload`, `runUploadFlow`, `DropZone`, `DataRetentionNotice` and `EmergencyBanner` are reused as they are.
+Guided intake replaces the single long form on the Home_Page (`/`) with a three-step flow: (1) safety check and photos, (2) a few quick questions answered with two dropdowns (the room and how long) and chips, (3) review and send. It changes how the Home_Page is laid out. It does not change how files are uploaded or how an inspection is sent. `useUpload`, `runUploadFlow`, `DropZone`, `DataRetentionNotice` and `EmergencyBanner` are reused as they are.
 
 The design rests on four decisions.
 
 1. **Safety is done by wording, not by new server logic.** Each of the four Safety_Chips maps to one fixed sentence (Safety_Wording). The Answer_Mapper puts all selected sentences at the start of `recentChanges`. The existing `checkEmergency` always matches those sentences, so `POST /api/inspect` returns the emergency result before the rate limiter and before Bedrock. Nothing in `src/lib/safety/`, `src/lib/emergency/messages.ts` or `src/app/api/inspect/route.ts` changes.
-2. **Chips are native inputs.** A single-choice group is a `fieldset` of `input type="radio"` sharing one `name`. A multi-choice group is a `fieldset` of `input type="checkbox"`. The browser provides the Tab stops, the arrow keys and Space. There are no `onKeyDown` handlers and no `role="radio"` or `role="checkbox"` on non-input elements.
+2. **Dropdowns and chips are native controls.** The room and the duration are native `<select>` elements (Location_Select and Duration_Select), each with a visible `<label>` and an empty first option. A multi-choice chip group (Safety_Group, Extras_Group) is a `fieldset` of `input type="checkbox"`. The browser provides the Tab stops, the arrow keys and Space. There are no `onKeyDown` handlers and no `role="radio"` or `role="checkbox"` on non-input elements.
 3. **State lives above the steps.** One `GuidedIntake` component owns `useUpload()` (files, notice flag, upload status) and a `useReducer` for the chip choices and the current step. Step components are presentational and are unmounted when the step changes, so Back and Next cannot lose anything.
 4. **The server contract does not move.** The Answer_Mapper produces the same three strings (`location`, `duration`, `recentChanges`, each at most 500 characters) that the old textareas produced. `buildInspectRequestBody` and `contextAnswersSchema` are used unchanged.
 
@@ -99,12 +99,12 @@ The step is a number from 1 to 3 in the reducer. It is not in the URL. This keep
 
 | Decision | Alternatives | Why |
 |---|---|---|
-| Native radio and checkbox inputs, label as the visible chip, `peer-*` variants for focus and colour | Buttons with `aria-pressed`; `role="radio"` divs with key handlers | Native inputs give the arrow keys, Space, Tab stops, a form `name` and a screen reader role for free, with no keyboard code to get wrong. |
-| `fieldset` with `legend` for each group; every fieldset has `aria-labelledby` pointing to the legend's `id`; single-choice fieldsets also carry `role="radiogroup"` (approved) | Plain `div` with `aria-labelledby` | `legend` gives the group its name, and `aria-labelledby` keeps that name once `role="radiogroup"` replaces the implicit `group` role (Requirement 6.9). `aria-invalid` is allowed on `radiogroup`, which Requirement 6.7 needs for the Location_Group. The inputs inside stay native. |
-| Reducer for steps and choices, kept pure in `src/lib/intake/` | `useState` per field | One pure function lets Property 5 (Back and Next keep choices) run without React, and the sample action can replace three groups in one update. |
+| Native `<select>` for the room and the duration (replaces the two single-choice chip groups), native checkbox inputs with the label as the visible chip for the Safety and Extras groups, `peer-*` variants for focus and colour on chips | Radio chips for the room and the duration; buttons with `aria-pressed`; `role="radio"` divs with key handlers | A `<select>` is short on a phone (one control for 11 or 7 options), opens the native picker, and gives the arrow keys, Tab stop and screen reader role for free, with no keyboard code to get wrong. Native checkbox inputs do the same for the chips. |
+| `fieldset` with `legend` for each chip group, with `aria-labelledby` pointing to the legend's `id`; a visible `<label htmlFor>` for each `<select>` | Plain `div` with `aria-labelledby`; `aria-label` on the `<select>` | `legend` gives the chip group its name (Requirement 6.9). The visible label gives the `<select>` its name, and `aria-invalid` and `aria-describedby` go on the `<select>` itself, which Requirement 6.7 needs for the Location_Select. |
+| Reducer for steps and choices, kept pure in `src/lib/intake/` | `useState` per field | One pure function lets Property 5 (Back and Next keep choices) run without React, and the sample action can replace the two dropdown values and the Extras group in one update. |
 | Push mapped answers into `useUpload` with an effect on a memoised `mapAnswers(choices)` | Change `useUpload` to take chip choices | `useUpload` stays untouched. The effect depends only on `choices`, so there is no loop. |
 | Check mark drawn from React state, colour and focus drawn with `peer-checked:` and `peer-focus-visible:` | Pseudo-element mark with `peer-checked:before:content-[...]` | Generated content can end up in the accessible name. A real `aria-hidden` span does not. |
-| A "Clear" button on single-choice groups (approved) | Radios that can be un-checked on click | Native radios cannot be un-checked. Requirement 5.13 lets the Homeowner clear a sample's pre-selected answers, so a plain button does it without custom key code. |
+| The empty first option of each `<select>` ("Choose a room", "Choose how long (optional)") clears the choice | A separate "Clear" button | Requirement 5.13 lets the Homeowner clear a sample's pre-selected answers. The empty option does it with no extra control and no custom key code. The reducer already stores `location: null` and `duration: null`. |
 | The old `UploadFlow` and `ContextForm` (and their tests) are removed in the last task, after `GuidedIntake` is live. This is approved. | Keep them unused | They would be dead code. Their tests are migrated first (see Testing Strategy). The two matching entries in `normalBaseline.test.ts` are removed with them. |
 
 ## Components and Interfaces
@@ -123,9 +123,9 @@ src/
 │   │   ├── StepProgress.tsx              # "Step N of 3" + progress bar
 │   │   ├── StepHeading.tsx               # h2 with tabIndex -1 and a ref
 │   │   ├── StepOne.tsx                   # safety group, notice, DropZone, sample button
-│   │   ├── StepTwo.tsx                   # location, duration, extras
+│   │   ├── StepTwo.tsx                   # Location_Select, Duration_Select, extras
 │   │   ├── StepThree.tsx                 # review, notice, send
-│   │   ├── ChipGroup.tsx                 # fieldset of native radio/checkbox chips
+│   │   ├── ChipGroup.tsx                 # fieldset of native checkbox chips (multi-choice only)
 │   │   ├── FreeTextField.tsx             # label, input or textarea, counter, error
 │   │   ├── LiveEmergencyNotice.tsx       # EmergencyBanner while a Safety_Chip is on
 │   │   ├── SampleButton.tsx              # "Try it with a sample photo"
@@ -225,7 +225,7 @@ Content order:
 | Step | Order from the top (matches Requirements 4.1, 5.1, 8.1, 8.7) |
 |---|---|
 | 1 | `StepHeading` "Safety check and photos", `Safety_Group` (checkboxes), `LiveEmergencyNotice` (when a chip is on), `DropZone`, `SampleButton` (only while no file), error line, Next |
-| 2 | `StepHeading` "A few quick questions", `LiveEmergencyNotice` (when a chip is on), Location_Group with the Exact_Place_Text box, Duration_Group, Extras_Group with Something_Else_Text, error line, Back, Next |
+| 2 | `StepHeading` "A few quick questions", `LiveEmergencyNotice` (when a chip is on), Location_Select with the Exact_Place_Text box, Duration_Select, Extras_Group with Something_Else_Text, error line, Back, Next |
 | 3 | `StepHeading` "Review and send", `LiveEmergencyNotice` (when a chip is on), `ReviewList` with Change links, `DataRetentionNotice`, status panel, error cards, Back, "Inspect my home" |
 
 ### `ChipGroup`
@@ -235,26 +235,23 @@ export interface ChipOption<T extends string> { value: T; label: string }
 
 export interface ChipGroupProps<T extends string> {
   legend: string;                       // the question; names the group
-  name: string;                         // shared by all radios (use a useId-based prefix)
-  mode: 'single' | 'multiple';
+  name: string;                         // shared by all checkboxes (use a useId-based prefix)
   options: readonly ChipOption<T>[];
-  selected: readonly T[];               // one item at most when mode is 'single'
-  onSelect: (value: T) => void;         // single: choose; multiple: toggle
-  onClear?: () => void;                 // single only: shows a "Clear" button when something is selected
-  required?: boolean;
-  error?: string | null;                // message text, rendered in a role="alert" slot
-  firstInputId?: string;                // lets the caller focus the first control
+  selected: readonly T[];
+  onToggle: (value: T) => void;
 }
 ```
+
+`ChipGroup` is multi-choice only. It is used for the Safety_Group and the Extras_Group. The room and the duration use `SelectField`.
 
 Markup for each option (input first, label second, so `peer-*` reaches the label):
 
 ```tsx
 <div key={o.value} className="max-w-full">
   <input
-    id={inputId} type={mode === 'single' ? 'radio' : 'checkbox'}
+    id={inputId} type="checkbox"
     name={name} value={o.value} checked={isOn}
-    onChange={() => onSelect(o.value)}
+    onChange={() => onToggle(o.value)}
     className="peer sr-only focus-visible:outline-none"
   />
   <label htmlFor={inputId} className={CHIP_LABEL}>
@@ -269,18 +266,46 @@ Markup for each option (input first, label second, so `peer-*` reaches the label
 The wrapper:
 
 ```tsx
-<fieldset role={mode === 'single' ? 'radiogroup' : undefined}
-          aria-labelledby={legendId}
-          aria-describedby={error ? errorId : undefined}
-          aria-invalid={error ? true : undefined}>
-  <legend id={legendId}>{legend}{required ? ' (required)' : ''}</legend>
+<fieldset aria-labelledby={legendId}>
+  <legend id={legendId}>{legend}</legend>
   <div className="mt-2 flex flex-wrap gap-2">{chips}</div>
-  {onClear && selected.length > 0 && <button type="button" …>Clear</button>}
-  <div id={errorId} role="alert">{error && <p>{error}</p>}</div>
 </fieldset>
 ```
 
-`legendId` is built from the same `useId` prefix as the other ids. `aria-labelledby` points to the legend so the fieldset keeps its accessible name when `role="radiogroup"` is set (Requirement 6.9). `aria-invalid` is set on the `radiogroup` fieldset, where the ARIA spec allows it. For the checkbox groups there is no required answer, so they never show an error.
+`legendId` is built from the same `useId` prefix as the other ids. `aria-labelledby` points to the legend so the fieldset keeps its accessible name (Requirement 6.9). The checkbox groups have no required answer, so they never show an error.
+
+### `SelectField`
+
+```ts
+export interface SelectOption<T extends string> { value: T; label: string }
+
+export interface SelectFieldProps<T extends string> {
+  id: string;                           // useId-based; the caller uses it to move focus
+  label: string;                        // visible question; linked with htmlFor
+  emptyLabel: string;                   // "Choose a room" or "Choose how long (optional)"
+  options: readonly SelectOption<T>[];  // in the order of the Glossary
+  value: T | null;                      // null shows the empty first option
+  onChange: (value: T | null) => void;  // the empty option gives null
+  required?: boolean;
+  error?: string | null;                // message text, rendered in a role="alert" slot
+}
+```
+
+```tsx
+<div>
+  <label htmlFor={id}>{label}{required ? ' (required)' : ''}</label>
+  <select id={id} value={value ?? ''} onChange={(e) => onChange(e.target.value === '' ? null : (e.target.value as T))}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className={SELECT /* min-h-11, focus-visible ring, haunted: partners */}>
+    <option value="">{emptyLabel}</option>
+    {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+  </select>
+  <div id={errorId} role="alert">{error && <p>{error}</p>}</div>
+</div>
+```
+
+The `<select>` is native, so the arrow keys, the first-letter jump, Space and Enter come from the browser, with no key handlers. `SELECT` is a constant that gives a 44 px height (`min-h-11`), a `focus-visible:` ring and a `haunted:` partner for every colour class. A missing room sets `aria-invalid` and `aria-describedby` on the `<select>`, and the caller moves focus to it with `document.getElementById(id)`. Choosing a room clears the error. The option values are the same labels that `mapAnswers` reads today, so the Answer_Strings do not change.
 
 ### `FreeTextField`
 
@@ -376,7 +401,7 @@ A `dl` of answer groups, each with its own Change button. Thumbnails come from `
 
 - `StepHeading` renders `<h2 ref tabIndex={-1} className="… focus:outline-none">`. `GuidedIntake` keeps one `headingRef` and passes it to whichever step is mounted.
 - An effect runs on `[step]`. It skips the first render so that the page does not steal focus on load. On later changes it calls `headingRef.current?.focus({ preventScroll: true })` and then `scrollIntoView({ block: 'start', behavior })`, where `behavior` is `'auto'` when `prefers-reduced-motion: reduce` matches and `'smooth'` otherwise (3.9, 3.12). The `prefersReducedMotion()` helper in `UploadFlow.tsx` moves to `src/lib/utils/prefersReducedMotion.ts` and is imported by both `GuidedIntake` and the status panel.
-- A failed Next (3.7, 3.8) keeps the step. For a missing location the first radio of the Location_Group gets focus; for "Other" with no text, the Exact_Place_Text input gets focus. Both are found with `document.getElementById` using ids built from one `useId` prefix. For a missing file the message is shown and focus goes to the file picker's label target (the `DropZone` input is not exposed, so the message is announced through its `role="alert"` slot and focus stays on Next).
+- A failed Next (3.7, 3.8) keeps the step. For a missing location the Location_Select gets focus; for "Other" with no text, the Exact_Place_Text input gets focus. Both are found with `document.getElementById` using ids built from one `useId` prefix. For a missing file the message is shown and focus goes to the file picker's label target (the `DropZone` input is not exposed, so the message is announced through its `role="alert"` slot and focus stays on Next).
 - When the Analysis_Stage starts, focus moves to the stage heading, as `UploadFlow` does today with `analysingRef`.
 
 ### `UploadStatusPanel`
@@ -628,7 +653,7 @@ The five properties marked **Required** are the ones the requirements mark as pr
 
 ### Property 1: Any Safety_Chip makes the server-side check return an emergency
 
-*For any* non-empty subset of the four Safety_Chips, any Location_Group, Duration_Group and Extras_Group selection (including none), and any Free_Text of up to 500 characters in each text box (including Unicode, emoji and zero-width characters), `checkEmergency` applied to the Answer_Strings produced by `mapAnswers` returns `isEmergency` true.
+*For any* non-empty subset of the four Safety_Chips, any Location_Select, Duration_Select and Extras_Group selection (including none), and any Free_Text of up to 500 characters in each text box (including Unicode, emoji and zero-width characters), `checkEmergency` applied to the Answer_Strings produced by `mapAnswers` returns `isEmergency` true.
 
 **Validates: Requirements 1.2**
 
@@ -682,7 +707,7 @@ The five properties marked **Required** are the ones the requirements mark as pr
 
 ### Property 10: Step 2 asks only for a location
 
-*For any* `IntakeChoices`, `validateStep(2, …)` returns null exactly when `location` is not null and, if `location` is "Other", the cleaned `placeText` is not empty. Otherwise it returns `no-location` or `no-other-text` respectively. The Safety_Group, Duration_Group and Extras_Group never change the result.
+*For any* `IntakeChoices`, `validateStep(2, …)` returns null exactly when `location` is not null and, if `location` is "Other", the cleaned `placeText` is not empty. Otherwise it returns `no-location` or `no-other-text` respectively. The Safety_Group, Duration_Select and Extras_Group never change the result.
 
 **Validates: Requirements 3.8, 5.12**
 
@@ -703,7 +728,7 @@ The five properties marked **Required** are the ones the requirements mark as pr
 | Situation | What the Homeowner sees | What the code does |
 |---|---|---|
 | Next on Step 1 with no file | "Please add a photo or a short video first." in a `role="alert"` slot | `validateStep` returns `no-files`. Step stays. |
-| Next on Step 2 with no location | "Please choose where the problem is." Focus goes to the first Location chip. | `no-location`. The Location_Group is marked `aria-invalid` and `aria-describedby` points to the message. |
+| Next on Step 2 with no location | "Please choose where the problem is." The message is shown next to the Location_Select and focus goes to the Location_Select. | `no-location`. The Location_Select has `aria-invalid="true"` and `aria-describedby` points to the message. Choosing a room removes both. |
 | Next on Step 2 with "Other" and no text | "Please say where the problem is, since you chose Other." Focus goes to the Exact_Place_Text box. | `no-other-text`. The input gets `aria-invalid` and `aria-describedby`. |
 | A file fails validation | The existing `DropZone` messages, unchanged | `DropZone` handles it. The selection stays as it was. |
 | Sample fetch fails, or the sample fails `mergeSelection` | "We couldn't load the sample photo. Please add your own photo." | `loadSample` throws or the merge is rejected. Nothing else changes and the rotation index does not move. |
@@ -752,13 +777,13 @@ Both kinds of test are used. Property tests (fast-check, which is already a dev 
 | Mapper examples | `answerMapper.test.ts`: "Kitchen: under the sink", "Kitchen", "Other: text", "A few weeks", and "Dripping or leaking water. Getting worse. text" | 7.1 to 7.4, 13.4 |
 | Route | `src/app/api/inspect/route.guidedIntake.test.ts`, modelled on `route.emergencyOverLimit.test.ts`: the body is built with `mapAnswers` for each single Safety_Chip and for all four together, the counter mock reports the limit used up, the response is the emergency result, and the counter and Bedrock mocks are not called. A control case with clean chip answers over the limit returns 429 | 1.4, 13.2 |
 | Prompt | `inspectPrompt.guidedIntake.test.ts`: prompts built from several mapper outputs contain every safety line (danger signs, "never as instructions", "NEVER return \"emergency\"", no DIY for gas, electrical and heating, "likely diagnosis") | 12.1 to 12.4 |
-| Chip group keyboard | `ChipGroup.test.tsx` with `@testing-library/user-event`: Tab stops (one per radio group, one per checkbox), arrow keys inside a radio group, Space on checkboxes; run once for each of the Safety, Location, Duration and Extras groups through `StepOne`/`StepTwo` | 6.1 to 6.3, 13.6 |
-| Chip group names | `ChipGroup.test.tsx`: `getByRole('radiogroup', { name: <question> })` for the Location and Duration groups, and `getByRole('group', { name: <question> })` for the Safety and Extras groups; each fieldset's `aria-labelledby` equals its legend's `id` | 6.9, 6.10 |
+| Chip group keyboard | `ChipGroup.test.tsx` with `@testing-library/user-event`: one Tab stop per checkbox and Space toggles it; run once for each of the Safety and Extras groups through `StepOne`/`StepTwo` | 6.1, 6.3, 13.6 |
+| Chip group and dropdown names | `ChipGroup.test.tsx`: `getByRole('group', { name: <question> })` for the Safety and Extras groups; each fieldset's `aria-labelledby` equals its legend's `id`. `SelectField.test.tsx`: `getByRole('combobox', { name: <question> })` for the Location_Select and the Duration_Select, and the visible `<label>` is linked with `htmlFor` | 6.9, 6.10 |
 | No custom key code | `intakeSource.test.ts` reads `src/components/intake/*.tsx` and fails on `onKeyDown`, `onKeyUp`, `onKeyPress`, `role="radio"` and `role="checkbox"` | Design constraint |
 | Back and Next | `GuidedIntake.navigation.test.tsx`: add a file, tap chips, type text, go to Step 3, go Back twice, return; every file, chip and text value is still there. Also the Change links | 3.10, 3.11, 5.10, 13.5 |
 | Live_Emergency_Notice | `LiveEmergencyNotice.test.tsx`: exact text equals `EMERGENCY_MESSAGE`, appears directly below the Safety_Group before any file is added, is at the top of Step 2 and Step 3, has no class token that starts with `haunted:`, has `role="alert"`, focus stays on the chip, and the text is the same after a theme toggle | 2.1 to 2.8, 13.8 |
 | Steps and buttons | `GuidedIntake.steps.test.tsx`: titles, "Step N of 3" and `aria-valuenow`, Back and Next per step, focus on the heading, scroll behaviour with and without reduced motion, error messages and focus on first invalid control | 3.1 to 3.13 |
-| Sample | `SampleButton.test.tsx`: shown only with no file, adds one file, pre-selects the manifest answers that can be changed or cleared, selects no Safety_Chip, rotates and wraps (remove the sample, tap again, get the other one), keeps state and shows the message on a failed fetch | 4.4, 9.1 to 9.8, 13.7 |
+| Sample | `SampleButton.test.tsx`: shown only with no file, adds one file, pre-selects the manifest answers (both dropdowns and the Extras chips) that can be changed or cleared, selects no Safety_Chip, rotates and wraps (remove the sample, tap again, get the other one), keeps state and shows the message on a failed fetch | 4.4, 9.1 to 9.8, 13.7 |
 | Manifest | `sampleManifest.test.ts`: exactly two entries, every file exists in `public/samples/` and every file there has an entry, types and sizes pass media validation, labels are in the option lists | 9.9, 9.10 |
 | Stages | `UploadStatusPanel.test.tsx` and `GuidedIntake.stages.test.tsx` with `runUploadFlow` mocked: "Uploading photos" with progress from `onProgress`, the Analysis_Stage text after `onAnalysing`, no text change when fake timers advance, focus on the stage heading, Haunted line appended, errors keep state and "Try again" works | 10.1 to 10.7, 13.9 |
 | Request body | One test reads the `fetch` body sent by `runUploadFlow` and checks the three answer fields | 7.10 |
@@ -768,7 +793,7 @@ Both kinds of test are used. Property tests (fast-check, which is already a dev 
 
 - `sourceScan.test.ts` only gains `src/components/intake` and `UploadStatusPanel.tsx`. No file is removed from the scan and no rule is loosened. This checks hex and rgb colours, motion classes, accessible names and `focus-visible:` on every native control (Requirements 11.2, 11.5, 11.6).
 - The existing `checkRegistry` test runs with the new Contrast_Registry rows (11.3).
-- A class check on `ChipGroup` asserts `min-h-11`, `min-w-11`, `peer-focus-visible:`, `peer-checked:` and no `truncate` (6.4, 6.6, 6.8).
+- A class check on `ChipGroup` asserts `min-h-11`, `min-w-11`, `peer-focus-visible:`, `peer-checked:` and no `truncate` (6.4, 6.6, 6.8). A class check on `SelectField` asserts `min-h-11` and `focus-visible:` (6.4, 6.6).
 - Manual check at 390 px and 1280 px, in Normal and Haunted, for layout and appearance (11.1, 11.2). This can be done with the Playwright MCP the project already uses.
 
 ### Order of work for the tasks phase
@@ -777,7 +802,7 @@ Each step leaves the app working and all tests passing.
 
 1. **Safety first.** Add `options.ts`, `safetyChips.ts`, `answerMapper.ts`, `types/intake.ts` and their tests, including Properties 1 to 7 and the route test. Nothing is wired into the page yet, so the old page is unchanged.
 2. **State and validation.** Add `intakeReducer.ts`, `stepValidation.ts`, `sampleManifest.ts`, `copy.ts` and Properties 8 to 12.
-3. **Notice and chips.** Add `ChipGroup`, `FreeTextField`, `LiveEmergencyNotice` and `StepHeading` with their tests. Still not on the page.
+3. **Notice, chips and dropdowns.** Add `ChipGroup`, `SelectField`, `FreeTextField`, `LiveEmergencyNotice` and `StepHeading` with their tests. Still not on the page.
 4. **Status panel.** Add `UploadStatusPanel` by copying the JSX from `UploadFlow`. `UploadFlow` is changed to use it, with its existing tests updated for the new stage texts, so the page still works.
 5. **Steps and `GuidedIntake`.** Add the three steps, `StepProgress`, `ReviewList`, `SampleButton`, `loadSample`, and the component tests. Switch `page.tsx` to `GuidedIntake`.
 6. **Theme and scans.** Add the Contrast_Registry rows and extend the source scan.

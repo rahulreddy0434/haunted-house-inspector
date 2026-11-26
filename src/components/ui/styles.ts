@@ -49,11 +49,13 @@ export const FILTER_CHIP_COLORS: Record<FilterChipState, string> = {
 };
 
 /**
- * Sticky only in the `tall` screen (min-height 900px and min-width 1024px, see tailwind.config.ts).
- * Below that the panel is a normal block that scrolls with the page. No overflow-y, max-height or
- * inner scroll box, so the whole panel is always shown.
+ * Sticky classes for a Sticky_Panel, at lg widths only (the panel is hidden below lg).
+ * Apply them only when `useStickyPanel` says the whole panel plus the top offset fits in the
+ * window; otherwise the panel is a normal block that scrolls with the page. No overflow-y,
+ * max-height or inner scroll box, so the whole panel is always shown.
+ * The site header is not sticky, so the top offset is only a 1rem gap (top-4 = STICKY_TOP_OFFSET_PX).
  */
-export const STICKY_PANEL = 'tall:sticky tall:top-20';
+export const STICKY_PANEL = 'lg:sticky lg:top-4';
 
 export const HEADING =
   'break-words text-sm font-semibold uppercase tracking-wide text-normal-muted haunted:text-haunted-muted';

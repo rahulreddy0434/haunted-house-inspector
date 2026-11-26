@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GuidedIntake } from '@/components/intake/GuidedIntake';
 
@@ -32,22 +32,25 @@ afterEach(() => {
 const photo = () => new File([new Uint8Array(64)], 'leak.jpg', { type: 'image/jpeg' });
 
 const heading = (name: string) => screen.getByRole('heading', { name });
-const place = () => screen.getByLabelText(/Exact place/) as HTMLInputElement;
+const place = () => screen.getByLabelText(/Exactly where/) as HTMLInputElement;
 const more = () => screen.getByLabelText('Tell us more') as HTMLTextAreaElement;
-const radio = (name: string) => screen.getByRole('radio', { name }) as HTMLInputElement;
+const location = () =>
+  screen.getByRole('combobox', { name: /^Where is the problem\?/ }) as HTMLSelectElement;
+const duration = () =>
+  screen.getByRole('combobox', { name: /^How long has this been going on\?/ }) as HTMLSelectElement;
 const checkbox = (name: string) => screen.getByRole('checkbox', { name }) as HTMLInputElement;
 
 function expectStep1() {
   expect(heading('Safety check and photos')).toBeTruthy();
-  expect(screen.getByText('Selected: 1 photo')).toBeTruthy();
+  expect(screen.getByText('1 of 5 photos')).toBeTruthy();
   expect(screen.getByAltText('leak.jpg')).toBeTruthy();
   expect(checkbox(GAS).checked).toBe(true);
 }
 
 function expectStep2() {
   expect(heading('A few quick questions')).toBeTruthy();
-  expect(radio('Other').checked).toBe(true);
-  expect(radio('A few weeks').checked).toBe(true);
+  expect(location().value).toBe('Other');
+  expect(duration().value).toBe('A few weeks');
   expect(checkbox('Getting worse').checked).toBe(true);
   expect(checkbox('Something else').checked).toBe(true);
   expect(place().value).toBe(PLACE);
@@ -56,12 +59,14 @@ function expectStep2() {
 
 function expectStep3() {
   expect(heading('Review and send')).toBeTruthy();
-  expect(screen.getByText(GAS)).toBeTruthy();
-  expect(screen.getByAltText(/leak\.jpg/)).toBeTruthy();
-  expect(screen.getByText(`Other: ${PLACE}`)).toBeTruthy();
-  expect(screen.getByText('A few weeks')).toBeTruthy();
-  expect(screen.getByText('Getting worse')).toBeTruthy();
-  expect(screen.getByText(MORE)).toBeTruthy();
+  // The step itself, not the desktop Inspection_Panel, which shows the same text (hidden by CSS below lg).
+  const review = within(heading('Review and send').parentElement as HTMLElement);
+  expect(review.getByText(GAS)).toBeTruthy();
+  expect(review.getByAltText(/leak\.jpg/)).toBeTruthy();
+  expect(review.getByText(`Other: ${PLACE}`)).toBeTruthy();
+  expect(review.getByText('A few weeks')).toBeTruthy();
+  expect(review.getByText('Getting worse')).toBeTruthy();
+  expect(review.getByText(MORE)).toBeTruthy();
 }
 
 async function fillEverything(user: ReturnType<typeof userEvent.setup>) {
@@ -69,9 +74,9 @@ async function fillEverything(user: ReturnType<typeof userEvent.setup>) {
   await user.click(checkbox(GAS));
 
   await user.click(screen.getByRole('button', { name: 'Next' }));
-  await user.click(radio('Other'));
+  await user.selectOptions(location(), 'Other');
   await user.type(place(), PLACE);
-  await user.click(radio('A few weeks'));
+  await user.selectOptions(duration(), 'A few weeks');
   await user.click(checkbox('Getting worse'));
   await user.click(checkbox('Something else'));
   await user.type(more(), MORE);

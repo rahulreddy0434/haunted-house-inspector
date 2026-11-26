@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UseUploadReturn } from '@/hooks/useUpload';
 import { GuidedIntake } from '@/components/intake/GuidedIntake';
-import { NO_FILES_MESSAGE, NO_LOCATION_MESSAGE } from '@/lib/intake/copy';
+import { NO_FILES_MESSAGE, NO_LOCATION_MESSAGE, NO_OTHER_TEXT_MESSAGE } from '@/lib/intake/copy';
 
 // Migrated from UploadFlow.test.tsx (task 9.1), now driven through GuidedIntake.
 // useUpload is replaced with a fixed state so each case controls exactly what the
@@ -61,12 +61,15 @@ afterEach(() => cleanup());
 
 type User = ReturnType<typeof userEvent.setup>;
 
+const locationSelect = () =>
+  screen.getByRole('combobox', { name: /^Where is the problem\?/ }) as HTMLSelectElement;
+
 const inspectButton = () => screen.getByRole('button', { name: 'Inspect my home' });
 
 /** Step 1 -> Step 2 (choose Kitchen) -> Step 3, using whatever hookState holds. */
 async function goToStepThree(user: User) {
   await user.click(screen.getByRole('button', { name: 'Next' }));
-  await user.click(screen.getByRole('radio', { name: /Kitchen/ }));
+  await user.selectOptions(locationSelect(), 'Kitchen');
   await user.click(screen.getByRole('button', { name: 'Next' }));
   expect(screen.getByRole('heading', { name: 'Review and send' })).toBeTruthy();
   // Moving between steps scrolls the heading; only later scrolls are of interest.
@@ -90,10 +93,10 @@ describe('GuidedIntake form and send button (was UploadFlow "renders the upload 
     const user = userEvent.setup();
     render(<GuidedIntake />);
     await user.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.getByRole('radiogroup', { name: /Where is the problem/ })).toBeTruthy();
-    await user.click(screen.getByRole('radio', { name: /Kitchen/ }));
+    expect(locationSelect()).toBeTruthy();
+    await user.selectOptions(locationSelect(), 'Kitchen');
     await user.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.getByText('What happens to your upload')).toBeTruthy();
+    expect(screen.getByText('Before you send')).toBeTruthy();
     expect(inspectButton().getAttribute('aria-disabled')).toBeNull();
   });
 });
@@ -131,6 +134,31 @@ describe('GuidedIntake missing answers do not submit', () => {
     expect(screen.getByText(NO_LOCATION_MESSAGE)).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'A few quick questions' })).toBeTruthy();
     expect(submit).not.toHaveBeenCalled();
+
+    // The error sits on the dropdown: invalid, described by the message, and focused.
+    const select = locationSelect();
+    expect(select.getAttribute('aria-invalid')).toBe('true');
+    const describedBy = select.getAttribute('aria-describedby');
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy as string)?.textContent).toContain(NO_LOCATION_MESSAGE);
+    expect(select).toHaveFocus();
+
+    // Choosing a room clears the error.
+    await user.selectOptions(select, 'Kitchen');
+    expect(screen.queryByText(NO_LOCATION_MESSAGE)).toBeNull();
+    expect(select.getAttribute('aria-invalid')).toBeNull();
+  });
+
+  it('requires the exact place when Other is chosen', async () => {
+    const user = userEvent.setup();
+    render(<GuidedIntake />);
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await user.selectOptions(locationSelect(), 'Other');
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('heading', { name: 'A few quick questions' })).toBeTruthy();
+    expect(screen.getByText(NO_OTHER_TEXT_MESSAGE)).toBeTruthy();
+    expect(screen.getByLabelText(/Exactly where/)).toHaveFocus();
+    expect(submit).not.toHaveBeenCalled();
   });
 
   it('asks for a file when none is selected', async () => {
@@ -164,12 +192,12 @@ describe('GuidedIntake missing answers do not submit', () => {
 describe('GuidedIntake file handling', () => {
   it('passes the current files to DropZone (shown as the selected photos)', () => {
     render(<GuidedIntake />);
-    expect(screen.getByText('Selected: 1 photo')).toBeTruthy();
+    expect(screen.getByText('1 of 5 photos')).toBeTruthy();
     cleanup();
     hookState = makeState({ files: null, canSubmit: false });
     render(<GuidedIntake />);
     expect(screen.getByText('No photos or video added yet.')).toBeTruthy();
-    expect(screen.queryByText(/^Selected:/)).toBeNull();
+    expect(screen.queryByText(/ of 5 photos$/)).toBeNull();
   });
 
   it('calls setFiles when files are accepted', async () => {
@@ -294,9 +322,7 @@ describe('GuidedIntake error cards and retry', () => {
 
     await user.click(screen.getByRole('button', { name: 'Back' }));
     expect(screen.queryByRole('heading', { name: 'Review and send' })).toBeNull();
-    expect(
-      (screen.getByRole('radio', { name: /Kitchen/ }) as HTMLInputElement).checked,
-    ).toBe(true);
+    expect(locationSelect().value).toBe('Kitchen');
 
     await user.click(screen.getByRole('button', { name: 'Next' }));
     expect(screen.getByRole('heading', { name: 'Review and send' })).toBeTruthy();
@@ -307,7 +333,9 @@ describe('GuidedIntake error cards and retry', () => {
     const { update } = await renderAtStepThree();
     update({ uploadStatus: 'error', uploadError: 'Upload failed.', errorKind: 'upload' });
     expect(screen.getAllByText(/Kitchen/).length).toBeGreaterThan(0);
-    expect(screen.getByAltText(/a\.jpg/)).toBeTruthy();
+    // The step's own review (the desktop Inspection_Panel also lists the photo; it is hidden by CSS below lg).
+    const review = within(screen.getByRole('heading', { name: 'Review and send' }).parentElement as HTMLElement);
+    expect(review.getByAltText(/a\.jpg/)).toBeTruthy();
     expect((inspectButton() as HTMLButtonElement).disabled).toBe(false);
   });
 });

@@ -27,7 +27,13 @@ export interface UploadValidationError {
 
 export type AcceptedFiles =
   | { kind: 'images'; files: File[] } // 1–5 JPEG/PNG/WebP
-  | { kind: 'frames'; files: File[] }; // 1–5 extracted JPEG frames (from video)
+  | { kind: 'frames'; files: File[]; source?: VideoSource }; // 1–5 extracted JPEG frames (from video)
+
+/** Name and size of the video the frames came from. Display only; never uploaded. */
+export interface VideoSource {
+  name: string;
+  size: number;
+}
 
 export interface SelectedFileInfo {
   name: string;

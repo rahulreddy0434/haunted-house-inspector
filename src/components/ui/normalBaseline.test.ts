@@ -72,6 +72,50 @@ ormal-* and adge-* token colours. Without
  * pro/ProEmergencyView.tsx (new entry)
  *   locked: empty list (colours come from NOTE_BOX/BODY recipes and EmergencyReasonLine; any raw colour
  *     class added later fails)
+ *
+ * screens-polish task 4.7 (Requirements 1.9, 15.2): intake and upload components restyled in task 4.
+ * Expectations were edited to the new classes; nothing was loosened.
+ *
+ * upload/DataRetentionNotice.tsx
+ *   removed: bg-slate-50, border-slate-300, text-slate-900
+ *   added: bg-normal-notice, border-normal-notice-border, text-normal-accent, text-normal-text
+ *   renamed (old -> new): bg-slate-50 -> bg-normal-notice, border-slate-300 -> border-normal-notice-border,
+ *     text-slate-900 -> text-normal-text
+ *
+ * upload/DropZone.tsx
+ *   removed: bg-white, border-brand-200
+ *   added: bg-normal-accent, bg-normal-card, bg-normal-notice, bg-normal-table-head, border-normal-accent,
+ *     border-normal-card-border, border-normal-muted, focus-visible:ring-normal-accent,
+ *     hover:bg-normal-accent-hover, peer-focus-visible:ring-normal-accent, text-normal-accent,
+ *     text-normal-card, text-normal-muted, text-normal-text
+ *   unchanged: bg-brand-100, bg-brand-50, bg-brand-700, bg-red-50, border-brand-300, border-brand-600,
+ *     border-brand-700, border-red-300, focus-visible:outline-brand-900, hover:bg-brand-50,
+ *     hover:bg-brand-800, peer-focus-visible:outline-brand-900, text-brand-800, text-brand-900,
+ *     text-red-900, text-slate-700, text-slate-900, text-white
+ *
+ * intake/InspectionPanel.tsx (new file): locked: border-normal-card-border
+ * intake/LiveSummary.tsx (new file): locked: text-normal-text
+ * intake/StepTwo.tsx, intake/StepThree.tsx, intake/SelectField.tsx, intake/StepList.tsx,
+ *   intake/ReviewList.tsx, intake/GuidedIntake.tsx: locked: empty lists (no own colour classes; any raw
+ *   colour class added later fails)
+ * ../app/page.tsx (new entry): locked: text-normal-muted, text-normal-text
+ *
+ * screens-polish task 4 follow-up: the empty-state drop area in upload/DropZone.tsx now uses the same
+ * Normal tokens as the drop area shown with photos (DROP_AREA, DROP_AREA_ACTIVE, ADD_LABEL, MUTED_TEXT).
+ * Expectations were edited to the new classes; nothing was loosened.
+ *
+ * upload/DropZone.tsx
+ *   removed: bg-brand-100, bg-brand-50, border-brand-300, border-brand-600,
+ *     peer-focus-visible:outline-brand-900, text-slate-900
+ *   added: none (bg-normal-card, bg-normal-notice, border-normal-accent, border-normal-muted,
+ *     peer-focus-visible:ring-normal-accent, text-normal-muted and text-normal-text were already listed;
+ *     the empty-state area now uses them too)
+ *   unchanged: bg-brand-700, border-brand-700, focus-visible:outline-brand-900, hover:bg-brand-50,
+ *     hover:bg-brand-800, text-brand-800, text-brand-900, text-slate-700, text-white (the "Try again" and
+ *     "Use photos instead" buttons, the "Preparing" line and the no-files line, which this follow-up leaves alone)
+ *   renamed (old -> new): bg-brand-50 -> bg-normal-card, border-brand-300 -> border-normal-muted,
+ *     text-slate-900 -> text-normal-text, bg-brand-100 -> bg-normal-notice, border-brand-600 -> border-normal-accent,
+ *     peer-focus-visible:outline-brand-900 -> peer-focus-visible:ring-normal-accent
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -138,18 +182,21 @@ const BASELINE: Record<string, string[]> = {
     'text-badge-monitor-text', 'text-badge-soon-text', 'text-badge-urgent-text', 'text-normal-accent',
     'text-normal-card', 'text-normal-emergency', 'text-normal-muted', 'text-normal-text',
   ],
-  'upload/DataRetentionNotice.tsx': ['bg-slate-50', 'border-slate-300', 'text-slate-900'],
+  'upload/DataRetentionNotice.tsx': ['bg-normal-notice', 'border-normal-notice-border', 'text-normal-accent', 'text-normal-text'],
   'upload/UploadStatusPanel.tsx': [
     'bg-brand-700', 'bg-red-50', 'bg-slate-50', 'border-red-300', 'border-slate-300',
     'focus-visible:outline-brand-900', 'hover:bg-brand-800', 'text-brand-900', 'text-red-900',
     'text-slate-900', 'text-white',
   ],
   'upload/DropZone.tsx': [
-    'bg-brand-100', 'bg-brand-50', 'bg-brand-700', 'bg-red-50', 'bg-white', 'border-brand-200',
-    'border-brand-300', 'border-brand-600', 'border-brand-700', 'border-red-300',
-    'focus-visible:outline-brand-900', 'hover:bg-brand-50', 'hover:bg-brand-800',
-    'peer-focus-visible:outline-brand-900', 'text-brand-800', 'text-brand-900', 'text-red-900',
-    'text-slate-700', 'text-slate-900', 'text-white',
+    'bg-brand-700', 'bg-normal-accent', 'bg-normal-card', 'bg-normal-notice',
+    'bg-normal-table-head', 'bg-red-50', 'border-brand-700',
+    'border-normal-accent', 'border-normal-card-border', 'border-normal-muted', 'border-red-300',
+    'focus-visible:outline-brand-900', 'focus-visible:ring-normal-accent', 'hover:bg-brand-50',
+    'hover:bg-brand-800', 'hover:bg-normal-accent-hover',
+    'peer-focus-visible:ring-normal-accent', 'text-brand-800', 'text-brand-900', 'text-normal-accent',
+    'text-normal-card', 'text-normal-muted', 'text-normal-text', 'text-red-900', 'text-slate-700',
+    'text-white',
   ],
   'upload/UploadProgress.tsx': [
     'bg-blue-600', 'bg-gray-200', 'bg-gray-400', 'bg-green-600', 'bg-red-600', 'border-gray-200',
@@ -193,6 +240,15 @@ const BASELINE: Record<string, string[]> = {
   '../app/layout.tsx': ['bg-normal-page', 'text-normal-text'],
   'pro/AcceptForm.tsx': [],
   'pro/DeclineForm.tsx': [],
+  'intake/InspectionPanel.tsx': ['border-normal-card-border'],
+  'intake/LiveSummary.tsx': ['text-normal-text'],
+  'intake/StepTwo.tsx': [],
+  'intake/StepThree.tsx': [],
+  'intake/SelectField.tsx': [],
+  'intake/StepList.tsx': [],
+  'intake/ReviewList.tsx': [],
+  'intake/GuidedIntake.tsx': [],
+  '../app/page.tsx': ['text-normal-muted', 'text-normal-text'],
 };
 
 describe('Normal theme baseline (non-haunted colour classes)', () => {

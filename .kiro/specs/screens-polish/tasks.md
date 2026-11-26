@@ -28,7 +28,7 @@ Rules that apply to every task:
     - In `tailwind.config.ts`, add `theme.extend.colors.normal` with `page #F6F7F9`, `card #FFFFFF`, `card-border #D9DEE5`, `text #18212B`, `muted #55606E`, `accent #1F5FA8`, `accent-hover #174A84` and `emergency #B42318`. Add the 14 px card radius token. Set `fontFamily.sans` to `var(--font-body)`, `system-ui`, `sans-serif`. Leave the `haunted.*` tokens unchanged.
     - Add the urgency badge colours (Soon `#FEF0C7` on `#7A4F01`, Urgent `#FCE3D3` on `#9A3412`, Monitor `#DCF5E6` on `#14532D`, Emergency `#B42318` on `#FFFFFF`) and the table header `#EEF1F5`, emergency row `#FEF3F2` and notice `#EEF4FB` / `#C9DAEE` colours as tokens.
     - Create `src/lib/theme/tokens.ts` with typed constants for the urgency meter, tracker and Filter_Chip token names.
-    - In `src/components/ui/styles.ts`, add `PAGE_BG`, `CARD_14`, `MUTED_TEXT`, `ACCENT_TEXT`, `ACCENT_BUTTON` (with `hover:` and `active:` classes), `URGENCY_METER_COLORS`, `FILTER_CHIP_COLORS` and `STICKY_PANEL`. `STICKY_PANEL` applies sticky positioning only through a custom min-height screen named `tall` (raw media query `(min-height: 900px) and (min-width: 1024px)`, with the height set to the tallest panel plus the header), added to `tailwind.config.ts`. Below that height the panel is a normal block that scrolls with the page, and no `overflow-y-auto`, `max-height` or inner scroll box is used. Keep the `haunted:` pairing on each recipe. Switch the existing shared recipes to the new Normal tokens.
+    - In `src/components/ui/styles.ts`, add `PAGE_BG`, `CARD_14`, `MUTED_TEXT`, `ACCENT_TEXT`, `ACCENT_BUTTON` (with `hover:` and `active:` classes), `URGENCY_METER_COLORS`, `FILTER_CHIP_COLORS` and `STICKY_PANEL`. `STICKY_PANEL` is the sticky class pair `lg:sticky lg:top-4` (16 px top offset, `STICKY_TOP_OFFSET_PX`). It is applied only when the shared `useStickyPanel` hook (task 4.6, `src/hooks/useStickyPanel.ts`) reports, from a browser check, that the panel's current height plus the top offset fits in the window height (the pure function `shouldStick` in `src/lib/layout/stickyFits.ts`). Otherwise the panel is a normal block that scrolls with the page, and no `overflow-y-auto`, `max-height` or inner scroll box is used. There is no `tall` screen and no min-height media query. Keep the `haunted:` pairing on each recipe. Switch the existing shared recipes to the new Normal tokens.
     - Use the new tokens only through classes. Put no hex or rgb value in any component file.
     - _Requirements: 1.1, 1.2, 1.7, 1.8, 7.4, 13.2_
 
@@ -152,46 +152,46 @@ Rules that apply to every task:
     - Run `next lint`, `tsc --noEmit` and `vitest --run`. `src/lib/safety/`, `EMERGENCY_MESSAGE` and `sourceScan.test.ts` must be unchanged and passing.
     - _Requirements: 14.5, 14.6, 15.12_
 
-- [ ] 4. Home page, with the Step 2 dropdowns and the desktop columns
-  - [ ] 4.1 Create the Layout_Definition module
+- [x] 4. Home page, with the Step 2 dropdowns and the desktop columns
+  - [x] 4.1 Create the Layout_Definition module
     - Create `src/lib/layout/sections.ts` with the `SectionId` unions and the constants `HOME_LAYOUT`, `RESULTS_LAYOUT` and `PRO_JOB_LAYOUT`, each `{ phone, desktop: { left, right } }`. Use the section order of Requirements 3, 4.1, 10.3, 10.4 and 17.7. Pages read their section order from these constants. `RESULTS_LAYOUT.phone` is: back-link, urgency-meter, issue-title, likely-diagnosis-line, who-to-call, likely-cost, job-brief, questions, safe-things, chat, job-tracker, booking, notice-copy-link, help. `RESULTS_LAYOUT.desktop.left` is urgency-meter through chat, and `desktop.right` is job-tracker, booking, notice-copy-link. With back-link first and help last, back-link + left + right + help equals `phone`, so the DOM order is the same in both layouts (left column, then right column).
     - _Requirements: 4.1, 10.3, 10.4, 17.7, 17.12_
 
-  - [ ] 4.2 Replace the Location and Duration chips with dropdowns
+  - [x] 4.2 Replace the Location and Duration chips with dropdowns
     - Create `src/components/intake/SelectField.tsx` (label, native `<select>`, error text, `aria-invalid`, `aria-describedby`, at least 44 px high), modelled on `FreeTextField.tsx`.
     - In `StepTwo.tsx`, replace the two chip groups with the Location_Select (first option "Choose a room") and the Duration_Select (first option "Choose how long (optional)"). Use `LOCATION_OPTIONS` and `DURATION_OPTIONS` in the same order. Dispatch the same `setLocation` and `setDuration` actions. Keep the Safety_Group, Extras_Group and both text boxes.
     - Mark "Exactly where?" required when the location is "Other". On Next with no room, stay on Step 2, show the error, set `aria-invalid`, link it with `aria-describedby` and move focus to the select. Clear the error when a room is chosen.
     - The Sample_Button sets both selects. Do not change `intakeReducer.ts`, `answerMapper.ts` or `stepValidation.ts`.
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7, 16.8, 16.9, 16.10, 16.11_
 
-  - [ ] 4.3 Update the guided-intake spec documents
+  - [x] 4.3 Update the guided-intake spec documents
     - In `.kiro/specs/guided-intake/requirements.md`, `design.md` and `tasks.md`, describe the two dropdowns in place of the two chip groups. Change the Location_Group and Duration_Group definitions, Requirement 5 criteria 2 to 6, Requirement 6 criteria 2, 9 and 10, Requirement 9 criterion 4 and Requirement 13 criterion 6.
     - Run `validate_spec_format` on each changed document and fix any error.
     - _Requirements: 16.12_
 
-  - [ ] 4.4 Replace the guided-intake chip-group tests with dropdown tests
+  - [x] 4.4 Replace the guided-intake chip-group tests with dropdown tests
     - Find the existing tests that cover the Location_Group and Duration_Group (keyboard behaviour, accessible names, chip selection) and replace each with a test of the matching dropdown. Name every replaced test file in the task notes.
     - Do not change the existing `answerMapper` tests. They must pass unchanged.
     - _Requirements: 16.8, 16.13_
 
-  - [ ] 4.5 Apply the home mockup look to Steps 1 and 3
+  - [x] 4.5 Apply the home mockup look to Steps 1 and 3
     - Add the `h1` "Upload a photo or video of your problem." and the line below it.
     - Add the "Your photos" card: count "<n> of 5 photos" or "1 video", one row per file with a 56 px thumbnail (video icon), file name, size in MB with one decimal, a 44 px "Remove" button, the dashed drop area with "Drag more photos here, or" and "Add more photos", the "JPEG, PNG or WebP, up to 10 MB each" text and "Clear selection". Keep the empty drop area and Sample_Button when no file is selected. Remove and Clear selection keep every answer and Safety_Chip choice.
     - Step 3: the "Before you send" card (lock icon, `#EEF4FB` background, `#C9DAEE` border) with the existing `DataRetentionNotice` text, and a full-width 54 px "Inspect my home" button with 12 px corners.
     - Keep every other guided-intake behaviour. No horizontal scroll from 320 px to 1920 px.
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13_
 
-  - [ ] 4.6 Add the desktop columns, Inspection_Panel and Live_Summary
+  - [x] 4.6 Add the desktop columns, Inspection_Panel and Live_Summary
     - At 1024 px and wider, show the current Step on the left and the Inspection_Panel ("Your inspection") on the right as a Sticky_Panel, using `HOME_LAYOUT`. Below 1024 px show one column and no panel.
     - Create the Step_List (finished steps are buttons that return to that step and keep the Intake_State, the current step shows "Current step", later steps are not clickable) and the Live_Summary, which reuses the Step 3 review text function so both read the same text. The Live_Summary updates in the same render.
-    - Centre content in a 42 rem column for single-column steps and 1120 px for two columns. The Inspection_Panel uses `STICKY_PANEL` (the `tall` screen), so it is sticky only when the window is tall enough to show the whole panel. In a shorter window it scrolls with the page, is shown whole, and has no inner scroll box. Tab order follows reading order.
+    - Centre content in a 42 rem column for single-column steps and 1120 px for two columns. The Inspection_Panel uses the shared `useStickyPanel` hook (`src/hooks/useStickyPanel.ts`) with `STICKY_PANEL`: the hook measures the panel and the window and applies the sticky classes only when the panel's current height plus the 16 px top offset fits in the window height. It re-checks on window resize and, through a `ResizeObserver` on the panel (guarded where it is missing), when the panel content changes. In a shorter window it scrolls with the page, is shown whole, and has no inner scroll box. Tab order follows reading order.
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.9, 17.10, 17.12, 17.13_
 
-  - [ ] 4.7 Update the Normal_Baseline_Test for the home page
+  - [x] 4.7 Update the Normal_Baseline_Test for the home page
     - Update `normalBaseline.test.ts` for the changed intake components. List each changed class per file in the top comment.
     - _Requirements: 1.9, 15.2_
 
-  - [ ] 4.8 Add home page rows to the Contrast_Registry
+  - [x] 4.8 Add home page rows to the Contrast_Registry
     - Add rows for the "Before you send" notice, the photo rows, the dropdowns, the Step_List states and the Live_Summary, in both themes.
     - _Requirements: 14.1, 14.2_
 
@@ -209,7 +209,7 @@ Rules that apply to every task:
     - Photo card count for 0, 1 and 5 photos and for a video. Remove and Clear selection keep the answers. Step 3 notice text. Step_List behaviour. Section order of `HOME_LAYOUT` for phone and desktop matches the rendered order, and left then right equals the phone order.
     - _Requirements: 3.3, 3.4, 3.9, 15.7, 15.9, 17.3_
 
-  - [ ] 4.12 Verify task 4
+  - [x] 4.12 Verify task 4
     - Run `next lint`, `tsc --noEmit` and `vitest --run`. Check that `answerMapper` tests and `sourceScan.test.ts` pass unchanged.
     - _Requirements: 15.12_
 
@@ -234,7 +234,7 @@ Rules that apply to every task:
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 17.11_
 
   - [ ] 5.5 Add the result desktop columns
-    - At 1024 px and wider, use `RESULTS_LAYOUT`: the left column holds the meter, title, "Who to call", cost, job brief, questions, safe things and the Chat_Panel. The right column holds the Job_Tracker, the booking section and the notice with the Copy_Link_Button, as a Sticky_Panel using `STICKY_PANEL` (sticky only in the `tall` screen, otherwise it scrolls with the page, is shown whole and has no inner scroll box). The DOM lists the left column, then the right column, then the Help_Section, which is the phone order. Use no CSS reordering. "Start a new inspection" sits above both columns and the Help_Section runs full width below. Use a 1120 px centred column. No horizontal scroll from 1024 px to 1920 px.
+    - At 1024 px and wider, use `RESULTS_LAYOUT`: the left column holds the meter, title, "Who to call", cost, job brief, questions, safe things and the Chat_Panel. The right column holds the Job_Tracker, the booking section and the notice with the Copy_Link_Button, as a Sticky_Panel using `STICKY_PANEL` through the shared `useStickyPanel` hook from task 4.6 (sticky only when the panel's current height plus the top offset fits in the window height, otherwise it scrolls with the page, is shown whole and has no inner scroll box). The DOM lists the left column, then the right column, then the Help_Section, which is the phone order. Use no CSS reordering. "Start a new inspection" sits above both columns and the Help_Section runs full width below. Use a 1120 px centred column. No horizontal scroll from 1024 px to 1920 px.
     - _Requirements: 17.7, 17.8, 17.9, 17.10, 17.12, 17.13_
 
   - [ ] 5.6 Update the Normal_Baseline_Test for the result page
@@ -341,7 +341,7 @@ Rules that apply to every task:
     - _Requirements: 10.7, 10.8, 10.9, 10.10_
 
   - [ ] 8.4 Add the desktop columns and the emergency view
-    - At 1024 px and wider, use `PRO_JOB_LAYOUT`: the left column holds job brief, photos, answers and chat, and the right column holds trade, cost, confidence and the Respond_Panel as a Sticky_Panel using `STICKY_PANEL` (sticky only in the `tall` screen, otherwise normal scrolling, whole panel shown, no inner scroll box). Left column first, then right column in the DOM, with no CSS reordering. Centre content in a 1120 px column.
+    - At 1024 px and wider, use `PRO_JOB_LAYOUT`: the left column holds job brief, photos, answers and chat, and the right column holds trade, cost, confidence and the Respond_Panel as a Sticky_Panel using `STICKY_PANEL` through the shared `useStickyPanel` hook from task 4.6 (sticky only when the panel's current height plus the top offset fits in the window height, otherwise normal scrolling, whole panel shown, no inner scroll box). Left column first, then right column in the DOM, with no CSS reordering. Centre content in a 1120 px column.
     - For an emergency job show the Pro_Emergency_Note, the reason sentence under it, the issue and the answers as read-only text, with no chat, respond panel, photos, cost, trade, help section or sticky panel.
     - _Requirements: 10.4, 10.11, 10.12, 17.9, 17.10_
 

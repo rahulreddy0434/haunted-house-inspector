@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import { InspectionPanel } from '@/components/intake/InspectionPanel';
 import { StepOne } from '@/components/intake/StepOne';
 import {
   LOCATION_FIRST_INPUT_ID,
@@ -12,10 +14,11 @@ import { StepProgress } from '@/components/intake/StepProgress';
 import { useUpload } from '@/hooks/useUpload';
 import { mapAnswers } from '@/lib/intake/answerMapper';
 import { NO_FILES_MESSAGE, SAMPLE_FAILED_MESSAGE } from '@/lib/intake/copy';
-import { initialIntakeState, intakeReducer } from '@/lib/intake/intakeReducer';
+import { initialIntakeState, intakeReducer, type IntakeAction } from '@/lib/intake/intakeReducer';
 import { loadSample } from '@/lib/intake/loadSample';
 import { SAMPLE_MANIFEST, nextSampleIndex } from '@/lib/intake/sampleManifest';
 import { validateStep, type StepProblem } from '@/lib/intake/stepValidation';
+import { HOME_LAYOUT, type HomeSectionId } from '@/lib/layout/sections';
 import { prefersReducedMotion } from '@/lib/utils/prefersReducedMotion';
 import { mergeSelection, type AcceptedFiles } from '@/lib/validation/mediaValidation';
 import type { SafetyChipId } from '@/types/intake';
@@ -103,6 +106,14 @@ export function GuidedIntake() {
     previousStatus.current = uploadStatus;
     if (uploadStatus === 'error' && was !== 'error') dispatch({ type: 'goTo', step: 3 });
   }, [uploadStatus]);
+
+  // Choosing a room clears the missing-room error straight away.
+  const dispatchStepTwo = useCallback((action: IntakeAction) => {
+    if (action.type === 'setLocation' && action.value !== null) {
+      setProblem((p) => (p?.kind === 'no-location' ? null : p));
+    }
+    dispatch(action);
+  }, []);
 
   const goNext = () => {
     const found = validateStep(step, { hasFiles, choices });
@@ -204,10 +215,8 @@ export function GuidedIntake() {
     void submit();
   };
 
-  return (
-    <div className="space-y-6">
-      <StepProgress step={step} />
-
+  const currentStep = (
+    <>
       {step === 1 && (
         <StepOne
           headingRef={headingRef}
@@ -227,7 +236,7 @@ export function GuidedIntake() {
         <StepTwo
           headingRef={headingRef}
           choices={choices}
-          dispatch={dispatch}
+          dispatch={dispatchStepTwo}
           problem={problem}
           liveNoticeActive={liveNoticeActive}
           onBack={goBack}
@@ -257,6 +266,32 @@ export function GuidedIntake() {
           noticeRef={noticeRef}
         />
       )}
+    </>
+  );
+
+  const sections: Record<HomeSectionId, ReactNode> = {
+    'current-step': (
+      <div key="current-step" data-section="current-step" className="min-w-0 space-y-6">
+        <StepProgress step={step} />
+        {currentStep}
+      </div>
+    ),
+    'inspection-panel': (
+      <InspectionPanel
+        key="inspection-panel"
+        step={step}
+        choices={choices}
+        files={files}
+        onGoTo={goTo}
+        busy={busy}
+      />
+    ),
+  };
+
+  // One DOM order for both layouts: left column, then right column (HOME_LAYOUT.phone).
+  return (
+    <div className="space-y-6 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8 lg:space-y-0">
+      {HOME_LAYOUT.phone.map((id) => sections[id])}
     </div>
   );
 }

@@ -5,6 +5,8 @@ import type { ChangeEvent, DragEvent } from 'react';
 import { Card } from '@/components/ui/Card';
 import { GhostIcon } from '@/components/ui/haunted/GhostIcon';
 import { StateText } from '@/components/ui/haunted/StateText';
+import { ACCENT_TEXT, MUTED_TEXT, SECONDARY_BUTTON } from '@/components/ui/styles';
+import { formatFileSize } from '@/lib/utils/formatFileSize';
 import { extractFrames } from '@/lib/frameExtractor';
 import type { FrameExtractionError, FrameExtractionResult } from '@/lib/frameExtractor';
 import {
@@ -80,6 +82,26 @@ function toCurrent(value: AcceptedFiles | null): CurrentSelection<File> | null {
 
 const secondaryButton =
   'min-h-11 rounded-lg border border-brand-700 px-4 py-2 text-sm font-medium text-brand-800 hover:bg-brand-50 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand-900 haunted:border-haunted-accent haunted:text-haunted-text haunted:hover:bg-haunted-bg haunted:focus-visible:outline-haunted-accent';
+
+/** "Your photos" card look (14 px card, Card tone="bare" supplies the Cobweb shell). */
+const CARD_14_LOOK =
+  'rounded-card border border-normal-card-border bg-normal-card p-4 text-normal-text haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text';
+const THUMB_BOX =
+  'bg-normal-table-head text-normal-muted haunted:bg-haunted-field haunted:text-haunted-muted';
+const REMOVE_BUTTON = `min-h-11 rounded-[10px] px-3 text-[13px] font-medium ${SECONDARY_BUTTON}`;
+const DROP_AREA =
+  'border-normal-muted text-normal-text haunted:border-haunted-border haunted:text-haunted-text';
+const DROP_AREA_ACTIVE =
+  'border-normal-accent bg-normal-notice text-normal-text haunted:border-haunted-accent haunted:bg-haunted-field haunted:text-haunted-text';
+const ADD_LABEL = [
+  'inline-flex min-h-11 cursor-pointer items-center rounded-[10px] px-[18px] text-[15px] font-semibold',
+  'bg-normal-accent text-normal-card hover:bg-normal-accent-hover',
+  'haunted:bg-haunted-accent haunted:text-haunted-on-accent haunted:hover:bg-haunted-accent-hover',
+  'peer-focus-visible:ring-2 peer-focus-visible:ring-normal-accent peer-focus-visible:ring-offset-2',
+  'haunted:peer-focus-visible:ring-haunted-accent haunted:peer-focus-visible:ring-offset-haunted-bg',
+  'peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+].join(' ');
+const CLEAR_BUTTON = `min-h-11 px-1 text-[13px] font-semibold underline focus:outline-none focus-visible:ring-2 focus-visible:ring-normal-accent focus-visible:ring-offset-2 haunted:focus-visible:ring-haunted-accent haunted:focus-visible:ring-offset-haunted-bg ${ACCENT_TEXT}`;
 
 export function DropZone({
   value,
@@ -186,7 +208,11 @@ export function DropZone({
       const frames = result.frames.map(
         (blob, i) => new File([blob], `frame-${i + 1}.jpg`, { type: 'image/jpeg' }),
       );
-      onFilesAccepted({ kind: 'frames', files: frames });
+      onFilesAccepted({
+        kind: 'frames',
+        files: frames,
+        source: { name: file.name, size: file.size },
+      });
     },
     [onFilesAccepted, onValidationError, reportErrors],
   );
@@ -270,66 +296,59 @@ export function DropZone({
 
   const photoCount = value && value.kind === 'images' ? value.files.length : 0;
   const atMax = photoCount >= MAX_IMAGES;
+  const isVideo = value?.kind === 'frames';
   const buttonText = !value
     ? 'Choose photos or a video'
     : value.kind === 'frames'
       ? 'Choose a different video'
       : 'Add more photos';
 
+  const fileInput = (
+    <input
+      ref={inputRef}
+      id={inputId}
+      type="file"
+      multiple
+      accept={ACCEPT_ATTR}
+      onChange={onInputChange}
+      disabled={preparing}
+      aria-describedby={errors.length > 0 ? errorsId : undefined}
+      className="peer sr-only"
+    />
+  );
+
+  const videoName = value?.kind === 'frames' ? (value.source?.name ?? 'Your video') : '';
+  const videoSize =
+    value?.kind === 'frames'
+      ? (value.source?.size ?? value.files.reduce((sum, f) => sum + f.size, 0))
+      : 0;
+
   return (
     <section aria-label="Upload photos or a video" className="w-full">
-      <Card
-        tone="bare"
-        onDragOver={onDragOver}
-        onDragEnter={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
-        className={[
-          'flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed p-8 text-center',
-          'border-brand-300 bg-brand-50 text-slate-900',
-          'haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text',
-          dragging
-            ? 'border-brand-600 bg-brand-100 haunted:border-haunted-accent haunted:bg-haunted-bg'
-            : '',
-        ].join(' ')}
-      >
-        <p className="text-lg font-semibold">Drag your photos or video here</p>
-        <p className="text-sm text-slate-700 haunted:text-haunted-muted">
-          Up to 5 photos (JPEG, PNG or WebP, 10 MB each) or one video (MP4 or WebM, 30 seconds or
-          less).
-        </p>
+      {!value && (
+        <Card
+          tone="bare"
+          onDragOver={onDragOver}
+          onDragEnter={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          className={[
+            'flex flex-col items-center gap-4 rounded-card border-2 border-dashed p-8 text-center',
+            dragging ? DROP_AREA_ACTIVE : `bg-normal-card haunted:bg-haunted-surface ${DROP_AREA}`,
+          ].join(' ')}
+        >
+          <p className="text-lg font-semibold">Drag your photos or video here</p>
+          <p className={`text-sm ${MUTED_TEXT}`}>
+            Up to 5 photos (JPEG, PNG or WebP, 10 MB each) or one video (MP4 or WebM, 30 seconds or
+            less).
+          </p>
 
-        {atMax ? (
-          <p className="text-sm font-medium">You have added the maximum of 5 photos.</p>
-        ) : (
-          <>
-            <input
-              ref={inputRef}
-              id={inputId}
-              type="file"
-              multiple
-              accept={ACCEPT_ATTR}
-              onChange={onInputChange}
-              disabled={preparing}
-              aria-describedby={errors.length > 0 ? errorsId : undefined}
-              className="peer sr-only"
-            />
-            <label
-              htmlFor={inputId}
-              className={[
-                'inline-flex min-h-11 cursor-pointer items-center rounded-lg px-5 py-2 font-medium',
-                'bg-brand-700 text-white hover:bg-brand-800',
-                'haunted:bg-haunted-accent haunted:text-haunted-on-accent haunted:hover:bg-haunted-accent-hover',
-                'peer-focus-visible:outline peer-focus-visible:outline-4 peer-focus-visible:outline-offset-2',
-                'peer-focus-visible:outline-brand-900 haunted:peer-focus-visible:outline-haunted-accent',
-                'peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
-              ].join(' ')}
-            >
-              {buttonText}
-            </label>
-          </>
-        )}
-      </Card>
+          {fileInput}
+          <label htmlFor={inputId} className={ADD_LABEL}>
+            {buttonText}
+          </label>
+        </Card>
+      )}
 
       <div role="status" aria-live="polite" className="mt-3 text-sm">
         {preparing && (
@@ -347,55 +366,145 @@ export function DropZone({
       )}
 
       {value && (
-        <div className="mt-3 rounded-lg border border-brand-200 bg-white p-4 text-slate-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text">
+        <Card
+          tone="bare"
+          as="section"
+          aria-labelledby={`${inputId}-heading`}
+          className={`mt-3 flex flex-col gap-3.5 ${CARD_14_LOOK}`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <h2 id={`${inputId}-heading`} className="text-base font-semibold">
+              Your photos
+            </h2>
+            <span className={`text-[13px] font-medium ${MUTED_TEXT}`}>
+              {isVideo ? '1 video' : `${photoCount} of ${MAX_IMAGES} photos`}
+            </span>
+          </div>
+
           {value.kind === 'images' ? (
-            <>
-              <p className="font-medium">
-                Selected: {photoCount === 1 ? '1 photo' : `${photoCount} photos`}
-              </p>
-              <ul className="mt-2 flex flex-col gap-2">
-                {value.files.map((file, i) => (
-                  <li key={`${file.name}-${file.size}-${file.lastModified}-${i}`} className="flex items-center gap-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={previewUrl(file)}
-                      alt={file.name}
-                      width={64}
-                      height={64}
-                      className="h-16 w-16 shrink-0 rounded-md object-cover"
-                    />
-                    <span className="min-w-0 flex-1 break-all text-sm">{file.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(file)}
-                      aria-label={`Remove ${file.name}`}
-                      className={secondaryButton}
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
+            <ul className="flex flex-col gap-2.5">
+              {value.files.map((file, i) => (
+                <li
+                  key={`${file.name}-${file.size}-${file.lastModified}-${i}`}
+                  className="flex items-center gap-3"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={previewUrl(file)}
+                    alt={file.name}
+                    width={56}
+                    height={56}
+                    className="h-14 w-14 shrink-0 rounded-[10px] object-cover"
+                  />
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="break-all text-sm font-medium">{file.name}</span>
+                    <span className={`text-xs ${MUTED_TEXT}`}>{formatFileSize(file.size)}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(file)}
+                    aria-label={`Remove ${file.name}`}
+                    className={REMOVE_BUTTON}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
           ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="font-medium">Video selected</p>
-                <p className="text-sm">
-                  {value.files.length === 1
-                    ? '1 frame prepared'
-                    : `${value.files.length} frames prepared`}
-                </p>
-              </div>
-              <button type="button" onClick={clearSelection} className={secondaryButton}>
-                Remove video
-              </button>
-            </div>
+            <ul className="flex flex-col gap-2.5">
+              <li className="flex items-center gap-3">
+                <span
+                  className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-[10px] ${THUMB_BOX}`}
+                >
+                  <svg
+                    aria-hidden="true"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="5" width="13" height="14" rx="2" />
+                    <path d="M16 10l5-3v10l-5-3" />
+                  </svg>
+                </span>
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <p className="break-all text-sm font-medium">Video selected</p>
+                  <p className={`break-all text-xs ${MUTED_TEXT}`}>
+                    {videoName} · {formatFileSize(videoSize)}
+                  </p>
+                  <p className={`text-xs ${MUTED_TEXT}`}>
+                    {value.files.length === 1
+                      ? '1 frame prepared'
+                      : `${value.files.length} frames prepared`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearSelection}
+                  aria-label="Remove video"
+                  className={REMOVE_BUTTON}
+                >
+                  Remove
+                </button>
+              </li>
+            </ul>
           )}
-          <button type="button" onClick={clearSelection} className={`mt-3 ${secondaryButton}`}>
-            Clear selection
-          </button>
-        </div>
+
+          <div
+            onDragOver={onDragOver}
+            onDragEnter={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            className={[
+              'flex flex-col items-center gap-2.5 rounded-xl border-2 border-dashed p-4 text-center',
+              dragging ? DROP_AREA_ACTIVE : DROP_AREA,
+            ].join(' ')}
+          >
+            <svg
+              aria-hidden="true"
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-normal-accent haunted:text-haunted-accent"
+            >
+              <path d="M12 16V4" />
+              <path d="M7 9l5-5 5 5" />
+              <path d="M4 20h16" />
+            </svg>
+            {atMax ? (
+              <p className="text-sm font-medium">You have added the maximum of 5 photos.</p>
+            ) : (
+              <>
+                <span className={`text-sm ${MUTED_TEXT}`}>
+                  {isVideo ? 'Drag a different video here, or' : 'Drag more photos here, or'}
+                </span>
+                {fileInput}
+                <label htmlFor={inputId} className={ADD_LABEL}>
+                  {buttonText}
+                </label>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between gap-2">
+            <span className={`text-xs leading-[17px] ${MUTED_TEXT}`}>
+              JPEG, PNG or WebP, up to 10 MB each
+            </span>
+            <button type="button" onClick={clearSelection} className={CLEAR_BUTTON}>
+              Clear selection
+            </button>
+          </div>
+        </Card>
       )}
 
       <div id={errorsId} aria-live="assertive" role="alert" className="mt-3">

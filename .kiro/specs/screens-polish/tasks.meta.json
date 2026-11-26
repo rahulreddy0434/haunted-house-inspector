@@ -350,6 +350,141 @@
         "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
         "timestamp": 1795647701091
       }
+    ],
+    "4.1 Create the Layout_Definition module": [
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648301555
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648534151
+      }
+    ],
+    "4.2 Replace the Location and Duration chips with dropdowns": [
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648301812
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648534377
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648713475
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648773137
+      }
+    ],
+    "4.3 Update the guided-intake spec documents": [
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648301990
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648534621
+      }
+    ],
+    "4.4 Replace the guided-intake chip-group tests with dropdown tests": [
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648536973
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648773931
+      }
+    ],
+    "4.5 Apply the home mockup look to Steps 1 and 3": [
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795648776790
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795649179317
+      }
+    ],
+    "4.6 Add the desktop columns, Inspection_Panel and Live_Summary": [
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795649179530
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795649889665
+      }
+    ],
+    "4.7 Update the Normal_Baseline_Test for the home page": [
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795649889861
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795649998311
+      }
+    ],
+    "4.8 Add home page rows to the Contrast_Registry": [
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795649890222
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795649998568
+      }
+    ],
+    "4.12 Verify task 4": [
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795649999364
+      },
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795650391231
+      },
+      {
+        "executionId": "43b3ee12-f5f1-4b0f-8993-86505b0ba7eb",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795665457306
+      },
+      {
+        "executionId": "43b3ee12-f5f1-4b0f-8993-86505b0ba7eb",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795666296011
+      }
+    ],
+    "4. Home page, with the Step 2 dropdowns and the desktop columns": [
+      {
+        "executionId": "a95f7cb9-ec6c-4a6b-be1a-9c1fcad134d8",
+        "chatSessionId": "sess_6b0d7e25-daf9-41f4-917f-4545f5814234",
+        "timestamp": 1795650391416
+      }
     ]
   }
 }

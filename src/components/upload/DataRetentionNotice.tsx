@@ -56,21 +56,38 @@ export function DataRetentionNotice({ onVisible }: DataRetentionNoticeProps) {
       tone="bare"
       ref={sectionRef}
       aria-labelledby="data-retention-heading"
-      className="rounded-lg border border-slate-300 bg-slate-50 p-4 text-base leading-relaxed text-slate-900 haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text"
+      className="flex gap-3 rounded-card border border-normal-notice-border bg-normal-notice p-4 text-normal-text haunted:border-haunted-border haunted:bg-haunted-surface haunted:text-haunted-text"
     >
-      <h2
-        id="data-retention-heading"
-        className="mb-2 text-lg font-semibold text-slate-900 haunted:text-haunted-accent"
+      <svg
+        aria-hidden="true"
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="mt-px shrink-0 text-normal-accent haunted:text-haunted-accent"
       >
-        What happens to your upload
-      </h2>
-      <ul className="list-disc space-y-1 pl-5">
-        <li>{DATA_SHARING_NOTICE_TEXT}</li>
-        <li>
-          If you choose a video, we never upload the video itself. We only send
-          a few still pictures taken from it.
-        </li>
-      </ul>
+        <rect x="5" y="11" width="14" height="10" rx="2" />
+        <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+      </svg>
+      <div className="flex min-w-0 flex-col gap-1">
+        <h2
+          id="data-retention-heading"
+          className="text-[15px] font-semibold text-normal-text haunted:text-haunted-accent"
+        >
+          Before you send
+        </h2>
+        <ul className="list-disc space-y-1 pl-5 text-sm leading-[21px]">
+          <li>{DATA_SHARING_NOTICE_TEXT}</li>
+          <li>
+            If you choose a video, we never upload the video itself. We only send
+            a few still pictures taken from it.
+          </li>
+        </ul>
+      </div>
     </Card>
   );
 }

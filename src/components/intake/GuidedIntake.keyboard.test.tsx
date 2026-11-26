@@ -44,7 +44,7 @@ async function renderStepTwo() {
   const next = screen.getByRole('button', { name: 'Next' });
   next.focus();
   await user.keyboard('{Enter}');
-  await screen.findByRole('radiogroup', { name: LOCATION_NAME });
+  await screen.findByRole('combobox', { name: LOCATION_NAME });
   return user;
 }
 
@@ -85,78 +85,61 @@ describe('GuidedIntake keyboard: Step 1 Safety_Group', () => {
   });
 });
 
-describe('GuidedIntake keyboard: Step 2 Location_Group and Duration_Group', () => {
-  it('names the three groups', async () => {
+describe('GuidedIntake keyboard: Step 2 Location_Select and Duration_Select', () => {
+  it('names the two dropdowns and the extras group', async () => {
     await renderStepTwo();
-    expect(screen.getByRole('radiogroup', { name: LOCATION_NAME })).toBeInTheDocument();
-    expect(screen.getByRole('radiogroup', { name: DURATION_NAME })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: LOCATION_NAME })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: DURATION_NAME })).toBeInTheDocument();
     expect(screen.getByRole('group', { name: EXTRAS_NAME })).toBeInTheDocument();
+    expect(screen.queryByRole('radiogroup')).toBeNull();
   });
 
-  it('gives each single-choice group one Tab stop and moves the choice with the arrow keys', async () => {
-    const user = await renderStepTwo();
-    const location = screen.getByRole('radiogroup', { name: LOCATION_NAME });
-    const radios = within(location).getAllByRole('radio');
-    expect(radios).toHaveLength(LOCATION_OPTIONS.length);
-
-    await user.tab(); // from the heading into the group
-    expect(radios[0]).toHaveFocus();
-    await user.keyboard('{ArrowDown}');
-    expect(radios[1]).toHaveFocus();
-    expect(radios[1]).toBeChecked();
-    await user.keyboard('{ArrowDown}');
-    expect(radios[2]).toBeChecked();
-    expect(radios[1]).not.toBeChecked();
-    await user.keyboard('{ArrowUp}');
-    expect(radios[1]).toBeChecked();
-    await user.keyboard('{ArrowRight}');
-    expect(radios[2]).toBeChecked();
-    await user.keyboard('{ArrowLeft}');
-    expect(radios[1]).toBeChecked();
-
-    // Only the checked radio is a Tab stop; the next stops are Clear, then the text box.
-    await user.tab();
-    expect(screen.getAllByRole('button', { name: 'Clear' })[0]).toHaveFocus();
-    await user.tab();
-    expect(screen.getByRole('textbox', { name: /Exact place/ })).toHaveFocus();
-
-    // Duration: one stop, arrows move the choice.
-    const duration = within(screen.getByRole('radiogroup', { name: DURATION_NAME })).getAllByRole(
-      'radio',
-    );
-    expect(duration).toHaveLength(DURATION_OPTIONS.length);
-    await user.tab();
-    expect(duration[0]).toHaveFocus();
-    await user.keyboard('{ArrowDown}{ArrowDown}');
-    expect(duration[2]).toBeChecked();
-    await user.keyboard('{ArrowUp}{ArrowUp}{ArrowUp}'); // wraps to the last
-    expect(duration[duration.length - 1]).toBeChecked();
-    expect(duration.filter((r) => (r as HTMLInputElement).checked)).toHaveLength(1);
+  it('lists the empty first option, then every option in order', async () => {
+    await renderStepTwo();
+    const location = screen.getByRole('combobox', { name: LOCATION_NAME });
+    expect(within(location).getAllByRole('option').map((o) => o.textContent)).toEqual([
+      'Choose a room',
+      ...LOCATION_OPTIONS,
+    ]);
+    const duration = screen.getByRole('combobox', { name: DURATION_NAME });
+    expect(within(duration).getAllByRole('option').map((o) => o.textContent)).toEqual([
+      'Choose how long (optional)',
+      ...DURATION_OPTIONS,
+    ]);
   });
 
-  it('chooses a radio with Space on each chip of both single-choice groups', async () => {
+  it('gives each dropdown one Tab stop, in reading order, and chooses an option', async () => {
     const user = await renderStepTwo();
-    const location = within(screen.getByRole('radiogroup', { name: LOCATION_NAME })).getAllByRole(
-      'radio',
-    );
-    await user.tab();
-    expect(location[0]).toHaveFocus();
-    await user.keyboard(' ');
-    expect(location[0]).toBeChecked();
+    const location = screen.getByRole('combobox', { name: LOCATION_NAME });
+    const duration = screen.getByRole('combobox', { name: DURATION_NAME });
 
-    // Clear, text box, then duration.
+    await user.tab(); // from the heading into the room dropdown
+    expect(location).toHaveFocus();
+    await user.selectOptions(location, LOCATION_OPTIONS[1]);
+    expect(location).toHaveValue(LOCATION_OPTIONS[1]);
+    expect(location).toHaveFocus();
+
+    // Next stops: the exact-place text box, then the duration dropdown. No Clear buttons.
     await user.tab();
+    expect(screen.getByRole('textbox', { name: /Exactly where/ })).toHaveFocus();
     await user.tab();
-    await user.tab();
-    const duration = within(screen.getByRole('radiogroup', { name: DURATION_NAME })).getAllByRole(
-      'radio',
-    );
-    expect(duration[0]).toHaveFocus();
-    await user.keyboard(' ');
-    expect(duration[0]).toBeChecked();
+    expect(duration).toHaveFocus();
+    expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+
+    await user.selectOptions(duration, DURATION_OPTIONS[2]);
+    expect(duration).toHaveValue(DURATION_OPTIONS[2]);
+    expect(within(duration).getAllByRole('option', { selected: true })).toHaveLength(1);
+  });
+
+  it('clears the duration by choosing the empty option', async () => {
+    const user = await renderStepTwo();
+    const duration = screen.getByRole('combobox', { name: DURATION_NAME });
+    await user.selectOptions(duration, DURATION_OPTIONS[0]);
+    expect(duration).toHaveValue(DURATION_OPTIONS[0]);
+    await user.selectOptions(duration, 'Choose how long (optional)');
+    expect(duration).toHaveValue('');
   });
 });
-
 describe('GuidedIntake keyboard: Step 2 Extras_Group and navigation', () => {
   it('gives every extras checkbox its own Tab stop, toggled with Space, then Back and Next', async () => {
     const user = await renderStepTwo();
@@ -165,7 +148,7 @@ describe('GuidedIntake keyboard: Step 2 Extras_Group and navigation', () => {
     );
     expect(extras).toHaveLength(EXTRAS_OPTIONS.length);
 
-    // Skip to the first extras checkbox: location (1), duration (1) stops, plus the text box.
+    // Skip to the first extras checkbox: room dropdown, exact place text, duration dropdown.
     await user.tab(); // location
     await user.tab(); // exact place text
     await user.tab(); // duration

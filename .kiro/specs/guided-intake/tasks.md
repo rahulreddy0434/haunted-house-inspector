@@ -2,9 +2,9 @@
 
 ## Overview
 
-This plan replaces the single long form on the Home_Page with the three-step Guided_Intake, in TypeScript, following the design's "Order of work for the tasks phase". Safety comes first: Safety_Wording, the Answer_Mapper and their tests are built before any UI, then the Live_Emergency_Notice. Each parent task leaves the app working and the tests passing. `useUpload`, `runUploadFlow`, `DropZone`, `DataRetentionNotice` and `EmergencyBanner` are reused unchanged. Chips are native radio and checkbox inputs with no custom keyboard code. Nothing in `src/lib/safety/`, `src/lib/emergency/messages.ts` or `src/app/api/inspect/route.ts` is edited.
+This plan replaces the single long form on the Home_Page with the three-step Guided_Intake, in TypeScript, following the design's "Order of work for the tasks phase". Safety comes first: Safety_Wording, the Answer_Mapper and their tests are built before any UI, then the Live_Emergency_Notice. Each parent task leaves the app working and the tests passing. `useUpload`, `runUploadFlow`, `DropZone`, `DataRetentionNotice` and `EmergencyBanner` are reused unchanged. The room and the duration are native `<select>` dropdowns (Location_Select, Duration_Select) and the Safety and Extras chips are native checkbox inputs, with no custom keyboard code. The dropdowns replace the two single-choice chip groups of the first build; the code change is made by the `screens-polish` spec (Requirement 16), and the tasks below describe the result. Nothing in `src/lib/safety/`, `src/lib/emergency/messages.ts` or `src/app/api/inspect/route.ts` is edited.
 
-Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other tests that Requirement 13 lists (route test, mapping examples, Back/Next keeps choices, keyboard use of every chip group, Sample_Button, Live_Emergency_Notice, real progress stages). Properties 6, 7, 9, 10, 11 and 12 and a few extra component tests are optional (marked with `*`).
+Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other tests that Requirement 13 lists (route test, mapping examples, Back/Next keeps choices, keyboard use of the two chip groups and the two dropdowns, Sample_Button, Live_Emergency_Notice, real progress stages). Properties 6, 7, 9, 10, 11 and 12 and a few extra component tests are optional (marked with `*`).
 
 ## Tasks
 
@@ -120,8 +120,8 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
     - _Requirements: 9.5, 9.8, 9.9, 9.10_
 
 - [x] 4. Chips, text fields and the Live_Emergency_Notice
-  - [x] 4.1 Build `ChipGroup`, `FreeTextField` and `StepHeading`
-    - Create `src/components/intake/ChipGroup.tsx`: `fieldset` with `aria-labelledby` pointing to the legend's `id`; `role="radiogroup"` on single-choice groups; native `input type="radio"` or `checkbox` with `peer` and a label as the chip; real `aria-hidden` check mark; `min-h-11 min-w-11`; wrapping text; `peer-checked:` and `peer-focus-visible:` styles with `haunted:` partners; "Clear" button for single-choice groups; error slot with `aria-invalid` and `aria-describedby`
+  - [x] 4.1 Build `ChipGroup`, `SelectField`, `FreeTextField` and `StepHeading`
+    - Create `src/components/intake/ChipGroup.tsx`: multi-choice only (Safety_Group and Extras_Group): `fieldset` with `aria-labelledby` pointing to the legend's `id`; native `input type="checkbox"` with `peer` and a label as the chip; real `aria-hidden` check mark; `min-h-11 min-w-11`; wrapping text; `peer-checked:` and `peer-focus-visible:` styles with `haunted:` partners
     - Create `FreeTextField.tsx` (label, counter, limit, error, over-limit note) and `StepHeading.tsx` (`h2`, `tabIndex={-1}`, ref)
     - No `onKeyDown`, `onKeyUp`, `onKeyPress`, `role="radio"` or `role="checkbox"`; no hex or rgb colours; no `animate-`, `transition` or `duration-` classes
     - _Requirements: 3.9, 5.2, 5.3, 5.4, 5.6, 5.7, 5.8, 5.11, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 11.2, 11.5_
@@ -131,8 +131,9 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
     - Leave `EmergencyBanner` unchanged
     - _Requirements: 2.1, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 11.7_
 
-  - [x] 4.3 Write ChipGroup tests for names and keyboard
-    - `ChipGroup.test.tsx` with user-event: `getByRole('radiogroup', { name })` for single-choice groups and `getByRole('group', { name })` for multi-choice groups; each fieldset's `aria-labelledby` equals its legend's `id`; Tab stops, arrow keys in radio groups, Space on checkboxes; single-choice replaces and Clear works; multi-choice toggles off
+  - [x] 4.3 Write ChipGroup and SelectField tests for names and keyboard
+    - `ChipGroup.test.tsx` with user-event: `getByRole('group', { name })` for the Safety and Extras groups; each fieldset's `aria-labelledby` equals its legend's `id`; one Tab stop per checkbox, Space on checkboxes; multi-choice toggles off
+    - `SelectField.test.tsx` with user-event: `getByRole('combobox', { name })` for the Location_Select and the Duration_Select; Tab reaches each; the empty first option "Choose a room" or "Choose how long (optional)" is followed by the options in order; `selectOptions` and the arrow keys change the value; choosing a different option replaces the choice; the empty option gives `null`
     - _Requirements: 5.3, 5.5, 5.6, 6.2, 6.3, 6.9, 6.10_
 
   - [x] 4.4 Write Live_Emergency_Notice test
@@ -164,30 +165,30 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
 
   - [x] 6.2 Build `StepOne`, `StepTwo` and `StepThree`
     - Step 1 order: heading, Safety_Group, Live_Emergency_Notice, `DropZone`, Sample_Button (only while no file), error, Next
-    - Step 2 order: heading, notice, Location_Group with Exact_Place_Text (required when Other), Duration_Group, Extras_Group with Something_Else_Text (only while the chip is on), error, Back, Next
+    - Step 2 order: heading, notice, Location_Select with Exact_Place_Text (required when Other), Duration_Select, Extras_Group with Something_Else_Text (only while the chip is on), error, Back, Next
     - Step 3 order: heading, notice, `ReviewList`, `DataRetentionNotice`, status panel, Back, "Inspect my home"
     - _Requirements: 2.2, 3.1, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 5.1, 5.7, 5.8, 5.9, 5.10, 5.11, 5.13, 8.3, 8.6, 8.7_
 
   - [x] 6.3 Build `GuidedIntake` and switch the page
-    - Create `GuidedIntake.tsx`: `useUpload()` plus `useReducer(intakeReducer)`; `mapAnswers` memoised and pushed with `setAnswers` in an effect; Next and Back with `validateStep`; focus and scroll to the heading on step change (not on first render; no smooth scroll under reduced motion); focus the first invalid control; sample handler using `loadSample` and `mergeSelection`, rotation index moved only on success; `handleSubmit` with the existing notice prompt and a re-check of Step 2; send through `submit()` and `buildInspectRequestBody`
+    - Create `GuidedIntake.tsx`: `useUpload()` plus `useReducer(intakeReducer)`; `mapAnswers` memoised and pushed with `setAnswers` in an effect; Next and Back with `validateStep`; focus and scroll to the heading on step change (not on first render; no smooth scroll under reduced motion); focus the first invalid control (a missing room focuses the Location_Select, which carries `aria-invalid` and `aria-describedby`); sample handler using `loadSample` and `mergeSelection`, rotation index moved only on success; `handleSubmit` with the existing notice prompt and a re-check of Step 2; send through `submit()` and `buildInspectRequestBody`
     - Change `src/app/page.tsx` to render `GuidedIntake`, keeping the `h1`, intro text and `HelpSection`
     - Leave `useUpload`, `runUploadFlow`, `DropZone` and `DataRetentionNotice` unchanged
     - _Requirements: 3.3, 3.7, 3.8, 3.9, 3.11, 3.12, 3.13, 1.5, 7.10, 8.4, 8.5, 9.2, 9.3, 9.4, 9.6, 9.7, 9.8, 10.3, 10.6_
 
   - [x] 6.4 Write test that Back and Next keep every answer
-    - `GuidedIntake.navigation.test.tsx`: add a file, tap Safety, Location, Duration and Extras chips, type all three Free_Text values, go to Step 3, go Back twice and forward again; every file, chip and text value is still present; Change links keep the state; Something_Else_Text survives deselect and reselect
+    - `GuidedIntake.navigation.test.tsx`: add a file, tap Safety and Extras chips, choose a room and a duration in the two dropdowns, type all three Free_Text values, go to Step 3, go Back twice and forward again; every file, chip and text value is still present; Change links keep the state; Something_Else_Text survives deselect and reselect
     - _Requirements: 3.10, 3.11, 5.10, 8.2, 13.5_
 
   - [ ]* 6.5 Write step flow tests
     - `GuidedIntake.steps.test.tsx`: titles, "Step N of 3" and `aria-valuenow`, Back and Next per step, focus on the heading, scroll behaviour with and without reduced motion, error messages with `aria-invalid` and `aria-describedby`, focus on the first invalid control, notice shown on Steps 1, 2 and 3 in the right place, send still allowed with a Safety_Chip
     - _Requirements: 1.5, 2.2, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.12, 3.13, 6.7, 8.4_
 
-  - [x] 6.6 Write keyboard tests for all four chip groups
-    - `GuidedIntake.keyboard.test.tsx`: Safety_Group on Step 1; Location_Group, Duration_Group and Extras_Group on Step 2; Tab order, arrow keys in single-choice groups, Space on each chip, one Tab stop per checkbox; Back and Next reachable by Tab; group names checked with `getByRole`
+  - [x] 6.6 Write keyboard tests for the two chip groups and the two dropdowns
+    - `GuidedIntake.keyboard.test.tsx`: Safety_Group on Step 1; Location_Select, Duration_Select and Extras_Group on Step 2; Tab order, Space on each chip, one Tab stop per checkbox, arrow keys and `selectOptions` on each dropdown; Back and Next reachable by Tab; names checked with `getByRole` (`group` for the chip groups, `combobox` for the dropdowns)
     - _Requirements: 6.1, 6.2, 6.3, 6.10, 13.6_
 
   - [x] 6.7 Write Sample_Button tests
-    - `SampleButton.test.tsx`: shown only while no file and on Step 1 only; adds exactly one file through the normal validation; pre-selects the manifest answers on Step 2 where they can be changed or cleared; selects no Safety_Chip; leaves Safety_Group and Free_Text unchanged; rotates in manifest order and wraps (remove the sample, tap again, get the other one); failed fetch shows "We couldn't load the sample photo. Please add your own photo." and changes nothing
+    - `SampleButton.test.tsx`: shown only while no file and on Step 1 only; adds exactly one file through the normal validation; pre-selects the manifest answers on Step 2 (both dropdowns and the Extras chips) where they can be changed or cleared; selects no Safety_Chip; leaves Safety_Group and Free_Text unchanged; rotates in manifest order and wraps (remove the sample, tap again, get the other one); failed fetch shows "We couldn't load the sample photo. Please add your own photo." and changes nothing
     - _Requirements: 4.4, 4.5, 5.13, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.8, 13.7_
 
   - [x] 6.8 Write real-stage and Live_Emergency_Notice placement tests
@@ -204,7 +205,7 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
 
 - [x] 8. Theme contrast and source scan
   - [x] 8.1 Add Contrast_Registry rows
-    - In `src/lib/haunted/contrastRegistry.ts`, add rows only for pairs not yet listed: unselected chip text, chip border, selected chip border against fill, progress fill against track, "Step N of 3" text, focus ring against page and selected fill, in both themes; reuse existing rows (for example `F-01`, `F-02` for the emergency banner); the existing `checkRegistry` test must pass
+    - In `src/lib/haunted/contrastRegistry.ts`, add rows only for pairs not yet listed: unselected chip text, chip border, dropdown text and border, selected chip border against fill, progress fill against track, "Step N of 3" text, focus ring against page and selected fill, in both themes; reuse existing rows (for example `F-01`, `F-02` for the emergency banner); the existing `checkRegistry` test must pass
     - _Requirements: 6.4, 11.2, 11.3_
 
   - [x] 8.2 Extend the source scan (additions only)
@@ -212,8 +213,9 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
     - Never remove a file from the scan and never loosen a rule
     - _Requirements: 11.2, 11.5, 11.6_
 
-  - [ ]* 8.3 Write ChipGroup class check
-    - Assert `min-h-11`, `min-w-11`, `peer-focus-visible:` and `peer-checked:` are present, `truncate` is absent, and the notice file has no `haunted:` class
+  - [ ]* 8.3 Write ChipGroup and SelectField class check
+    - Assert for `SelectField` that `min-h-11` and `focus-visible:` are present
+    - Assert `min-h-11`, `min-w-11`, `peer-focus-visible:` and `peer-checked:` are present in `ChipGroup`, `truncate` is absent, and the notice file has no `haunted:` class
     - _Requirements: 2.4, 6.4, 6.6, 6.8_
 
 - [x] 9. Cleanup of the old form
@@ -233,7 +235,7 @@ Property tests for Properties 1, 2, 3, 4, 5 and 8 are required. So are the other
 
 - Tasks marked with `*` are optional and can be skipped for a faster MVP.
 - Properties 1, 2, 3, 4, 5 and 8 are required and are not marked optional; they map to Requirements 1.2, 1.1/1.6/1.7, 7.11, 7.7, 7.8 and 3.10.
-- Required tests also include the Requirement 13 route test, mapping examples, keyboard test for all four chip groups, Sample_Button tests, notice test and stage test.
+- Required tests also include the Requirement 13 route test, mapping examples, keyboard tests for the two chip groups and the two dropdowns, Sample_Button tests, notice test and stage test.
 - Each property test uses fast-check with at least 100 runs and a tag comment `// Feature: guided-intake, Property N: ...`.
 - No task edits `src/lib/safety/`, `src/lib/emergency/messages.ts` or `src/app/api/inspect/route.ts`.
 - Run `next lint`, `tsc --noEmit` and `vitest --run` after each parent task.
